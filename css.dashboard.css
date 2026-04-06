@@ -1,0 +1,341 @@
+/* ============================================================================
+   DASHBOARD SPECIFIC STYLES
+   ============================================================================ */
+
+/* Summary Cards */
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+.summary-card {
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 20px;
+    transition: box-shadow 0.2s;
+}
+
+.summary-card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+}
+
+.summary-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+.summary-value {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #1A1A1A;
+}
+
+.summary-value.status-operational {
+    font-size: 24px;
+    color: #10B981;
+}
+
+.summary-label {
+    font-size: 14px;
+    color: #5A5A5A;
+}
+
+.summary-meta {
+    font-size: 12px;
+    color: #0D9488;
+    margin-top: 4px;
+}
+
+.summary-warning {
+    font-size: 12px;
+    color: #F59E0B;
+    margin-top: 4px;
+}
+
+.pulse-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: #10B981;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.pulse-text {
+    font-size: 12px;
+    color: #10B981;
+    font-weight: 500;
+}
+
+/* Experiment Banner */
+.experiment-banner {
+    background: linear-gradient(135deg, #0D9488 0%, #059669 100%);
+    border-radius: 12px;
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+}
+
+.banner-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.banner-icon {
+    font-size: 32px;
+}
+
+.banner-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.banner-subtitle {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.banner-actions .btn-sm {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 8px 16px;
+    font-size: 14px;
+}
+
+.banner-actions .btn-sm:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+/* Alert Link */
+.alert-link {
+    color: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+    margin-left: 8px;
+}
+
+/* Greenhouse Status Cards */
+.greenhouse-status-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.greenhouse-status-card {
+    background: white;
+    border: 2px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.greenhouse-status-card.gh-a {
+    border-top: 4px solid #0D9488;
+}
+
+.greenhouse-status-card.gh-b {
+    border-top: 4px solid #059669;
+}
+
+.gh-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #F3F4F6;
+}
+
+.gh-icon {
+    font-size: 28px;
+}
+
+.gh-title {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.gh-subtitle {
+    font-size: 12px;
+    color: #5A5A5A;
+}
+
+.gh-parameters {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.param-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background: #F9FAFB;
+    border-radius: 8px;
+}
+
+.param-item.critical {
+    background: #FEE2E2;
+}
+
+.param-icon {
+    font-size: 20px;
+}
+
+.param-label {
+    font-size: 11px;
+    color: #5A5A5A;
+    text-transform: uppercase;
+}
+
+.param-value {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.param-item.critical .param-value {
+    color: #EF4444;
+}
+
+.gh-footer {
+    padding-top: 12px;
+    border-top: 1px solid #F3F4F6;
+}
+
+.gh-link {
+    font-size: 14px;
+    font-weight: 500;
+    color: #0D9488;
+    text-decoration: none;
+}
+
+.gh-link:hover {
+    text-decoration: underline;
+}
+
+/* Event Icons */
+.event-icon {
+    font-size: 20px;
+}
+
+.event-icon.critical { color: #EF4444; }
+.event-icon.warning { color: #F59E0B; }
+.event-icon.info { color: #3B82F6; }
+.event-icon.success { color: #10B981; }
+
+/* Badge Variants */
+.badge-greenhouse-a {
+    background: #E0F2F1;
+    color: #0F766E;
+}
+
+.badge-greenhouse-b {
+    background: #D1FAE5;
+    color: #065F46;
+}
+
+/* Hardware Section */
+.section-title {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.hardware-section {
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.hardware-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+.hardware-card {
+    text-align: center;
+    padding: 16px;
+    background: #F9FAFB;
+    border-radius: 8px;
+    border: 1px solid #E5E7EB;
+}
+
+.hw-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+.hw-name {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.hw-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #5A5A5A;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .greenhouse-status-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .hardware-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .experiment-banner {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+    
+    .banner-content {
+        flex-direction: column;
+    }
+    
+    .gh-parameters {
+        grid-template-columns: 1fr;
+    }
+    
+    .hardware-grid {
+        grid-template-columns: 1fr;
+    }
+}

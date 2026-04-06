@@ -1,0 +1,315 @@
+/* ============================================================================
+   EXPERIMENTS PAGE STYLES
+   ============================================================================ */
+
+/* Experiment Detail Card */
+.experiment-detail-card {
+    background: white;
+    border: 2px solid #E5E7EB;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.experiment-detail-card.active {
+    border-color: #0D9488;
+    box-shadow: 0 0 0 3px rgba(13,148,136,0.1);
+}
+
+.experiment-header {
+    background: linear-gradient(135deg, #0D9488 0%, #059669 100%);
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.exp-badge-large {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+}
+
+.exp-icon {
+    font-size: 32px;
+}
+
+.badge-active {
+    animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+.exp-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.exp-actions .btn {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+.exp-actions .btn:hover:not(:disabled) {
+    background: rgba(255,255,255,0.3);
+}
+
+.experiment-body {
+    padding: 24px;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+}
+
+.exp-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #1A1A1A;
+}
+
+.exp-meta {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 16px;
+    background: #F9FAFB;
+    border-radius: 8px;
+}
+
+.meta-item {
+    font-size: 14px;
+    color: #5A5A5A;
+}
+
+.meta-item strong {
+    color: #1A1A1A;
+}
+
+.exp-description {
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    padding: 16px;
+    background: #FEF3C7;
+    border-left: 4px solid #F59E0B;
+    border-radius: 4px;
+}
+
+.exp-greenhouse-assignment {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.gh-assignment {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: #F9FAFB;
+    border-radius: 8px;
+    border: 1px solid #E5E7EB;
+}
+
+.gh-assignment-icon {
+    font-size: 32px;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+}
+
+.gh-assignment-icon.gh-a {
+    background: #E0F2F1;
+}
+
+.gh-assignment-icon.gh-b {
+    background: #D1FAE5;
+}
+
+.gh-assignment-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.gh-assignment-role {
+    font-size: 12px;
+    color: #5A5A5A;
+    margin-bottom: 4px;
+}
+
+.gh-assignment-desc {
+    font-size: 13px;
+    color: #1A1A1A;
+}
+
+.exp-stats {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.stat-card {
+    padding: 16px;
+    background: #F9FAFB;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid #E5E7EB;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0D9488;
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #5A5A5A;
+    text-transform: uppercase;
+}
+
+/* Lock Notice */
+.lock-notice {
+    display: flex;
+    gap: 20px;
+    padding: 24px;
+    background: #FEF3C7;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #FDE68A;
+}
+
+.lock-icon {
+    font-size: 48px;
+    color: #F59E0B;
+}
+
+.lock-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #92400E;
+    margin-bottom: 8px;
+}
+
+.lock-message {
+    font-size: 14px;
+    color: #92400E;
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+
+.lock-info {
+    font-size: 13px;
+    color: #78350F;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 4px;
+}
+
+.btn-lg {
+    width: 100%;
+    padding: 14px 24px;
+    font-size: 16px;
+}
+
+/* Recent Experiments Table */
+.row-active {
+    background: rgba(13,148,136,0.05);
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: #0D9488;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.btn-link:hover:not(:disabled) {
+    color: #0F766E;
+}
+
+.btn-link:disabled {
+    color: #9CA3AF;
+    cursor: not-allowed;
+    text-decoration: none;
+}
+
+/* Hardware Notice */
+.hardware-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+}
+
+.notice-icon {
+    font-size: 32px;
+    color: #0D9488;
+}
+
+.notice-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.notice-text {
+    font-size: 14px;
+    color: #5A5A5A;
+    line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .experiment-body {
+        grid-template-columns: 1fr;
+    }
+    
+    .exp-meta {
+        grid-template-columns: 1fr;
+    }
+    
+    .exp-greenhouse-assignment {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .experiment-header {
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .exp-actions {
+        width: 100%;
+    }
+    
+    .exp-actions .btn {
+        flex: 1;
+    }
+    
+    .lock-notice {
+        flex-direction: column;
+        text-align: center;
+    }
+}

@@ -1,0 +1,237 @@
+/* ============================================================================
+   SETTINGS PAGE STYLES
+   ============================================================================ */
+
+/* Settings Grid */
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+.settings-content {
+    padding: 20px;
+}
+
+/* Setting Items */
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #F3F4F6;
+}
+
+.setting-item:last-child {
+    border-bottom: none;
+}
+
+.setting-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #5A5A5A;
+}
+
+.setting-value {
+    font-size: 14px;
+    color: #1A1A1A;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Threshold Groups */
+.threshold-group {
+    padding: 16px;
+    background: #F9FAFB;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    border: 1px solid #E5E7EB;
+}
+
+.threshold-group:last-child {
+    margin-bottom: 0;
+}
+
+.threshold-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #1A1A1A;
+}
+
+.threshold-values {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.threshold-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+}
+
+.threshold-label {
+    color: #5A5A5A;
+}
+
+.threshold-value {
+    color: #1A1A1A;
+    font-weight: 500;
+}
+
+/* Hardware Sections */
+.hardware-section {
+    margin-bottom: 24px;
+}
+
+.hardware-section:last-child {
+    margin-bottom: 0;
+}
+
+.hw-section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1A1A1A;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #0D9488;
+}
+
+.hw-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #F3F4F6;
+}
+
+.hw-item:last-child {
+    border-bottom: none;
+}
+
+.hw-name {
+    font-size: 14px;
+    color: #1A1A1A;
+}
+
+.hw-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #5A5A5A;
+}
+
+/* User List */
+.user-list {
+    margin-bottom: 20px;
+}
+
+.user-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: #F9FAFB;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    border: 1px solid #E5E7EB;
+}
+
+.user-item:last-child {
+    margin-bottom: 0;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-avatar-small {
+    width: 40px;
+    height: 40px;
+    background: #0D9488;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.user-name-text {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.user-email {
+    font-size: 12px;
+    color: #5A5A5A;
+}
+
+.btn-full {
+    width: 100%;
+}
+
+/* Maintenance Items */
+.maintenance-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: #F9FAFB;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    border: 1px solid #E5E7EB;
+}
+
+.maintenance-item:last-child {
+    margin-bottom: 0;
+}
+
+.maintenance-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.maintenance-date {
+    font-size: 12px;
+    color: #5A5A5A;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .setting-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .threshold-item {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .user-item {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .maintenance-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+}

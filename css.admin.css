@@ -1,0 +1,905 @@
+/* ============================================================================
+   ADMIN PANEL STYLES - EcoTwin
+   ============================================================================ */
+
+/* Admin Nav Badge */
+.admin-badge-nav {
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+}
+
+/* Admin Page Header */
+.admin-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 28px;
+  padding: 24px 28px;
+  background: linear-gradient(135deg, #0D9488 0%, #059669 60%, #0F766E 100%);
+  border-radius: 16px;
+  color: white;
+}
+
+.admin-title-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.admin-crown {
+  font-size: 40px;
+  background: rgba(255,255,255,0.2);
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-page-header .page-title {
+  color: white;
+  margin-bottom: 6px;
+}
+
+.admin-page-header .page-subtitle {
+  color: rgba(255,255,255,0.85);
+  font-size: 15px;
+}
+
+.admin-role-badge {
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.35);
+  padding: 8px 18px;
+  border-radius: 24px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(4px);
+}
+
+/* Admin Tabs */
+.admin-tabs {
+  display: flex;
+  gap: 6px;
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 6px;
+}
+
+.admin-tab {
+  flex: 1;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 500;
+  color: #5A5A5A;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.admin-tab:hover {
+  background: #F3F4F6;
+  color: #1A1A1A;
+}
+
+.admin-tab.active {
+  background: #0D9488;
+  color: white;
+  font-weight: 600;
+}
+
+/* Tab Content */
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* ============================================================================
+   PLANT LIBRARY
+   ============================================================================ */
+
+.tab-layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 24px;
+  min-height: 600px;
+}
+
+/* Plant Selector Panel */
+.plant-selector-panel {
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.panel-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1A1A1A;
+}
+
+.plant-search-wrap {
+  padding: 12px 16px;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.plant-search {
+  width: 100%;
+  padding: 9px 14px;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  background: #F9FAFB;
+  transition: all 0.2s;
+}
+
+.plant-search:focus {
+  border-color: #0D9488;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(13,148,136,0.1);
+}
+
+.plant-category-filters {
+  display: flex;
+  gap: 6px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #F3F4F6;
+  flex-wrap: wrap;
+}
+
+.cat-btn {
+  padding: 4px 12px;
+  border: 1px solid #E5E7EB;
+  border-radius: 16px;
+  background: white;
+  font-size: 12px;
+  font-weight: 500;
+  color: #5A5A5A;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cat-btn:hover {
+  border-color: #0D9488;
+  color: #0D9488;
+}
+
+.cat-btn.active {
+  background: #0D9488;
+  border-color: #0D9488;
+  color: white;
+}
+
+.plant-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.plant-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid #F9FAFB;
+  transition: background 0.15s;
+}
+
+.plant-list-item:hover {
+  background: #F3F4F6;
+}
+
+.plant-list-item.selected {
+  background: #E0F2F1;
+  border-left: 3px solid #0D9488;
+}
+
+.plant-item-icon {
+  font-size: 28px;
+  width: 40px;
+  text-align: center;
+}
+
+.plant-item-info {
+  flex: 1;
+}
+
+.plant-item-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1A1A1A;
+}
+
+.plant-item-sci {
+  font-size: 11px;
+  color: #9CA3AF;
+  font-style: italic;
+}
+
+.plant-cat-tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.cat-leafy   { background: #D1FAE5; color: #065F46; }
+.cat-fruiting { background: #FEE2E2; color: #991B1B; }
+.cat-herb    { background: #D1FAE5; color: #065F46; }
+.cat-root    { background: #FEF3C7; color: #92400E; }
+
+.no-plants {
+  padding: 40px 20px;
+  text-align: center;
+  color: #9CA3AF;
+  font-size: 14px;
+}
+
+/* Plant Detail Panel */
+.plant-detail-panel {
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 400px;
+  gap: 12px;
+  color: #9CA3AF;
+}
+
+.detail-placeholder .placeholder-icon {
+  font-size: 56px;
+  opacity: 0.5;
+}
+
+.detail-placeholder .placeholder-text {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.detail-placeholder .placeholder-subtext {
+  font-size: 13px;
+}
+
+/* Plant Detail Content */
+.plant-detail-content {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.detail-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #F3F4F6;
+}
+
+.detail-icon-large {
+  font-size: 52px;
+  line-height: 1;
+}
+
+.detail-title-block {
+  flex: 1;
+}
+
+.detail-plant-name {
+  font-size: 26px;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin-bottom: 4px;
+}
+
+.detail-plant-sci {
+  font-size: 13px;
+  color: #9CA3AF;
+  font-style: italic;
+  margin-bottom: 8px;
+}
+
+.detail-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Threshold Cards Grid */
+.threshold-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.th-card {
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.th-card-header {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #E5E7EB;
+}
+
+.th-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 12px;
+}
+
+.th-row.th-optimal {
+  background: #D1FAE5;
+  border-radius: 4px;
+  padding: 5px 6px;
+  margin: 4px 0;
+}
+
+.th-label {
+  color: #5A5A5A;
+}
+
+.th-val {
+  font-weight: 600;
+  color: #1A1A1A;
+}
+
+.plant-notes {
+  background: #FFFBEB;
+  border-left: 4px solid #F59E0B;
+  padding: 14px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #78350F;
+  line-height: 1.6;
+}
+
+/* ============================================================================
+   GREENHOUSE ASSIGNMENT
+   ============================================================================ */
+
+.greenhouse-assign-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 0;
+}
+
+.gh-assign-card {
+  background: white;
+  border: 2px solid #E5E7EB;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.gh-a-card {
+  border-top: 5px solid #0D9488;
+}
+
+.gh-b-card {
+  border-top: 5px solid #059669;
+}
+
+.gh-assign-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.gh-assign-icon {
+  font-size: 32px;
+}
+
+.gh-assign-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.gh-assign-role {
+  font-size: 12px;
+  color: #5A5A5A;
+}
+
+.gh-assign-header .badge {
+  margin-left: auto;
+}
+
+.gh-assign-body {
+  padding: 20px;
+}
+
+.form-label-admin {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #5A5A5A;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.form-select-admin {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #D1D5DB;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #F9FAFB;
+  outline: none;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.form-select-admin:focus {
+  border-color: #0D9488;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(13,148,136,0.1);
+}
+
+.assigned-plant-preview {
+  margin-top: 14px;
+}
+
+.gh-plant-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #E0F2F1;
+  border-radius: 8px;
+  border: 1px solid #99F6E4;
+}
+
+.preview-icon {
+  font-size: 30px;
+}
+
+.preview-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0F766E;
+}
+
+.preview-sci {
+  font-size: 11px;
+  color: #5A5A5A;
+  font-style: italic;
+}
+
+.gh-threshold-summary {
+  margin-top: 14px;
+}
+
+.threshold-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.mini-thresh {
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+}
+
+.mini-thresh-icon {
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+
+.mini-thresh-label {
+  font-size: 10px;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.mini-thresh-val {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0D9488;
+}
+
+.gh-assign-footer {
+  padding: 14px 20px;
+  border-top: 1px solid #F3F4F6;
+  display: flex;
+  gap: 10px;
+}
+
+.gh-assign-footer .btn {
+  flex: 1;
+}
+
+/* ============================================================================
+   MODAL STYLES
+   ============================================================================ */
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.6);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-overlay[style*="flex"] {
+  display: flex !important;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.modal-container {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  width: 90%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease-out;
+}
+
+.modal-wide {
+  max-width: 760px;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+.modal-header {
+  padding: 28px 32px 20px;
+  text-align: center;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.modal-icon {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+
+.modal-icon.confirm {
+  background: #E0F2F1;
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin: 0;
+}
+
+.modal-body {
+  padding: 24px 32px;
+}
+
+.modal-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.form-group-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.form-group-modal label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #5A5A5A;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.form-input-modal {
+  padding: 9px 12px;
+  border: 1.5px solid #D1D5DB;
+  border-radius: 7px;
+  font-size: 14px;
+  outline: none;
+  font-family: inherit;
+  background: #F9FAFB;
+  transition: all 0.2s;
+}
+
+.form-input-modal:focus {
+  border-color: #0D9488;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(13,148,136,0.1);
+}
+
+.form-select-modal {
+  padding: 9px 12px;
+  border: 1.5px solid #D1D5DB;
+  border-radius: 7px;
+  font-size: 14px;
+  outline: none;
+  font-family: inherit;
+  background: #F9FAFB;
+  transition: all 0.2s;
+}
+
+.form-select-modal:focus {
+  border-color: #0D9488;
+  background: white;
+}
+
+.form-textarea-modal {
+  padding: 9px 12px;
+  border: 1.5px solid #D1D5DB;
+  border-radius: 7px;
+  font-size: 14px;
+  outline: none;
+  font-family: inherit;
+  background: #F9FAFB;
+  resize: vertical;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.form-textarea-modal:focus {
+  border-color: #0D9488;
+  background: white;
+}
+
+.threshold-section-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0D9488;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+  padding: 6px 0;
+  border-bottom: 2px solid #E0F2F1;
+}
+
+.threshold-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.modal-actions {
+  padding: 20px 32px 28px;
+  display: flex;
+  gap: 12px;
+  border-top: 1px solid #E5E7EB;
+}
+
+.modal-actions .btn {
+  flex: 1;
+  padding: 11px 24px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ============================================================================
+   TOGGLE SWITCH
+   ============================================================================ */
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #D1D5DB;
+  border-radius: 12px;
+  transition: 0.3s;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.3s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: #0D9488;
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+
+/* ============================================================================
+   TOAST NOTIFICATION
+   ============================================================================ */
+
+.toast {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  background: #1A1A1A;
+  color: white;
+  padding: 14px 22px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 99999;
+  max-width: 360px;
+}
+
+.toast.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.toast.toast-error {
+  background: #991B1B;
+}
+
+.toast.toast-warning {
+  background: #92400E;
+}
+
+/* ============================================================================
+   USERS TAB
+   ============================================================================ */
+
+.users-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 1200px) {
+  .tab-layout {
+    grid-template-columns: 300px 1fr;
+  }
+  .threshold-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .tab-layout {
+    grid-template-columns: 1fr;
+  }
+  .greenhouse-assign-grid {
+    grid-template-columns: 1fr;
+  }
+  .threshold-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .modal-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-page-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .admin-title-row {
+    flex-direction: column;
+    text-align: center;
+  }
+  .admin-tabs {
+    flex-wrap: wrap;
+  }
+  .admin-tab {
+    flex: none;
+    width: calc(50% - 3px);
+  }
+  .threshold-cards-grid {
+    grid-template-columns: 1fr;
+  }
+  .threshold-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .threshold-mini-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .toast {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+  }
+  .modal-body {
+    padding: 20px;
+  }
+  .modal-actions {
+    padding: 16px 20px;
+  }
+}
