@@ -120,6 +120,22 @@ function evalStatus(float $value, array $threshold): string {
     return 'caution';
 }
 
+function badgeFromActualReadings(array $readings, array $thresholds): string {
+    $hasCritical = false;
+    $hasCaution = false;
+
+    foreach ($thresholds as $parameter => $threshold) {
+        if (!isset($readings[$parameter]['value'])) continue;
+        $status = evalStatus((float)$readings[$parameter]['value'], $threshold);
+        if ($status === 'critical') $hasCritical = true;
+        if ($status === 'caution') $hasCaution = true;
+    }
+
+    if ($hasCritical) return '<span class="badge badge-danger">Critical Alert</span>';
+    if ($hasCaution)  return '<span class="badge badge-warning">Caution</span>';
+    return '<span class="badge badge-success">All Systems Optimal</span>';
+}
+
 function statusBadge(string $status): string {
     return match($status) {
         'optimal'  => '<div class="param-status status-optimal">✓ Optimal</div>',
@@ -577,6 +593,9 @@ if (isset($data['A'])) {
 }
 if (isset($data['B'])) {
     $panel_b_html = renderGreenhousePanel('B', $data['B'], $active_exp ?: []);
+    $panel_b_badge = badgeFromActualReadings($data['B']['readings'] ?? [], $data['B']['thresholds'] ?? []);
+    $panel_b_html = preg_replace('/<div class="banner-status">.*?<\/div>/s', '<div class="banner-status">' . $panel_b_badge . '</div>', $panel_b_html, 1);
+    $panel_b_html = preg_replace('/<div class="gh-alerts mb-3">.*?<\/div>\s*(<div class="greenhouse-grid">)/s', '$1', $panel_b_html, 1);
 }
 
 // Active tab
@@ -772,7 +791,7 @@ async function saveRules(ghCode) {
     msgEl.style.display = 'none';
 
     try {
-        const res  = await fetch('greenhouses_api.php?action=save_rules', {
+        const res  = await fetch('greenhouses/greenhouses_api.php?action=save_rules', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({ gh_code: ghCode, rules }),
@@ -801,7 +820,7 @@ async function saveRules(ghCode) {
 // ── Reload rules from DB (reset form) ─────────────────────────────────────
 async function reloadRules(ghCode) {
     try {
-        const res   = await fetch(`greenhouses_api.php?action=get_rules&gh=${ghCode}`);
+        const res   = await fetch(`greenhouses/greenhouses_api.php?action=get_rules&gh=${ghCode}`);
         const rules = await res.json();
         rules.forEach(r => {
             const inputs = document.querySelectorAll(
@@ -818,7 +837,7 @@ async function reloadRules(ghCode) {
 // ── Refresh sensor statuses ────────────────────────────────────────────────
 async function refreshSensors(ghCode) {
     try {
-        const res     = await fetch(`greenhouses_api.php?action=get_sensors&gh=${ghCode}`);
+        const res     = await fetch(`greenhouses/greenhouses_api.php?action=get_sensors&gh=${ghCode}`);
         const sensors = await res.json();
         const el      = document.getElementById(`sensors-${ghCode.toLowerCase()}`);
         if (!el) return;
@@ -855,7 +874,7 @@ async function refreshSensors(ghCode) {
 // ── Live readings refresh (polls API) ─────────────────────────────────────
 async function refreshReadings(ghCode) {
     try {
-        const res  = await fetch(`greenhouses_api.php?action=get_readings&gh=${ghCode}`);
+        const res  = await fetch(`greenhouses/greenhouses_api.php?action=get_readings&gh=${ghCode}`);
         const data = await res.json();
         if (data.error) return;
 
@@ -923,7 +942,7 @@ async function loadTrend(ghCode, hours) {
     }
 
     try {
-        const res  = await fetch(`greenhouses_api.php?action=get_trend&gh=${ghCode}&hours=${hours}`);
+        const res  = await fetch(`greenhouses/greenhouses_api.php?action=get_trend&gh=${ghCode}&hours=${hours}`);
         const data = await res.json();
 
         if (!data.series || Object.keys(data.series).length === 0) {

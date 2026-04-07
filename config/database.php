@@ -9,6 +9,9 @@ define('DB_NAME',    'ecotwin_db');
 define('DB_USER',    'root');        // Change to your MySQL username
 define('DB_PASS',    '');            // Change to your MySQL password
 define('DB_CHARSET', 'utf8mb4');
+defined('APP_TIMEZONE') || define('APP_TIMEZONE', 'Asia/Manila');
+
+date_default_timezone_set(APP_TIMEZONE);
 
 /**
  * Returns a singleton PDO connection.
@@ -32,6 +35,7 @@ function db(): PDO
 
         try {
             $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+            $pdo->exec("SET time_zone = '+08:00'");
         } catch (PDOException $e) {
             // Do NOT expose raw PDO errors in production
             error_log('Database connection error: ' . $e->getMessage());

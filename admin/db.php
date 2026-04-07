@@ -8,6 +8,9 @@ defined('DB_NAME') || define('DB_NAME', 'ecotwin_db');
 defined('DB_USER') || define('DB_USER', 'root');        // Change to your MySQL username
 defined('DB_PASS') || define('DB_PASS', '');            // Change to your MySQL password
 defined('DB_CHARSET') || define('DB_CHARSET', 'utf8mb4');
+defined('APP_TIMEZONE') || define('APP_TIMEZONE', 'Asia/Manila');
+
+date_default_timezone_set(APP_TIMEZONE);
 
 function getDB(): PDO {
     static $pdo = null;
@@ -20,6 +23,7 @@ function getDB(): PDO {
         ];
         try {
             $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+            $pdo->exec("SET time_zone = '+08:00'");
         } catch (PDOException $e) {
             http_response_code(500);
             die(json_encode(['error' => 'Database connection failed: ' . $e->getMessage()]));

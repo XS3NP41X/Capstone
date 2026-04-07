@@ -29,16 +29,6 @@ try {
         WHERE recorded_at >= NOW() - INTERVAL 72 HOUR
     ")->fetchColumn();
 
-    $critCount = (int)$pdo->query("
-        SELECT COUNT(*) FROM alerts
-        WHERE severity = 'critical' AND created_at >= NOW() - INTERVAL 24 HOUR
-    ")->fetchColumn();
-
-    $warnCount = (int)$pdo->query("
-        SELECT COUNT(*) FROM alerts
-        WHERE severity = 'warning' AND created_at >= NOW() - INTERVAL 24 HOUR
-    ")->fetchColumn();
-
     $sensorRow = $pdo->query("
         SELECT
             SUM(CASE WHEN status = 'online' THEN 1 ELSE 0 END) AS online_cnt,
@@ -49,6 +39,59 @@ try {
         ? round(($sensorRow['online_cnt'] / $sensorRow['total_cnt']) * 100, 1)
         : 0;
 
+    $critCount = 0;
+    $warnCount = 0;
+    $ghRows = $pdo->query("
+        SELECT greenhouse_id, assigned_plant_id
+        FROM greenhouses
+        ORDER BY code
+    ")->fetchAll();
+
+    foreach ($ghRows as $gh) {
+        if (empty($gh['assigned_plant_id'])) {
+            continue;
+        }
+
+        $thresholdStmt = $pdo->prepare("
+            SELECT parameter, val_min, val_opt_low, val_opt_high, val_max
+            FROM plant_thresholds
+            WHERE plant_id = ?
+        ");
+        $thresholdStmt->execute([(int)$gh['assigned_plant_id']]);
+        $thresholds = [];
+        foreach ($thresholdStmt->fetchAll() as $row) {
+            $thresholds[$row['parameter']] = $row;
+        }
+
+        if (!$thresholds) {
+            continue;
+        }
+
+        $readingStmt = $pdo->prepare("
+            SELECT parameter, value
+            FROM v_latest_readings
+            WHERE greenhouse_id = ?
+        ");
+        $readingStmt->execute([(int)$gh['greenhouse_id']]);
+        $readings = [];
+        foreach ($readingStmt->fetchAll() as $row) {
+            $readings[$row['parameter']] = (float)$row['value'];
+        }
+
+        foreach ($thresholds as $parameter => $threshold) {
+            if (!array_key_exists($parameter, $readings)) {
+                continue;
+            }
+
+            $value = $readings[$parameter];
+            if ($value < (float)$threshold['val_min'] || $value > (float)$threshold['val_max']) {
+                $critCount++;
+            } elseif ($value < (float)$threshold['val_opt_low'] || $value > (float)$threshold['val_opt_high']) {
+                $warnCount++;
+            }
+        }
+    }
+
     // ── Active experiment ─────────────────────────────────────────────────
     $activeExp = $pdo->query("
         SELECT exp_code, title, TIMESTAMPDIFF(HOUR, started_at, NOW()) AS hours_running
@@ -57,20 +100,10 @@ try {
 
     // ── First page of alerts (SSR, 10 per page) ──────────────────────────
     $perPage     = 10;
-    $totalAlerts = (int)$pdo->query("SELECT COUNT(*) FROM alerts")->fetchColumn();
+    $allLiveEvents = buildLiveIssueEvents($pdo);
+    $totalAlerts = count($allLiveEvents);
     $totalPages  = max(1, (int)ceil($totalAlerts / $perPage));
-
-    $firstAlerts = $pdo->query("
-        SELECT
-            a.alert_id, a.severity, a.category, a.message,
-            a.sensor_value, a.is_resolved,
-            DATE_FORMAT(a.created_at, '%b %e, %l:%i %p') AS ts_fmt,
-            g.code AS gh_code
-        FROM alerts a
-        LEFT JOIN greenhouses g ON a.greenhouse_id = g.greenhouse_id
-        ORDER BY a.created_at DESC
-        LIMIT $perPage
-    ")->fetchAll();
+    $firstAlerts = array_slice($allLiveEvents, 0, $perPage);
 
     // ── Sensor performance report (last 7 days) ───────────────────────────
     $sensorRows = $pdo->query("
@@ -159,6 +192,84 @@ function rowCls(string $s): string {
 function ghBadge(?string $c): string {
     if (!$c) return '<span class="text-muted">—</span>';
     return "<span class=\"badge badge-greenhouse-".strtolower($c)."\">Greenhouse $c</span>";
+}
+
+function buildLiveIssueEvents(PDO $pdo, string $ghFilter = 'all', string $severity = 'all'): array {
+    if (!in_array($severity, ['all', 'critical', 'warning'], true)) {
+        return [];
+    }
+
+    $sql = "SELECT greenhouse_id, code, name, assigned_plant_id FROM greenhouses";
+    $params = [];
+    if ($ghFilter !== 'all') {
+        $sql .= " WHERE code = ?";
+        $params[] = strtoupper($ghFilter);
+    }
+    $sql .= " ORDER BY code";
+
+    $ghStmt = $pdo->prepare($sql);
+    $ghStmt->execute($params);
+    $greenhouses = $ghStmt->fetchAll();
+    $events = [];
+
+    foreach ($greenhouses as $gh) {
+        if (empty($gh['assigned_plant_id'])) continue;
+
+        $thresholdStmt = $pdo->prepare("
+            SELECT parameter, val_min, val_opt_low, val_opt_high, val_max
+            FROM plant_thresholds
+            WHERE plant_id = ?
+        ");
+        $thresholdStmt->execute([(int)$gh['assigned_plant_id']]);
+        $thresholds = [];
+        foreach ($thresholdStmt->fetchAll() as $row) {
+            $thresholds[$row['parameter']] = $row;
+        }
+
+        $readingStmt = $pdo->prepare("
+            SELECT parameter, value, recorded_at
+            FROM v_latest_readings
+            WHERE greenhouse_id = ?
+        ");
+        $readingStmt->execute([(int)$gh['greenhouse_id']]);
+
+        foreach ($readingStmt->fetchAll() as $reading) {
+            $parameter = $reading['parameter'];
+            if (!isset($thresholds[$parameter])) continue;
+
+            $threshold = $thresholds[$parameter];
+            $value = (float)$reading['value'];
+            $eventSeverity = null;
+            $message = null;
+
+            if ($value < (float)$threshold['val_min'] || $value > (float)$threshold['val_max']) {
+                $eventSeverity = 'critical';
+                $message = ucfirst(str_replace('_', ' ', $parameter)) . ' is outside the configured safe range';
+            } elseif ($value < (float)$threshold['val_opt_low'] || $value > (float)$threshold['val_opt_high']) {
+                $eventSeverity = 'warning';
+                $message = ucfirst(str_replace('_', ' ', $parameter)) . ' is outside the optimal range';
+            }
+
+            if ($eventSeverity === null) continue;
+            if ($severity !== 'all' && $severity !== $eventSeverity) continue;
+
+            $events[] = [
+                'alert_id' => 'live-' . $gh['code'] . '-' . $parameter,
+                'severity' => $eventSeverity,
+                'category' => $parameter,
+                'message' => $message,
+                'sensor_value' => $value,
+                'is_resolved' => 0,
+                'ts_fmt' => date('M j, g:i A', strtotime($reading['recorded_at'])),
+                'created_at' => $reading['recorded_at'],
+                'gh_code' => $gh['code'],
+                'gh_name' => $gh['name'],
+            ];
+        }
+    }
+
+    usort($events, fn($a, $b) => strcmp((string)$b['created_at'], (string)$a['created_at']));
+    return $events;
 }
 
 function paginationBtns(int $cur, int $total): void {
@@ -376,7 +487,7 @@ function buildRange(int $cur, int $total): array {
             <td><?= htmlspecialchars($a['message']) ?></td>
             <td>
               <?php if (in_array($a['severity'],['critical','warning'])): ?>
-                <button class="btn-link" onclick="viewDetail(<?= (int)$a['alert_id'] ?>)">Details</button>
+                <button class="btn-link" onclick='viewDetail(<?= json_encode((string)$a["alert_id"]) ?>)'>Details</button>
               <?php else: ?>—<?php endif; ?>
             </td>
           </tr>
@@ -523,7 +634,7 @@ function buildRange(int $cur, int $total): array {
 // Data injected by PHP (first-page alert store for detail modal)
 let alertStore = <?= json_encode(
     array_map(fn($a) => [
-        'alert_id'     => (int)$a['alert_id'],
+        'alert_id'     => (string)$a['alert_id'],
         'severity'     => $a['severity'],
         'category'     => $a['category'],
         'message'      => $a['message'],
@@ -536,11 +647,13 @@ let alertStore = <?= json_encode(
 ) ?>;
 
 const API = 'reports/api/reports_api.php';
+let currentAlertPage = 1;
 
 // ============================================================
 // ALERTS: load page via AJAX
 // ============================================================
 async function loadAlerts(page = 1) {
+    currentAlertPage = page;
     const gh  = document.getElementById('filter-greenhouse').value;
     const sev = document.getElementById('filter-severity').value;
     const url = `${API}?action=alerts&page=${page}&greenhouse=${gh}&severity=${sev}`;
@@ -576,7 +689,7 @@ function renderTable(rows) {
             ? `<span class="badge badge-greenhouse-${a.gh_code.toLowerCase()}">Greenhouse ${a.gh_code}</span>`
             : '<span class="text-muted">—</span>';
         const act   = ['critical','warning'].includes(a.severity)
-            ? `<button class="btn-link" onclick="viewDetail(${a.alert_id})">Details</button>` : '—';
+            ? `<button class="btn-link" onclick='viewDetail(${JSON.stringify(String(a.alert_id))})'>Details</button>` : '—';
         return `<tr class="${rcls[a.severity]||''}">
             <td>${icon}</td><td>${a.ts_fmt}</td><td>${badge}</td>
             <td>${cap(a.category)}</td><td>${esc(a.message)}</td><td>${act}</td>
@@ -611,7 +724,7 @@ function pageRange(cur, tot) {
 // ALERT DETAIL MODAL
 // ============================================================
 function viewDetail(id) {
-    const a = alertStore.find(x => +x.alert_id === +id);
+    const a = alertStore.find(x => String(x.alert_id) === String(id));
     if (!a) { showModal('detail-modal'); return; }
 
     const emj = {critical:'🔴',warning:'⚠️',success:'✓',info:'ℹ️'};
@@ -698,7 +811,16 @@ async function refreshStats() {
         document.getElementById('stat-up').textContent   = d.uptime + '%';
     } catch(_){}
 }
-setInterval(refreshStats, 60_000);
+function refreshReportsLive() {
+    refreshStats();
+    loadAlerts(currentAlertPage);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    refreshReportsLive();
+});
+
+setInterval(refreshReportsLive, 15_000);
 
 // ============================================================
 // MODAL + PROFILE HELPERS

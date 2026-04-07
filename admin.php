@@ -319,6 +319,103 @@ function initials(string $name): string {
         <tbody id="activeProfilesBody"><!-- JS renders --></tbody>
       </table>
     </section>
+
+    <section class="card mt-4 simulator-card">
+      <div class="card-header">
+        <h2 class="card-title">Sensor Reading Simulator</h2>
+        <span class="badge badge-warning">Admin Tool</span>
+      </div>
+      <div class="simulator-layout">
+        <div class="simulator-controls">
+          <div class="simulator-intro">
+            Push simulated greenhouse readings into the live sensor stream for demos, UI checks, and threshold validation.
+          </div>
+
+          <div class="simulator-form-grid">
+            <div class="form-group">
+              <label class="form-label-admin" for="sim-gh">Greenhouse</label>
+              <select class="form-select-admin" id="sim-gh" onchange="onSimulatorGreenhouseChange()">
+                <option value="A">Greenhouse A</option>
+                <option value="B">Greenhouse B</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label-admin" for="sim-scenario">Scenario</label>
+              <select class="form-select-admin" id="sim-scenario">
+                <option value="optimal">Optimal Range</option>
+                <option value="warning">Warning Drift</option>
+                <option value="critical">Critical Alert</option>
+                <option value="custom">Custom Values</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label-admin" for="sim-count">Samples</label>
+              <select class="form-select-admin" id="sim-count">
+                <option value="1">1 sample</option>
+                <option value="3">3 samples</option>
+                <option value="6">6 samples</option>
+                <option value="12">12 samples</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label-admin" for="sim-step">Spacing</label>
+              <select class="form-select-admin" id="sim-step">
+                <option value="1">1 minute</option>
+                <option value="5" selected>5 minutes</option>
+                <option value="10">10 minutes</option>
+                <option value="15">15 minutes</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="simulator-actions">
+            <button class="btn btn-secondary" onclick="fillSimulatorFromPlant()">Load Plant Targets</button>
+            <button class="btn btn-secondary" onclick="generateSimulatorScenario()">Generate Scenario</button>
+            <button class="btn btn-primary" onclick="pushSimulatorReadings()">Push Simulated Readings</button>
+          </div>
+        </div>
+
+        <div class="simulator-panel">
+          <div class="simulator-panel-header">
+            <div>
+              <div class="simulator-panel-title">Simulated Values</div>
+              <div class="simulator-panel-subtitle" id="sim-assignment-note">No plant assignment loaded yet.</div>
+            </div>
+          </div>
+
+          <div class="simulator-value-grid">
+            <div class="sim-field">
+              <label class="form-label-admin" for="sim-temperature">Temperature (°C)</label>
+              <input type="number" step="0.1" class="form-select-admin" id="sim-temperature" />
+            </div>
+            <div class="sim-field">
+              <label class="form-label-admin" for="sim-humidity">Humidity (%)</label>
+              <input type="number" step="0.1" class="form-select-admin" id="sim-humidity" />
+            </div>
+            <div class="sim-field">
+              <label class="form-label-admin" for="sim-ph">pH</label>
+              <input type="number" step="0.1" class="form-select-admin" id="sim-ph" />
+            </div>
+            <div class="sim-field">
+              <label class="form-label-admin" for="sim-ec">EC (mS/cm)</label>
+              <input type="number" step="0.1" class="form-select-admin" id="sim-ec" />
+            </div>
+            <div class="sim-field">
+              <label class="form-label-admin" for="sim-light">Light (lux)</label>
+              <input type="number" step="100" class="form-select-admin" id="sim-light" />
+            </div>
+            <div class="sim-field">
+              <label class="form-label-admin" for="sim-water_level">Water Level (%)</label>
+              <input type="number" step="1" class="form-select-admin" id="sim-water_level" />
+            </div>
+          </div>
+
+          <div class="simulator-hint" id="sim-hint">
+            Values will be based on the assigned plant profile when one exists, then lightly varied per sample.
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 
   <!-- ==================================================================
@@ -703,6 +800,14 @@ function initials(string $name): string {
 let plants       = <?= json_encode($plantsJS, JSON_UNESCAPED_UNICODE) ?>;
 const ghInit     = <?= json_encode($ghAssignments) ?>;
 const ghAssignments = { A: ghInit['A'] || null, B: ghInit['B'] || null };
+const simulatorFieldMap = {
+  temperature: 'sim-temperature',
+  humidity: 'sim-humidity',
+  ph: 'sim-ph',
+  ec: 'sim-ec',
+  light: 'sim-light',
+  water_level: 'sim-water_level'
+};
 
 let editingPlantId  = null;
 let selectedPlantId = null;
@@ -728,7 +833,10 @@ function switchTab(name, btn) {
   document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   btn.classList.add('active');
-  if (name === 'greenhouse') renderGhSelects();
+  if (name === 'greenhouse') {
+    renderGhSelects();
+    onSimulatorGreenhouseChange();
+  }
 }
 
 // ============================================================================
@@ -1044,6 +1152,161 @@ function renderActiveProfiles() {
   body.innerHTML = rows;
 }
 
+function getSimulatorGreenhouse() {
+  return document.getElementById('sim-gh').value;
+}
+
+function getAssignedPlantForGh(gh) {
+  return ghAssignments[gh] ? plants.find(x => x.id === ghAssignments[gh]) : null;
+}
+
+function setSimulatorField(param, value) {
+  const id = simulatorFieldMap[param];
+  if (!id) return;
+  const el = document.getElementById(id);
+  if (el) el.value = value ?? '';
+}
+
+function getSimulatorField(param) {
+  const id = simulatorFieldMap[param];
+  const el = id ? document.getElementById(id) : null;
+  if (!el) return null;
+  const val = el.value.trim();
+  return val === '' ? null : Number(val);
+}
+
+function getPlantThreshold(plant, param) {
+  if (!plant) return null;
+  if (param === 'temperature') return plant.temp || null;
+  if (param === 'humidity') return plant.hum || null;
+  if (param === 'ph') return plant.ph || null;
+  if (param === 'ec') return plant.ec || null;
+  if (param === 'light') return plant.lux || null;
+  if (param === 'water_level') return plant.water || null;
+  return null;
+}
+
+function midpoint(low, high) {
+  return ((Number(low) + Number(high)) / 2);
+}
+
+function roundForParam(param, value) {
+  const precision = ['light', 'water_level'].includes(param) ? 0 : 1;
+  return Number(value.toFixed(precision));
+}
+
+function pickScenarioValue(param, threshold, scenario) {
+  if (!threshold) {
+    const fallback = {
+      temperature: 24.5,
+      humidity: 68,
+      ph: 6.2,
+      ec: 1.8,
+      light: 32000,
+      water_level: 76
+    };
+    const drift = { optimal: 0, warning: 1, critical: 2, custom: 0 }[scenario] || 0;
+    return fallback[param] + drift;
+  }
+
+  if (param === 'water_level') {
+    const optimal = threshold.opt ?? midpoint(threshold.min ?? 55, threshold.max ?? 90);
+    if (scenario === 'critical') return roundForParam(param, Math.max((threshold.min ?? 40) - 12, 5));
+    if (scenario === 'warning') return roundForParam(param, Math.max((threshold.min ?? 40) - 4, 10));
+    return roundForParam(param, optimal);
+  }
+
+  const optLow = threshold.optLow ?? threshold.min ?? 0;
+  const optHigh = threshold.optHigh ?? threshold.max ?? optLow;
+  const min = threshold.min ?? optLow;
+  const max = threshold.max ?? optHigh;
+
+  if (scenario === 'critical') {
+    return roundForParam(param, max + Math.max((max - optHigh) || 1, 1));
+  }
+  if (scenario === 'warning') {
+    return roundForParam(param, optHigh + Math.max(((max - optHigh) || (optHigh - optLow) || 1) * 0.45, 0.6));
+  }
+  return roundForParam(param, midpoint(optLow, optHigh));
+}
+
+function fillSimulatorFromPlant() {
+  const gh = getSimulatorGreenhouse();
+  const plant = getAssignedPlantForGh(gh);
+  const note = document.getElementById('sim-assignment-note');
+  const hint = document.getElementById('sim-hint');
+
+  if (!plant) {
+    note.textContent = `Greenhouse ${gh} has no assigned plant profile. Using fallback greenhouse-safe defaults.`;
+    hint.textContent = 'Assign a plant to this greenhouse to auto-fill simulator values from its threshold profile.';
+  } else {
+    note.textContent = `Greenhouse ${gh} is assigned to ${plant.icon} ${plant.name}.`;
+    hint.textContent = 'These values come from the midpoint of the assigned plant thresholds and can be edited before sending.';
+  }
+
+  Object.keys(simulatorFieldMap).forEach(param => {
+    const threshold = getPlantThreshold(plant, param);
+    setSimulatorField(param, pickScenarioValue(param, threshold, 'optimal'));
+  });
+}
+
+function generateSimulatorScenario() {
+  const gh = getSimulatorGreenhouse();
+  const plant = getAssignedPlantForGh(gh);
+  const scenario = document.getElementById('sim-scenario').value;
+
+  Object.keys(simulatorFieldMap).forEach(param => {
+    const threshold = getPlantThreshold(plant, param);
+    setSimulatorField(param, pickScenarioValue(param, threshold, scenario));
+  });
+
+  const hintText = {
+    optimal: 'Optimal scenario loaded. Values sit inside the assigned target range.',
+    warning: 'Warning scenario loaded. Values drift just outside the optimal band to test caution states.',
+    critical: 'Critical scenario loaded. Values move beyond safe limits to trigger alert-level behavior.',
+    custom: 'Custom mode selected. Edit any field before pushing readings.'
+  };
+  document.getElementById('sim-hint').textContent = hintText[scenario] || 'Simulator values updated.';
+  document.getElementById('sim-assignment-note').textContent = plant
+    ? `Greenhouse ${gh} is assigned to ${plant.icon} ${plant.name}.`
+    : `Greenhouse ${gh} has no assigned plant profile.`;
+}
+
+function onSimulatorGreenhouseChange() {
+  fillSimulatorFromPlant();
+}
+
+async function pushSimulatorReadings() {
+  const greenhouse = getSimulatorGreenhouse();
+  const values = {};
+  Object.keys(simulatorFieldMap).forEach(param => {
+    const val = getSimulatorField(param);
+    if (val !== null && !Number.isNaN(val)) values[param] = val;
+  });
+
+  if (!Object.keys(values).length) {
+    showToast('Please enter at least one simulated reading', 'warning');
+    return;
+  }
+
+  try {
+    const res = await api('admin/api/simulator.php', 'POST', {
+      greenhouse,
+      scenario: document.getElementById('sim-scenario').value,
+      samples: Number(document.getElementById('sim-count').value || 1),
+      interval_minutes: Number(document.getElementById('sim-step').value || 5),
+      values
+    });
+
+    const skipped = res.skipped_parameters?.length ? ` Skipped: ${res.skipped_parameters.join(', ')}.` : '';
+    showToast(`Simulated ${res.inserted_rows} reading row(s) for Greenhouse ${greenhouse}.${skipped}`);
+    document.getElementById('sim-hint').textContent =
+      `Last push: ${res.inserted_rows} reading row(s) generated for Greenhouse ${greenhouse}.`;
+  } catch (e) {
+    showToast('❌ ' + e.message, 'error');
+  }
+}
+
 // ============================================================================
 // USER MANAGEMENT
 // ============================================================================
@@ -1199,6 +1462,7 @@ document.getElementById('logoutForm').addEventListener('submit', function(e) {
 document.addEventListener('DOMContentLoaded', () => {
   filterPlants();
   renderActiveProfiles();
+  onSimulatorGreenhouseChange();
 });
 </script>
 </body>

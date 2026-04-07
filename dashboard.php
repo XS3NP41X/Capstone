@@ -90,20 +90,7 @@ $systemStatus = $hwOffline === 0 ? 'Operational' : 'Degraded';
 $systemClass  = $hwOffline === 0 ? 'status-operational' : '';
 
 // ── 5. Open critical alerts (banner) ─────────────────────────────────────────
-try {
-    $criticalAlerts = $pdo->query(
-        "SELECT a.severity, a.category, a.message, a.sensor_value, a.created_at,
-                g.code AS gh_code
-           FROM alerts a
-           LEFT JOIN greenhouses g ON a.greenhouse_id = g.greenhouse_id
-          WHERE a.is_resolved = 0 AND a.severity = 'critical'
-          ORDER BY a.created_at DESC
-          LIMIT 3"
-    )->fetchAll();
-} catch (PDOException $e) {
-    error_log('Dashboard criticalAlerts: ' . $e->getMessage());
-    $criticalAlerts = [];
-}
+$criticalAlerts = [];
 
 // ── 6. Greenhouses with sensor counts ────────────────────────────────────────
 try {
@@ -115,11 +102,7 @@ try {
                   WHERE s.greenhouse_id = g.greenhouse_id
                     AND s.status = 'online') AS sensors_online,
                 (SELECT COUNT(*) FROM sensors s
-                  WHERE s.greenhouse_id = g.greenhouse_id) AS sensors_total,
-                (SELECT COUNT(*) FROM alerts a
-                  WHERE a.greenhouse_id = g.greenhouse_id
-                    AND a.is_resolved = 0
-                    AND a.severity = 'critical') AS open_critical
+                  WHERE s.greenhouse_id = g.greenhouse_id) AS sensors_total
            FROM greenhouses g
            LEFT JOIN plants p ON g.assigned_plant_id = p.plant_id
           ORDER BY g.code ASC"
@@ -135,19 +118,13 @@ foreach ($greenhouses as $gh) {
     $ghId = $gh['greenhouse_id'];
     try {
         $stmt = $pdo->prepare(
-            "SELECT r.parameter, r.value, r.unit
-               FROM sensor_readings r
-               INNER JOIN (
-                   SELECT parameter, MAX(recorded_at) AS max_ts
-                     FROM sensor_readings
-                    WHERE greenhouse_id = ?
-                      AND parameter IN ('temperature','humidity','light')
-                    GROUP BY parameter
-               ) latest ON r.parameter = latest.parameter
-                       AND r.recorded_at = latest.max_ts
-              WHERE r.greenhouse_id = ?"
+            "SELECT parameter, value, unit, quality, recorded_at, sensor_label, sensor_status
+               FROM v_latest_readings
+              WHERE greenhouse_id = ?
+                AND parameter IN ('temperature','humidity','light')
+              ORDER BY parameter"
         );
-        $stmt->execute([$ghId, $ghId]);
+        $stmt->execute([$ghId]);
         $readings = [];
         foreach ($stmt->fetchAll() as $row) {
             $readings[$row['parameter']] = $row;
@@ -156,6 +133,75 @@ foreach ($greenhouses as $gh) {
     } catch (PDOException $e) {
         error_log("Dashboard ghReadings gh{$ghId}: " . $e->getMessage());
         $ghReadings[$ghId] = [];
+    }
+}
+
+$ghThresholds = [];
+foreach ($greenhouses as $gh) {
+    $ghId = (int)$gh['greenhouse_id'];
+    try {
+        $stmt = $pdo->prepare(
+            "SELECT pt.parameter, pt.val_min, pt.val_opt_low, pt.val_opt_high, pt.val_max, pt.unit
+               FROM greenhouses g
+               JOIN plant_thresholds pt ON pt.plant_id = g.assigned_plant_id
+              WHERE g.greenhouse_id = ?"
+        );
+        $stmt->execute([$ghId]);
+        $thresholds = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $thresholds[$row['parameter']] = $row;
+        }
+        $ghThresholds[$ghId] = $thresholds;
+    } catch (PDOException $e) {
+        error_log("Dashboard ghThresholds gh{$ghId}: " . $e->getMessage());
+        $ghThresholds[$ghId] = [];
+    }
+}
+
+$ghLiveStatus = [];
+foreach ($greenhouses as $gh) {
+    $ghId = (int)$gh['greenhouse_id'];
+    $readings = $ghReadings[$ghId] ?? [];
+    $thresholds = $ghThresholds[$ghId] ?? [];
+    $status = 'optimal';
+    $criticalParam = null;
+    $criticalValue = null;
+    $criticalRecordedAt = null;
+
+    foreach ($thresholds as $parameter => $threshold) {
+        if (!isset($readings[$parameter]['value'])) {
+            continue;
+        }
+
+        $value = (float)$readings[$parameter]['value'];
+        if ($value < (float)$threshold['val_min'] || $value > (float)$threshold['val_max']) {
+            $status = 'critical';
+            $criticalParam = $parameter;
+            $criticalValue = $value;
+            $criticalRecordedAt = $readings[$parameter]['recorded_at'] ?? null;
+            break;
+        }
+
+        if ($value < (float)$threshold['val_opt_low'] || $value > (float)$threshold['val_opt_high']) {
+            $status = 'caution';
+        }
+    }
+
+    $ghLiveStatus[$ghId] = [
+        'status' => $status,
+        'critical_param' => $criticalParam,
+        'critical_value' => $criticalValue,
+    ];
+
+    if ($status === 'critical' && $criticalParam !== null) {
+        $criticalAlerts[] = [
+            'severity' => 'critical',
+            'category' => $criticalParam,
+            'message' => ucfirst(str_replace('_', ' ', $criticalParam)) . ' is outside the configured safe range',
+            'sensor_value' => $criticalValue,
+            'created_at' => $criticalRecordedAt,
+            'gh_code' => $gh['code'],
+        ];
     }
 }
 
@@ -391,7 +437,9 @@ $userInitials = strtoupper(implode('', array_map(
         <?php foreach ($greenhouses as $gh):
             $ghId     = $gh['greenhouse_id'];
             $readings = $ghReadings[$ghId] ?? [];
-            $hasCrit  = (int)$gh['open_critical'] > 0;
+            $liveMeta = $ghLiveStatus[$ghId] ?? ['status' => 'optimal'];
+            $hasCrit  = ($liveMeta['status'] ?? 'optimal') === 'critical';
+            $hasCaution = ($liveMeta['status'] ?? 'optimal') === 'caution';
             $cardCls  = strtolower($gh['code']) === 'a' ? 'gh-a' : 'gh-b';
 
             $temp  = $readings['temperature'] ?? null;
@@ -399,7 +447,7 @@ $userInitials = strtoupper(implode('', array_map(
             $light = $readings['light']       ?? null;
 
             // Flag critical if temp reading exceeds 30 °C or open critical alert exists
-            $tempCrit = $hasCrit || ($temp && (float)$temp['value'] > 30);
+            $tempCrit = $hasCrit;
         ?>
         <div class="greenhouse-status-card <?= $cardCls ?>">
             <div class="gh-header">
@@ -410,6 +458,8 @@ $userInitials = strtoupper(implode('', array_map(
                 </div>
                 <?php if ($hasCrit): ?>
                     <span class="badge badge-danger">Critical</span>
+                <?php elseif ($hasCaution): ?>
+                    <span class="badge badge-warning">Caution</span>
                 <?php else: ?>
                     <span class="badge badge-success">Optimal</span>
                 <?php endif; ?>

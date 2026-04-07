@@ -1,4 +1,6 @@
 <?php
+defined('APP_TIMEZONE') || define('APP_TIMEZONE', 'Asia/Manila');
+date_default_timezone_set(APP_TIMEZONE);
 // ============================================================================
 // ECOTWIN — SECURITY HELPERS
 // ============================================================================
