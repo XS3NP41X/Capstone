@@ -34,12 +34,13 @@ body {
 }
 
 .navbar-container {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
+  gap: 16px;
   height: 64px;
   padding: 0 32px;
-  max-width: 1920px;
+  max-width: 1440px;
   margin: 0 auto;
 }
 
@@ -49,6 +50,8 @@ body {
   gap: 12px;
   text-decoration: none;
   color: inherit;
+  min-width: 0;
+  justify-self: start;
 }
 
 .logo-icon {
@@ -71,6 +74,10 @@ body {
 .navbar-menu {
   display: flex;
   gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  min-width: 0;
+  justify-self: center;
 }
 
 .nav-item {
@@ -98,10 +105,13 @@ body {
 .navbar-user {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
   padding: 8px;
   border-radius: 8px;
   position: relative;
+  min-width: 0;
+  justify-self: end;
 }
 
 .profile-icon {
@@ -255,6 +265,7 @@ body {
   font-size: 28px;
   font-weight: 700;
   margin-bottom: 8px;
+  line-height: 1.2;
 }
 
 .page-subtitle {
@@ -277,6 +288,8 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
   margin-bottom: 16px;
   padding-bottom: 12px;
   border-bottom: 1px solid #e5e7eb;
@@ -541,9 +554,22 @@ body {
    RESPONSIVE DESIGN
    ============================================================================ */
 
-@media (max-width: 1024px) {
+@media (max-width: 1280px) {
+  .navbar-container {
+    display: flex;
+    height: auto;
+    min-height: 64px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
   .navbar-menu {
     gap: 4px;
+    justify-content: center;
+    order: 3;
+    flex-basis: 100%;
+    width: 100%;
   }
 
   .nav-item {
@@ -551,6 +577,12 @@ body {
     font-size: 14px;
   }
 
+  .navbar-user {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 1024px) {
   .grid-4 {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -559,10 +591,60 @@ body {
 @media (max-width: 768px) {
   .navbar-container {
     padding: 0 16px;
+    gap: 12px;
+    align-items: flex-start;
   }
 
   .main-content {
     padding: 16px;
+  }
+
+  .navbar-logo {
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+
+  .logo-text {
+    font-size: 18px;
+  }
+
+  .navbar-menu {
+    display: flex;
+    width: 100%;
+    gap: 6px;
+    order: 4;
+    padding-top: 4px;
+    position: static;
+    transform: none;
+    max-width: none;
+  }
+
+  .nav-item {
+    flex: 1 1 calc(50% - 6px);
+    text-align: center;
+    padding: 10px 8px;
+  }
+
+  .navbar-user {
+    padding: 0;
+  }
+
+  .profile-dropdown {
+    right: 0;
+    width: min(280px, calc(100vw - 32px));
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+
+  .page-subtitle {
+    font-size: 15px;
   }
 
   .grid-2,
@@ -573,5 +655,38 @@ body {
 
   .user-name {
     display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar-container {
+    padding: 12px;
+  }
+
+  .navbar-logo {
+    min-width: 0;
+  }
+
+  .logo-text {
+    font-size: 17px;
+  }
+
+  .navbar-user {
+    justify-content: center;
+  }
+
+  .nav-item {
+    flex-basis: 100%;
+  }
+
+  .profile-dropdown {
+    left: 0;
+    right: auto;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .page-title {
+    font-size: 22px;
   }
 }

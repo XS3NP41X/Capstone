@@ -139,8 +139,8 @@ function initials(string $name): string {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Panel - EcoTwin</title>
-  <link rel="stylesheet" href="css.main.css" />
-  <link rel="stylesheet" href="css.admin.css" />
+  <link rel="stylesheet" href="css.main.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.main.css')) ?>" />
+  <link rel="stylesheet" href="css.admin.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.admin.css')) ?>" />
 </head>
 <body>
 
@@ -151,7 +151,7 @@ function initials(string $name): string {
       <div class="logo-icon">🧪</div>
       <span class="logo-text">EcoTwin</span>
     </a>
-    <div class="navbar-menu">
+    <div class="navbar-menu" id="navbarMenu">
       <a href="dashboard.php"    class="nav-item">Dashboard</a>
       <a href="experiments.php"  class="nav-item">Experiments</a>
       <a href="greenhouses.php"  class="nav-item">Greenhouses</a>
