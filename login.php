@@ -128,7 +128,7 @@ $token = csrf_token();
 
 <div class="login-container">
     <div class="login-card">
-        <div class="login-logo">🧪</div>
+        <img src="ECOTwin_Logo.png" alt="EcoTwin logo" class="login-logo" />
         <h1 class="login-title">EcoTwin: Dual-Greenhouse Research Framework</h1>
         <p class="login-subtitle">Web-based monitoring and control for research greenhouses</p>
 

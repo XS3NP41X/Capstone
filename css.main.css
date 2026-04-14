@@ -57,13 +57,9 @@ body {
 .logo-icon {
   width: 40px;
   height: 40px;
-  background: #0d9488;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 20px;
+  object-fit: contain;
+  display: block;
+  flex-shrink: 0;
 }
 
 .logo-text {

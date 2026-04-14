@@ -148,7 +148,7 @@ function initials(string $name): string {
 <nav class="navbar">
   <div class="navbar-container">
     <a href="dashboard.php" class="navbar-logo">
-      <div class="logo-icon">🧪</div>
+      <img src="ECOTwin_Logo.png" alt="EcoTwin logo" class="logo-icon" />
       <span class="logo-text">EcoTwin</span>
     </a>
     <div class="navbar-menu" id="navbarMenu">

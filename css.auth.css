@@ -23,13 +23,9 @@
 .login-logo {
     width: 64px;
     height: 64px;
-    background: #0D9488;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    object-fit: contain;
+    display: block;
     margin: 0 auto 24px;
-    font-size: 32px;
 }
 
 .login-title {
