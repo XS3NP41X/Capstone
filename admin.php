@@ -43,10 +43,10 @@ try {
         $tStmt = $pdo->prepare("SELECT plant_id, parameter, val_min, val_opt_low, val_opt_high, val_max FROM plant_thresholds WHERE plant_id IN ($in)");
         $tStmt->execute($plantIds);
         $allThresh = [];
-        foreach ($tStmt->fetchAll() as $t) {
-            $allThresh[$t['plant_id']][$t['parameter']] = [
-                (float)$t['val_min'], (float)$t['val_opt_low'],
-                (float)$t['val_opt_high'], (float)$t['val_max']
+        foreach ($tStmt->fetchAll() as $thresholdRow) {
+            $allThresh[$thresholdRow['plant_id']][$thresholdRow['parameter']] = [
+                (float)$thresholdRow['val_min'], (float)$thresholdRow['val_opt_low'],
+                (float)$thresholdRow['val_opt_high'], (float)$thresholdRow['val_max']
             ];
         }
         foreach ($plantRows as $p) {
