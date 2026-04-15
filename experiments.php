@@ -5,6 +5,7 @@
 
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/security.php';
+require_once __DIR__ . '/preferences.php';
 
 // ── Auth guard ────────────────────────────────────────────────────────────────
 if (empty($_SESSION['user_id'])) {
@@ -20,6 +21,10 @@ if (empty($_SESSION['last_regen']) || time() - $_SESSION['last_regen'] > 300) {
 $pdo      = db();
 $userId   = (int)$_SESSION['user_id'];
 $userRole = $_SESSION['user_role'] ?? 'student';
+$preferences = ecotwinLoadUserPreferences($pdo, $userId);
+$profileDetails = ecotwinLoadUserProfileDetails($pdo, $userId);
+$preferenceBodyClass = ecotwinPreferenceBodyClass($preferences);
+$t = fn(string $key, array $replacements = []) => ecotwinT($preferences['language'], $key, $replacements);
 
 // ============================================================================
 // HANDLE FORM ACTIONS (POST)
@@ -304,11 +309,11 @@ $canManage = in_array($userRole, ['admin', 'researcher']);
 $csrfToken = csrf_token();
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= htmlspecialchars($preferences['language']) ?>">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Experiments — EcoTwin</title>
+    <title><?= htmlspecialchars($t('page.experiments.title')) ?> — EcoTwin</title>
     <link rel="stylesheet" href="css.main.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.main.css')) ?>" />
     <link rel="stylesheet" href="css.experiments.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.experiments.css')) ?>" />
     <style>
@@ -434,7 +439,10 @@ $csrfToken = csrf_token();
         }
     </style>
 </head>
-<body>
+<body class="<?= htmlspecialchars($preferenceBodyClass) ?>"
+      data-language="<?= htmlspecialchars($preferences['language']) ?>"
+      data-timezone="<?= htmlspecialchars($preferences['timezone']) ?>"
+      data-date-format="<?= htmlspecialchars($preferences['date_format']) ?>">
 
 <!-- ================================================================ -->
 <!-- NAVBAR                                                            -->
@@ -446,18 +454,22 @@ $csrfToken = csrf_token();
             <span class="logo-text">EcoTwin</span>
         </a>
         <div class="navbar-menu" id="navbarMenu">
-            <a href="dashboard.php"    class="nav-item">Dashboard</a>
-            <a href="experiments.php"  class="nav-item active">Experiments</a>
-            <a href="greenhouses.php" class="nav-item">Greenhouses</a>
-            <a href="reports.php"     class="nav-item">Reports</a>
-            <a href="settings.php"    class="nav-item">Settings</a>
+            <a href="dashboard.php"    class="nav-item"><?= htmlspecialchars($t('nav.dashboard')) ?></a>
+            <a href="experiments.php"  class="nav-item active"><?= htmlspecialchars($t('nav.experiments')) ?></a>
+            <a href="greenhouses.php" class="nav-item"><?= htmlspecialchars($t('nav.greenhouses')) ?></a>
+            <a href="reports.php"     class="nav-item"><?= htmlspecialchars($t('nav.reports')) ?></a>
+            <a href="settings.php"    class="nav-item"><?= htmlspecialchars($t('nav.settings')) ?></a>
             <?php if ($userRole === 'admin'): ?>
-            <a href="admin.php"       class="nav-item">Admin</a>
+            <a href="admin.php"       class="nav-item"><?= htmlspecialchars($t('nav.admin')) ?></a>
             <?php endif; ?>
         </div>
         <div class="navbar-user">
-            <div class="profile-icon" onclick="toggleProfileDropdown(event)">
+            <div class="profile-icon <?= !empty($profileDetails['avatar_url']) ? 'has-avatar' : '' ?>" onclick="toggleProfileDropdown(event)">
+                <?php if (!empty($profileDetails['avatar_url'])): ?>
+                <img src="<?= e($profileDetails['avatar_url']) ?>" alt="Profile avatar" />
+                <?php else: ?>
                 <?= e($userInitials) ?>
+                <?php endif; ?>
             </div>
             <div class="profile-dropdown" id="profileDropdown">
                 <div class="profile-dropdown-header">
@@ -468,13 +480,13 @@ $csrfToken = csrf_token();
                     </div>
                 </div>
                 <div class="profile-dropdown-body">
-                    <a href="#" class="profile-menu-item">Profile Settings</a>
-                    <a href="#" class="profile-menu-item">Preferences</a>
+                    <a href="settings.php#profileSection" class="profile-menu-item"><?= htmlspecialchars($t('menu.profile_settings')) ?></a>
+                    <a href="settings.php#preferencesSettings" class="profile-menu-item"><?= htmlspecialchars($t('menu.preferences')) ?></a>
                 </div>
                 <div class="profile-dropdown-footer">
                     <form id="logoutForm" method="POST" action="auth_handler.php" style="margin:0;">
                         <input type="hidden" name="action" value="logout" />
-                        <button type="submit" class="logout-btn">Logout</button>
+                        <button type="submit" class="logout-btn"><?= htmlspecialchars($t('menu.logout')) ?></button>
                     </form>
                 </div>
             </div>
@@ -488,8 +500,8 @@ $csrfToken = csrf_token();
 <main class="main-content">
 
     <div class="page-header">
-        <h1 class="page-title">Experiments</h1>
-        <p class="page-subtitle">Manage and monitor your greenhouse experiments</p>
+        <h1 class="page-title"><?= htmlspecialchars($t('page.experiments.title')) ?></h1>
+        <p class="page-subtitle"><?= htmlspecialchars($t('page.experiments.subtitle')) ?></p>
     </div>
 
     <!-- ── Flash message ─────────────────────────────────────────────── -->

@@ -5,6 +5,7 @@
 
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/security.php';
+require_once __DIR__ . '/preferences.php';
 
 // ── Auth guard ────────────────────────────────────────────────────────────────
 if (empty($_SESSION['user_id'])) {
@@ -18,6 +19,10 @@ if (empty($_SESSION['last_regen']) || time() - $_SESSION['last_regen'] > 300) {
 }
 
 $pdo = db();
+$preferences = ecotwinLoadUserPreferences($pdo, (int)($_SESSION['user_id'] ?? 0));
+$profileDetails = ecotwinLoadUserProfileDetails($pdo, (int)($_SESSION['user_id'] ?? 0));
+$preferenceBodyClass = ecotwinPreferenceBodyClass($preferences);
+$t = fn(string $key, array $replacements = []) => ecotwinT($preferences['language'], $key, $replacements);
 
 // ============================================================================
 // DATA QUERIES
@@ -232,6 +237,37 @@ try {
     $hardware = [];
 }
 
+try {
+    $analyticsRow = $pdo->query(
+        "SELECT
+            COUNT(*) AS readings_count,
+            AVG(CASE WHEN parameter = 'temperature' THEN value END) AS avg_temperature,
+            AVG(CASE WHEN parameter = 'humidity' THEN value END) AS avg_humidity,
+            AVG(CASE WHEN parameter = 'light' THEN value END) AS avg_light
+         FROM sensor_readings
+         WHERE recorded_at >= NOW() - INTERVAL 7 DAY"
+    )->fetch();
+} catch (PDOException $e) {
+    error_log('Dashboard analyticsRow: ' . $e->getMessage());
+    $analyticsRow = ['readings_count' => 0, 'avg_temperature' => null, 'avg_humidity' => null, 'avg_light' => null];
+}
+
+try {
+    $topGreenhouse = $pdo->query(
+        "SELECT g.code, COUNT(sr.reading_id) AS reading_count
+         FROM sensor_readings sr
+         JOIN sensors s ON s.sensor_id = sr.sensor_id
+         JOIN greenhouses g ON g.greenhouse_id = s.greenhouse_id
+         WHERE sr.recorded_at >= NOW() - INTERVAL 7 DAY
+         GROUP BY g.greenhouse_id, g.code
+         ORDER BY reading_count DESC, g.code ASC
+         LIMIT 1"
+    )->fetch();
+} catch (PDOException $e) {
+    error_log('Dashboard topGreenhouse: ' . $e->getMessage());
+    $topGreenhouse = null;
+}
+
 // ============================================================================
 // HELPERS
 // ============================================================================
@@ -285,15 +321,18 @@ $userInitials = strtoupper(implode('', array_map(
 )));
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= htmlspecialchars($preferences['language']) ?>">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard — EcoTwin</title>
+    <title><?= htmlspecialchars($t('dashboard.title')) ?> — EcoTwin</title>
     <link rel="stylesheet" href="css.main.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.main.css')) ?>" />
     <link rel="stylesheet" href="css.dashboard.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.dashboard.css')) ?>" />
 </head>
-<body>
+<body class="<?= htmlspecialchars($preferenceBodyClass) ?>"
+      data-language="<?= htmlspecialchars($preferences['language']) ?>"
+      data-timezone="<?= htmlspecialchars($preferences['timezone']) ?>"
+      data-date-format="<?= htmlspecialchars($preferences['date_format']) ?>">
 
 <!-- ================================================================ -->
 <!-- NAVBAR                                                            -->
@@ -306,19 +345,23 @@ $userInitials = strtoupper(implode('', array_map(
         </a>
 
         <div class="navbar-menu" id="navbarMenu">
-            <a href="dashboard.php"    class="nav-item active">Dashboard</a>
-            <a href="experiments.php" class="nav-item">Experiments</a>
-            <a href="greenhouses.php" class="nav-item">Greenhouses</a>
-            <a href="reports.php"     class="nav-item">Reports</a>
-            <a href="settings.php"    class="nav-item">Settings</a>
+            <a href="dashboard.php"    class="nav-item active"><?= htmlspecialchars($t('nav.dashboard')) ?></a>
+            <a href="experiments.php" class="nav-item"><?= htmlspecialchars($t('nav.experiments')) ?></a>
+            <a href="greenhouses.php" class="nav-item"><?= htmlspecialchars($t('nav.greenhouses')) ?></a>
+            <a href="reports.php"     class="nav-item"><?= htmlspecialchars($t('nav.reports')) ?></a>
+            <a href="settings.php"    class="nav-item"><?= htmlspecialchars($t('nav.settings')) ?></a>
             <?php if ($userRole === 'admin'): ?>
-            <a href="admin.php"       class="nav-item">Admin</a>
+            <a href="admin.php"       class="nav-item"><?= htmlspecialchars($t('nav.admin')) ?></a>
             <?php endif; ?>
         </div>
 
         <div class="navbar-user">
-            <div class="profile-icon" onclick="toggleProfileDropdown(event)">
+            <div class="profile-icon <?= !empty($profileDetails['avatar_url']) ? 'has-avatar' : '' ?>" onclick="toggleProfileDropdown(event)">
+                <?php if (!empty($profileDetails['avatar_url'])): ?>
+                <img src="<?= e($profileDetails['avatar_url']) ?>" alt="Profile avatar" />
+                <?php else: ?>
                 <?= e($userInitials) ?>
+                <?php endif; ?>
             </div>
             <div class="profile-dropdown" id="profileDropdown">
                 <div class="profile-dropdown-header">
@@ -329,13 +372,13 @@ $userInitials = strtoupper(implode('', array_map(
                     </div>
                 </div>
                 <div class="profile-dropdown-body">
-                    <a href="#" class="profile-menu-item">Profile Settings</a>
-                    <a href="#" class="profile-menu-item">Preferences</a>
+                    <a href="settings.php#profileSection" class="profile-menu-item"><?= htmlspecialchars($t('menu.profile_settings')) ?></a>
+                    <a href="settings.php#preferencesSettings" class="profile-menu-item"><?= htmlspecialchars($t('menu.preferences')) ?></a>
                 </div>
                 <div class="profile-dropdown-footer">
                     <form id="logoutForm" method="POST" action="auth_handler.php" style="margin:0;">
                         <input type="hidden" name="action" value="logout" />
-                        <button type="submit" class="logout-btn">Logout</button>
+                        <button type="submit" class="logout-btn"><?= htmlspecialchars($t('menu.logout')) ?></button>
                     </form>
                 </div>
             </div>
@@ -354,7 +397,7 @@ $userInitials = strtoupper(implode('', array_map(
         <div class="summary-card">
             <div class="summary-icon" style="color:#0d9488">🧪</div>
             <div class="summary-value"><?= $activeExp ? 1 : 0 ?></div>
-            <div class="summary-label">Active Experiment</div>
+            <div class="summary-label"><?= htmlspecialchars($t('dashboard.summary.active_experiment')) ?></div>
             <?php if ($activeExp): ?>
                 <div class="summary-meta"><?= e($activeExp['exp_code']) ?> Running</div>
             <?php else: ?>
@@ -365,7 +408,7 @@ $userInitials = strtoupper(implode('', array_map(
         <div class="summary-card">
             <div class="summary-icon" style="color:#10b981">📡</div>
             <div class="summary-value"><?= $sensorsOnline ?>/<?= $sensorsTotal ?></div>
-            <div class="summary-label">Online / Total Sensors</div>
+            <div class="summary-label"><?= htmlspecialchars($t('dashboard.summary.sensors_online')) ?></div>
             <?php if ($sensorsOffline > 0): ?>
                 <div class="summary-warning">⚠️ <?= $sensorsOffline ?> offline</div>
             <?php else: ?>
@@ -376,7 +419,7 @@ $userInitials = strtoupper(implode('', array_map(
         <div class="summary-card">
             <div class="summary-icon" style="color:#3b82f6">🔄</div>
             <div class="summary-value"><?= e($lastSyncLabel) ?></div>
-            <div class="summary-label">Last Data Sync</div>
+            <div class="summary-label"><?= htmlspecialchars($t('dashboard.summary.last_data_sync')) ?></div>
             <div class="pulse-indicator">
                 <span class="pulse-dot"></span>
                 <span class="pulse-text">Live</span>
@@ -386,12 +429,44 @@ $userInitials = strtoupper(implode('', array_map(
         <div class="summary-card">
             <div class="summary-icon" style="color:#10b981">🖥️</div>
             <div class="summary-value <?= e($systemClass) ?>"><?= e($systemStatus) ?></div>
-            <div class="summary-label">System Status</div>
+            <div class="summary-label"><?= htmlspecialchars($t('dashboard.summary.system_status')) ?></div>
             <?php if ($hwOffline > 0): ?>
                 <div class="summary-warning">⚠️ <?= $hwOffline ?> component(s) down</div>
             <?php endif; ?>
         </div>
 
+    </section>
+
+    <section class="card analytics-overview-card mb-3">
+        <div class="card-header">
+            <div>
+                <h2 class="card-title"><?= htmlspecialchars($t('dashboard.analytics.title')) ?></h2>
+                <div class="preferences-subtitle"><?= htmlspecialchars($t('dashboard.analytics.subtitle')) ?></div>
+            </div>
+            <span class="badge badge-info">7D</span>
+        </div>
+        <div class="analytics-grid">
+            <div class="analytics-stat">
+                <div class="analytics-label"><?= htmlspecialchars($t('dashboard.analytics.readings')) ?></div>
+                <div class="analytics-value"><?= number_format((int)($analyticsRow['readings_count'] ?? 0)) ?></div>
+            </div>
+            <div class="analytics-stat">
+                <div class="analytics-label"><?= htmlspecialchars($t('dashboard.analytics.avg_temp')) ?></div>
+                <div class="analytics-value"><?= isset($analyticsRow['avg_temperature']) && $analyticsRow['avg_temperature'] !== null ? number_format((float)$analyticsRow['avg_temperature'], 1) . '°C' : '—' ?></div>
+            </div>
+            <div class="analytics-stat">
+                <div class="analytics-label"><?= htmlspecialchars($t('dashboard.analytics.avg_humidity')) ?></div>
+                <div class="analytics-value"><?= isset($analyticsRow['avg_humidity']) && $analyticsRow['avg_humidity'] !== null ? number_format((float)$analyticsRow['avg_humidity'], 1) . '%' : '—' ?></div>
+            </div>
+            <div class="analytics-stat">
+                <div class="analytics-label"><?= htmlspecialchars($t('dashboard.analytics.avg_light')) ?></div>
+                <div class="analytics-value"><?= isset($analyticsRow['avg_light']) && $analyticsRow['avg_light'] !== null ? number_format((float)$analyticsRow['avg_light'], 0) . ' lux' : '—' ?></div>
+            </div>
+        </div>
+        <div class="analytics-footnote">
+            <strong><?= htmlspecialchars($t('dashboard.analytics.top_greenhouse')) ?>:</strong>
+            <?= $topGreenhouse ? 'Greenhouse ' . e($topGreenhouse['code']) . ' • ' . number_format((int)$topGreenhouse['reading_count']) . ' readings' : htmlspecialchars($t('dashboard.analytics.no_data')) ?>
+        </div>
     </section>
 
     <!-- ── Active Experiment Banner ──────────────────────────────────── -->
@@ -411,7 +486,7 @@ $userInitials = strtoupper(implode('', array_map(
             </div>
         </div>
         <div class="banner-actions">
-            <a href="experiments.html" class="btn btn-secondary btn-sm">View Details</a>
+            <a href="experiments.php" class="btn btn-secondary btn-sm">View Details</a>
         </div>
     </div>
     <?php endif; ?>

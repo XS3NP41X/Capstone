@@ -112,12 +112,13 @@ function handle_login(): void
     }
 
     // 8. Build authenticated session
-    session_regenerate_id(true);
-    $_SESSION['user_id']    = $user['user_id'];
-    $_SESSION['user_name']  = $user['full_name'];
-    $_SESSION['user_email'] = $user['email'];
-    $_SESSION['user_role']  = $user['role'];
-    $_SESSION['last_regen'] = time();
+    build_auth_session($user);
+
+    if (!empty($_POST['remember_me'])) {
+        create_remember_me_token((int) $user['user_id']);
+    } else {
+        revoke_remember_me_token();
+    }
 
     // 9. Update last login timestamp
     try {
@@ -135,7 +136,7 @@ function handle_login(): void
 
     // 12. Redirect based on role
     // Admin goes to admin.html, everyone else to dashboard.html
-    $redirect = ($user['role'] === 'admin') ? 'admin.html' : 'dashboard.html';
+    $redirect = ($user['role'] === 'admin') ? 'admin.php' : 'dashboard.php';
 
     echo json_encode(['success' => true, 'redirect' => $redirect]);
 }
@@ -148,6 +149,8 @@ function handle_logout(): void
     if (!empty($_SESSION['user_id'])) {
         log_session_event((int) $_SESSION['user_id'], 'logout');
     }
+
+    revoke_remember_me_token();
 
     $_SESSION = [];
     if (ini_get('session.use_cookies')) {

@@ -8,6 +8,7 @@
 
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/security.php';
+require_once __DIR__ . '/preferences.php';
 
 // Session display vars (match dashboard.php)
 $userName     = htmlspecialchars($_SESSION['user_name']  ?? 'User');
@@ -22,6 +23,10 @@ $dbError = null;
 
 try {
     $pdo = db();
+    $preferences = ecotwinLoadUserPreferences($pdo, (int)($_SESSION['user_id'] ?? 0));
+    $profileDetails = ecotwinLoadUserProfileDetails($pdo, (int)($_SESSION['user_id'] ?? 0));
+    $preferenceBodyClass = ecotwinPreferenceBodyClass($preferences);
+    $t = fn(string $key, array $replacements = []) => ecotwinT($preferences['language'], $key, $replacements);
 
     // ── Summary stats (first-paint SSR) ──────────────────────────────────
     $dataPoints = (int)$pdo->query("
@@ -98,6 +103,27 @@ try {
         FROM experiments WHERE status = 'active' LIMIT 1
     ")->fetch();
 
+    $analyticsRow = $pdo->query("
+        SELECT
+            COUNT(*) AS readings_count,
+            AVG(CASE WHEN parameter = 'temperature' THEN value END) AS avg_temperature,
+            AVG(CASE WHEN parameter = 'humidity' THEN value END) AS avg_humidity,
+            AVG(CASE WHEN parameter = 'light' THEN value END) AS avg_light
+        FROM sensor_readings
+        WHERE recorded_at >= NOW() - INTERVAL 7 DAY
+    ")->fetch();
+
+    $topGreenhouse = $pdo->query("
+        SELECT g.code, COUNT(sr.reading_id) AS reading_count
+        FROM sensor_readings sr
+        JOIN sensors s ON s.sensor_id = sr.sensor_id
+        JOIN greenhouses g ON g.greenhouse_id = s.greenhouse_id
+        WHERE sr.recorded_at >= NOW() - INTERVAL 7 DAY
+        GROUP BY g.greenhouse_id, g.code
+        ORDER BY reading_count DESC, g.code ASC
+        LIMIT 1
+    ")->fetch();
+
     // ── First page of alerts (SSR, 10 per page) ──────────────────────────
     $perPage     = 10;
     $allLiveEvents = buildLiveIssueEvents($pdo);
@@ -124,15 +150,15 @@ try {
     // Group by type → compute uptime & grade
     $grouped = [];
     foreach ($sensorRows as $r) {
-        $t = $r['sensor_type'];
-        if (!isset($grouped[$t])) {
-            $grouped[$t] = ['label'=>stLabel($t),'ghs'=>[],'reads'=>0,'errors'=>0,'offline'=>false,'degraded'=>false];
+        $sensorType = $r['sensor_type'];
+        if (!isset($grouped[$sensorType])) {
+            $grouped[$sensorType] = ['label'=>stLabel($sensorType),'ghs'=>[],'reads'=>0,'errors'=>0,'offline'=>false,'degraded'=>false];
         }
-        $grouped[$t]['ghs'][]  = $r['gh_code'];
-        $grouped[$t]['reads'] += (int)$r['reading_count'];
-        $grouped[$t]['errors']+= (int)$r['error_count'];
-        if ($r['status']==='offline')  $grouped[$t]['offline']  = true;
-        if ($r['status']==='degraded') $grouped[$t]['degraded'] = true;
+        $grouped[$sensorType]['ghs'][]  = $r['gh_code'];
+        $grouped[$sensorType]['reads'] += (int)$r['reading_count'];
+        $grouped[$sensorType]['errors']+= (int)$r['error_count'];
+        if ($r['status']==='offline')  $grouped[$sensorType]['offline']  = true;
+        if ($r['status']==='degraded') $grouped[$sensorType]['degraded'] = true;
     }
 
     $perfData = [];
@@ -159,7 +185,13 @@ try {
 
 } catch (PDOException $e) {
     $dbError = $e->getMessage();
+    $preferences = ecotwinDefaultPreferences();
+    $profileDetails = ['avatar_url' => ''];
+    $preferenceBodyClass = ecotwinPreferenceBodyClass($preferences);
+    $t = fn(string $key, array $replacements = []) => ecotwinT($preferences['language'], $key, $replacements);
     $dataPoints = $critCount = $warnCount = 0;
+    $analyticsRow = ['readings_count' => 0, 'avg_temperature' => null, 'avg_humidity' => null, 'avg_light' => null];
+    $topGreenhouse = null;
     $uptime = 0;
     $totalAlerts = $totalPages = 0;
     $firstAlerts = $perfData = [];
@@ -294,15 +326,18 @@ function buildRange(int $cur, int $total): array {
 }
 ?>
 <!doctype html>
-<html lang="en">
+<html lang="<?= htmlspecialchars($preferences['language']) ?>">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Reports - EcoTwin</title>
+  <title><?= htmlspecialchars($t('page.reports.title')) ?> - EcoTwin</title>
   <link rel="stylesheet" href="css.main.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.main.css')) ?>" />
   <link rel="stylesheet" href="css.reports.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.reports.css')) ?>" />
 </head>
-<body>
+<body class="<?= htmlspecialchars($preferenceBodyClass) ?>"
+      data-language="<?= htmlspecialchars($preferences['language']) ?>"
+      data-timezone="<?= htmlspecialchars($preferences['timezone']) ?>"
+      data-date-format="<?= htmlspecialchars($preferences['date_format']) ?>">
 
 <!-- ====================================================== NAVBAR -->
 
@@ -313,18 +348,22 @@ function buildRange(int $cur, int $total): array {
       <span class="logo-text">EcoTwin</span>
     </a>
     <div class="navbar-menu" id="navbarMenu">
-      <a href="dashboard.php"   class="nav-item">Dashboard</a>
-      <a href="experiments.php" class="nav-item">Experiments</a>
-      <a href="greenhouses.php" class="nav-item">Greenhouses</a>
-      <a href="reports.php"     class="nav-item active">Reports</a>
-      <a href="settings.php"    class="nav-item">Settings</a>
+      <a href="dashboard.php"   class="nav-item"><?= htmlspecialchars($t('nav.dashboard')) ?></a>
+      <a href="experiments.php" class="nav-item"><?= htmlspecialchars($t('nav.experiments')) ?></a>
+      <a href="greenhouses.php" class="nav-item"><?= htmlspecialchars($t('nav.greenhouses')) ?></a>
+      <a href="reports.php"     class="nav-item active"><?= htmlspecialchars($t('nav.reports')) ?></a>
+      <a href="settings.php"    class="nav-item"><?= htmlspecialchars($t('nav.settings')) ?></a>
       <?php if ($userRole === 'admin'): ?>
-      <a href="admin.php"       class="nav-item">Admin</a>
+      <a href="admin.php"       class="nav-item"><?= htmlspecialchars($t('nav.admin')) ?></a>
       <?php endif; ?>
     </div>
     <div class="navbar-user">
-      <div class="profile-icon" onclick="toggleProfileDropdown(event)">
+      <div class="profile-icon <?= !empty($profileDetails['avatar_url']) ? 'has-avatar' : '' ?>" onclick="toggleProfileDropdown(event)">
+        <?php if (!empty($profileDetails['avatar_url'])): ?>
+        <img src="<?= htmlspecialchars($profileDetails['avatar_url']) ?>" alt="Profile avatar" />
+        <?php else: ?>
         <?= $userInitials ?>
+        <?php endif; ?>
       </div>
       <div class="profile-dropdown" id="profileDropdown">
         <div class="profile-dropdown-header">
@@ -335,11 +374,11 @@ function buildRange(int $cur, int $total): array {
           </div>
         </div>
         <div class="profile-dropdown-body">
-          <a href="#" class="profile-menu-item">Profile Settings</a>
-          <a href="#" class="profile-menu-item">Preferences</a>
+          <a href="settings.php#profileSection" class="profile-menu-item"><?= htmlspecialchars($t('menu.profile_settings')) ?></a>
+          <a href="settings.php#preferencesSettings" class="profile-menu-item"><?= htmlspecialchars($t('menu.preferences')) ?></a>
         </div>
         <div class="profile-dropdown-footer">
-          <button class="logout-btn" onclick="logout()">Logout</button>
+          <button class="logout-btn" onclick="logout()"><?= htmlspecialchars($t('menu.logout')) ?></button>
         </div>
       </div>
     </div>
@@ -350,8 +389,8 @@ function buildRange(int $cur, int $total): array {
 <main class="main-content">
 
   <div class="page-header">
-    <h1 class="page-title">Reports &amp; Analytics</h1>
-    <p class="page-subtitle">View system events, alerts, and export experimental data</p>
+    <h1 class="page-title"><?= htmlspecialchars($t('page.reports.title')) ?></h1>
+    <p class="page-subtitle"><?= htmlspecialchars($t('page.reports.subtitle')) ?></p>
   </div>
 
   <?php if ($dbError): ?>
@@ -375,6 +414,38 @@ function buildRange(int $cur, int $total): array {
       <?php endif; ?>
     </div>
   </div>
+
+  <section class="card analytics-overview-card mb-4">
+    <div class="card-header">
+      <div>
+        <h2 class="card-title"><?= htmlspecialchars($t('dashboard.analytics.title')) ?></h2>
+        <div class="analytics-subtitle"><?= htmlspecialchars($t('dashboard.analytics.subtitle')) ?></div>
+      </div>
+      <span class="badge badge-info">7D</span>
+    </div>
+    <div class="analytics-grid">
+      <div class="analytics-stat">
+        <div class="analytics-label"><?= htmlspecialchars($t('dashboard.analytics.readings')) ?></div>
+        <div class="analytics-value"><?= number_format((int)($analyticsRow['readings_count'] ?? 0)) ?></div>
+      </div>
+      <div class="analytics-stat">
+        <div class="analytics-label"><?= htmlspecialchars($t('dashboard.analytics.avg_temp')) ?></div>
+        <div class="analytics-value"><?= isset($analyticsRow['avg_temperature']) && $analyticsRow['avg_temperature'] !== null ? number_format((float)$analyticsRow['avg_temperature'], 1) . '°C' : '—' ?></div>
+      </div>
+      <div class="analytics-stat">
+        <div class="analytics-label"><?= htmlspecialchars($t('dashboard.analytics.avg_humidity')) ?></div>
+        <div class="analytics-value"><?= isset($analyticsRow['avg_humidity']) && $analyticsRow['avg_humidity'] !== null ? number_format((float)$analyticsRow['avg_humidity'], 1) . '%' : '—' ?></div>
+      </div>
+      <div class="analytics-stat">
+        <div class="analytics-label"><?= htmlspecialchars($t('dashboard.analytics.avg_light')) ?></div>
+        <div class="analytics-value"><?= isset($analyticsRow['avg_light']) && $analyticsRow['avg_light'] !== null ? number_format((float)$analyticsRow['avg_light'], 0) . ' lux' : '—' ?></div>
+      </div>
+    </div>
+    <div class="analytics-footnote">
+      <strong><?= htmlspecialchars($t('dashboard.analytics.top_greenhouse')) ?>:</strong>
+      <?= $topGreenhouse ? 'Greenhouse ' . htmlspecialchars($topGreenhouse['code']) . ' • ' . number_format((int)$topGreenhouse['reading_count']) . ' readings' : htmlspecialchars($t('dashboard.analytics.no_data')) ?>
+    </div>
+  </section>
 
   <!-- ============================================================
        EXPORT CONTROLS
@@ -407,6 +478,7 @@ function buildRange(int $cur, int $total): array {
           <div class="form-group">
             <label class="form-label">Format</label>
             <select class="form-select" id="format-select">
+              <option value="xls">Excel Styled (.xls)</option>
               <option value="csv">CSV (Excel)</option>
               <option value="json">JSON</option>
             </select>
@@ -595,7 +667,7 @@ function buildRange(int $cur, int $total): array {
         </div>
         <div class="summary-row">
           <span class="summary-label">Format:</span>
-          <span class="summary-value" id="m-fmt">CSV (Excel)</span>
+          <span class="summary-value" id="m-fmt">Excel Styled (.xls)</span>
         </div>
         <div class="summary-row">
           <span class="summary-label">Max Rows:</span>
@@ -759,7 +831,7 @@ function viewDetail(id) {
 const ghLbl  = {both:'Both Greenhouses',A:'Greenhouse A',B:'Greenhouse B'};
 const drLbl  = {'24h':'Last 24 Hours','7d':'Last 7 Days','30d':'Last 30 Days',
                 experiment:'Current Experiment',custom:'Custom Range'};
-const fmtLbl = {csv:'CSV (Excel)',json:'JSON'};
+const fmtLbl = {xls:'Excel Styled (.xls)',csv:'CSV (Excel)',json:'JSON'};
 
 function toggleCustomDates() {
     const show = document.getElementById('date-range-select').value === 'custom';

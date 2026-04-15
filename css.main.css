@@ -9,6 +9,7 @@
 }
 
 body {
+  --font-scale: 1;
   font-family:
     "Inter",
     -apple-system,
@@ -18,6 +19,29 @@ body {
   background-color: #f8f9fa;
   color: #1a1a1a;
   line-height: 1.5;
+}
+
+body.font-size-small {
+  --font-scale: 0.92;
+  zoom: 0.92;
+}
+
+body.font-size-medium {
+  --font-scale: 1;
+  zoom: 1;
+}
+
+body.font-size-large {
+  --font-scale: 1.1;
+  zoom: 1.1;
+}
+
+body.font-style-serif {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+body.font-style-monospace {
+  font-family: Consolas, "Courier New", monospace;
 }
 
 /* ============================================================================
@@ -123,6 +147,19 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+}
+
+.profile-icon.has-avatar {
+  background: transparent;
+  overflow: hidden;
+  padding: 0;
+}
+
+.profile-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .profile-icon:hover {
@@ -496,6 +533,459 @@ body {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
+}
+
+body.layout-list .greenhouse-status-grid,
+body.layout-list .stats-grid,
+body.layout-list .greenhouse-grid,
+body.layout-list .tab-layout,
+body.layout-list .greenhouse-assign-grid,
+body.layout-list .users-layout,
+body.layout-list .settings-grid,
+body.layout-list .profile-summary-grid,
+body.layout-list .preferences-grid,
+body.layout-list .notification-channel-grid,
+body.layout-list .threshold-cards-grid,
+body.layout-list .exp-greenhouse-assignment,
+body.layout-list .form-row-2,
+body.layout-list .grid-2,
+body.layout-list .grid-3,
+body.layout-list .grid-4 {
+  grid-template-columns: 1fr !important;
+}
+
+body.theme-dark {
+  background: #111827;
+  color: #f9fafb;
+}
+
+body.theme-dark .navbar,
+body.theme-dark .card,
+body.theme-dark .profile-dropdown,
+body.theme-dark .modal-box,
+body.theme-dark .alert,
+body.theme-dark .summary-card,
+body.theme-dark .stat-card,
+body.theme-dark .hardware-card,
+body.theme-dark .greenhouse-status-card,
+body.theme-dark .experiment-detail-card,
+body.theme-dark .gh-form-card {
+  background: #1f2937;
+  border-color: #374151;
+  color: #f9fafb;
+}
+
+body.theme-dark .nav-item,
+body.theme-dark .profile-menu-item,
+body.theme-dark .page-subtitle,
+body.theme-dark .profile-user-email,
+body.theme-dark .profile-user-role,
+body.theme-dark .text-muted,
+body.theme-dark .table th,
+body.theme-dark .table td {
+  color: #d1d5db;
+}
+
+body.theme-dark .nav-item:hover,
+body.theme-dark .profile-menu-item:hover,
+body.theme-dark .table tr:hover {
+  background: #111827;
+}
+
+body.theme-dark .nav-item.active {
+  background: #0f766e;
+  color: #ecfeff;
+  border-bottom-color: #5eead4;
+}
+
+body.theme-dark .page-title,
+body.theme-dark .card-title,
+body.theme-dark .profile-user-name,
+body.theme-dark .setting-value,
+body.theme-dark .threshold-value,
+body.theme-dark .hw-name,
+body.theme-dark .logo-text {
+  color: #f9fafb;
+}
+
+body.theme-dark .btn-secondary,
+body.theme-dark input,
+body.theme-dark select,
+body.theme-dark textarea,
+body.theme-dark .table th {
+  background: #111827;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+body.theme-dark .summary-card,
+body.theme-dark .greenhouse-status-card,
+body.theme-dark .hardware-section,
+body.theme-dark .hardware-card,
+body.theme-dark .experiment-detail-card,
+body.theme-dark .gh-assignment,
+body.theme-dark .stat-card,
+body.theme-dark .hardware-notice,
+body.theme-dark .parameter-tile,
+body.theme-dark .threshold-group,
+body.theme-dark .control-panel,
+body.theme-dark .chart-placeholder,
+body.theme-dark .performance-item,
+body.theme-dark .export-summary,
+body.theme-dark .export-details,
+body.theme-dark .plant-selector-panel,
+body.theme-dark .plant-detail-panel,
+body.theme-dark .th-card,
+body.theme-dark .gh-assign-card,
+body.theme-dark .gh-plant-preview,
+body.theme-dark .mini-thresh,
+body.theme-dark .simulator-panel,
+body.theme-dark .simulator-intro,
+body.theme-dark .sim-field,
+body.theme-dark .plant-list-item.selected,
+body.theme-dark .admin-tabs {
+  background: #111827 !important;
+  border-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+body.theme-dark .param-item,
+body.theme-dark .exp-meta,
+body.theme-dark .gh-assignment,
+body.theme-dark .stat-card,
+body.theme-dark .hardware-card,
+body.theme-dark .parameter-tile,
+body.theme-dark .performance-item,
+body.theme-dark .export-summary,
+body.theme-dark .export-details,
+body.theme-dark .th-card,
+body.theme-dark .mini-thresh,
+body.theme-dark .sim-field,
+body.theme-dark .plant-search,
+body.theme-dark .form-select-admin,
+body.theme-dark .form-input-modal,
+body.theme-dark .form-select-modal,
+body.theme-dark .form-textarea-modal,
+body.theme-dark .input-group input[type="number"],
+body.theme-dark .page-btn,
+body.theme-dark .tab-button:hover,
+body.theme-dark .admin-tab:hover,
+body.theme-dark .plant-list-item:hover {
+  background: #1f2937 !important;
+  border-color: #4b5563 !important;
+  color: #f9fafb !important;
+}
+
+body.theme-dark .page-title,
+body.theme-dark .card-title,
+body.theme-dark .summary-value,
+body.theme-dark .summary-label,
+body.theme-dark .summary-meta,
+body.theme-dark .summary-warning,
+body.theme-dark .gh-title,
+body.theme-dark .gh-subtitle,
+body.theme-dark .param-label,
+body.theme-dark .param-value,
+body.theme-dark .section-title,
+body.theme-dark .hw-name,
+body.theme-dark .hw-status,
+body.theme-dark .exp-title,
+body.theme-dark .meta-item,
+body.theme-dark .meta-item strong,
+body.theme-dark .gh-assignment-title,
+body.theme-dark .gh-assignment-role,
+body.theme-dark .gh-assignment-desc,
+body.theme-dark .stat-label,
+body.theme-dark .notice-title,
+body.theme-dark .notice-text,
+body.theme-dark .update-time,
+body.theme-dark .param-unit,
+body.theme-dark .param-range,
+body.theme-dark .threshold-header strong,
+body.theme-dark .input-group label,
+body.theme-dark .actuator-name,
+body.theme-dark .actuator-desc,
+body.theme-dark .legend-item,
+body.theme-dark .placeholder-text,
+body.theme-dark .placeholder-subtext,
+body.theme-dark .sensor-name,
+body.theme-dark .sensor-desc,
+body.theme-dark .sensor-status,
+body.theme-dark .pagination-info,
+body.theme-dark .sensor-name-perf,
+body.theme-dark .sensor-location,
+body.theme-dark .performance-stats,
+body.theme-dark .modal-title,
+body.theme-dark .modal-body p,
+body.theme-dark .modal-note,
+body.theme-dark .summary-label,
+body.theme-dark .summary-value,
+body.theme-dark .success-message,
+body.theme-dark .detail-filename,
+body.theme-dark .detail-meta,
+body.theme-dark .panel-title,
+body.theme-dark .plant-item-name,
+body.theme-dark .plant-item-sci,
+body.theme-dark .detail-plant-name,
+body.theme-dark .detail-plant-sci,
+body.theme-dark .th-card-header,
+body.theme-dark .th-label,
+body.theme-dark .th-val,
+body.theme-dark .gh-assign-title,
+body.theme-dark .gh-assign-role,
+body.theme-dark .form-label-admin,
+body.theme-dark .preview-name,
+body.theme-dark .preview-sci,
+body.theme-dark .mini-thresh-label,
+body.theme-dark .mini-thresh-val,
+body.theme-dark .simulator-panel-title,
+body.theme-dark .simulator-panel-subtitle,
+body.theme-dark .simulator-hint,
+body.theme-dark .admin-tab,
+body.theme-dark .plant-list-item,
+body.theme-dark .cat-btn,
+body.theme-dark .table td,
+body.theme-dark .table th {
+  color: #f9fafb !important;
+}
+
+body.theme-dark .profile-user-email,
+body.theme-dark .profile-user-role,
+body.theme-dark .page-subtitle,
+body.theme-dark .text-muted,
+body.theme-dark .gh-subtitle,
+body.theme-dark .param-label,
+body.theme-dark .summary-label,
+body.theme-dark .summary-meta,
+body.theme-dark .summary-warning,
+body.theme-dark .update-time,
+body.theme-dark .sensor-location,
+body.theme-dark .detail-meta,
+body.theme-dark .detail-plant-sci,
+body.theme-dark .preview-sci,
+body.theme-dark .mini-thresh-label,
+body.theme-dark .plant-item-sci {
+  color: #d1d5db !important;
+}
+
+body.theme-high-contrast {
+  background: #000000;
+  color: #ffffff;
+}
+
+body.theme-high-contrast .navbar,
+body.theme-high-contrast .card,
+body.theme-high-contrast .profile-dropdown,
+body.theme-high-contrast .modal-box,
+body.theme-high-contrast .alert,
+body.theme-high-contrast .summary-card,
+body.theme-high-contrast .stat-card,
+body.theme-high-contrast .hardware-card,
+body.theme-high-contrast .greenhouse-status-card,
+body.theme-high-contrast .experiment-detail-card,
+body.theme-high-contrast .gh-form-card {
+  background: #000000;
+  border: 2px solid #ffffff;
+  color: #ffffff;
+  box-shadow: none;
+}
+
+body.theme-high-contrast .nav-item,
+body.theme-high-contrast .profile-menu-item,
+body.theme-high-contrast .page-subtitle,
+body.theme-high-contrast .profile-user-email,
+body.theme-high-contrast .profile-user-role,
+body.theme-high-contrast .text-muted,
+body.theme-high-contrast .table th,
+body.theme-high-contrast .table td,
+body.theme-high-contrast .logo-text {
+  color: #ffffff;
+}
+
+body.theme-high-contrast .nav-item.active,
+body.theme-high-contrast .btn-primary,
+body.theme-high-contrast .badge-info,
+body.theme-high-contrast .badge-success,
+body.theme-high-contrast .badge-warning,
+body.theme-high-contrast .badge-danger,
+body.theme-high-contrast .badge-neutral {
+  background: #ffff00;
+  color: #000000;
+  border-color: #ffff00;
+}
+
+body.theme-high-contrast .btn-secondary,
+body.theme-high-contrast input,
+body.theme-high-contrast select,
+body.theme-high-contrast textarea,
+body.theme-high-contrast .table th,
+body.theme-high-contrast .table td {
+  background: #000000;
+  border: 2px solid #ffffff;
+  color: #ffffff;
+}
+
+body.theme-high-contrast .summary-card,
+body.theme-high-contrast .greenhouse-status-card,
+body.theme-high-contrast .hardware-section,
+body.theme-high-contrast .hardware-card,
+body.theme-high-contrast .experiment-detail-card,
+body.theme-high-contrast .gh-assignment,
+body.theme-high-contrast .stat-card,
+body.theme-high-contrast .hardware-notice,
+body.theme-high-contrast .parameter-tile,
+body.theme-high-contrast .threshold-group,
+body.theme-high-contrast .control-panel,
+body.theme-high-contrast .chart-placeholder,
+body.theme-high-contrast .performance-item,
+body.theme-high-contrast .export-summary,
+body.theme-high-contrast .export-details,
+body.theme-high-contrast .plant-selector-panel,
+body.theme-high-contrast .plant-detail-panel,
+body.theme-high-contrast .th-card,
+body.theme-high-contrast .gh-assign-card,
+body.theme-high-contrast .gh-plant-preview,
+body.theme-high-contrast .mini-thresh,
+body.theme-high-contrast .simulator-panel,
+body.theme-high-contrast .simulator-intro,
+body.theme-high-contrast .sim-field,
+body.theme-high-contrast .admin-tabs {
+  background: #000000 !important;
+  border: 2px solid #ffffff !important;
+  color: #ffffff !important;
+}
+
+body.theme-high-contrast .page-title,
+body.theme-high-contrast .card-title,
+body.theme-high-contrast .summary-value,
+body.theme-high-contrast .summary-label,
+body.theme-high-contrast .gh-title,
+body.theme-high-contrast .gh-subtitle,
+body.theme-high-contrast .param-label,
+body.theme-high-contrast .param-value,
+body.theme-high-contrast .section-title,
+body.theme-high-contrast .hw-name,
+body.theme-high-contrast .hw-status,
+body.theme-high-contrast .exp-title,
+body.theme-high-contrast .meta-item,
+body.theme-high-contrast .meta-item strong,
+body.theme-high-contrast .gh-assignment-title,
+body.theme-high-contrast .gh-assignment-role,
+body.theme-high-contrast .gh-assignment-desc,
+body.theme-high-contrast .stat-label,
+body.theme-high-contrast .notice-title,
+body.theme-high-contrast .notice-text,
+body.theme-high-contrast .update-time,
+body.theme-high-contrast .param-unit,
+body.theme-high-contrast .param-range,
+body.theme-high-contrast .threshold-header strong,
+body.theme-high-contrast .input-group label,
+body.theme-high-contrast .actuator-name,
+body.theme-high-contrast .actuator-desc,
+body.theme-high-contrast .legend-item,
+body.theme-high-contrast .placeholder-text,
+body.theme-high-contrast .placeholder-subtext,
+body.theme-high-contrast .sensor-name,
+body.theme-high-contrast .sensor-desc,
+body.theme-high-contrast .sensor-status,
+body.theme-high-contrast .pagination-info,
+body.theme-high-contrast .sensor-name-perf,
+body.theme-high-contrast .sensor-location,
+body.theme-high-contrast .performance-stats,
+body.theme-high-contrast .modal-title,
+body.theme-high-contrast .modal-body p,
+body.theme-high-contrast .modal-note,
+body.theme-high-contrast .success-message,
+body.theme-high-contrast .detail-filename,
+body.theme-high-contrast .detail-meta,
+body.theme-high-contrast .panel-title,
+body.theme-high-contrast .plant-item-name,
+body.theme-high-contrast .plant-item-sci,
+body.theme-high-contrast .detail-plant-name,
+body.theme-high-contrast .detail-plant-sci,
+body.theme-high-contrast .th-card-header,
+body.theme-high-contrast .th-label,
+body.theme-high-contrast .th-val,
+body.theme-high-contrast .gh-assign-title,
+body.theme-high-contrast .gh-assign-role,
+body.theme-high-contrast .form-label-admin,
+body.theme-high-contrast .preview-name,
+body.theme-high-contrast .preview-sci,
+body.theme-high-contrast .mini-thresh-label,
+body.theme-high-contrast .mini-thresh-val,
+body.theme-high-contrast .simulator-panel-title,
+body.theme-high-contrast .simulator-panel-subtitle,
+body.theme-high-contrast .simulator-hint,
+body.theme-high-contrast .admin-tab,
+body.theme-high-contrast .plant-list-item,
+body.theme-high-contrast .cat-btn {
+  color: #ffffff !important;
+}
+
+body.font-size-small .nav-item,
+body.font-size-medium .nav-item,
+body.font-size-large .nav-item,
+body.font-size-small .profile-menu-item,
+body.font-size-medium .profile-menu-item,
+body.font-size-large .profile-menu-item,
+body.font-size-small .page-title,
+body.font-size-medium .page-title,
+body.font-size-large .page-title,
+body.font-size-small .page-subtitle,
+body.font-size-medium .page-subtitle,
+body.font-size-large .page-subtitle,
+body.font-size-small .card-title,
+body.font-size-medium .card-title,
+body.font-size-large .card-title,
+body.font-size-small .btn,
+body.font-size-medium .btn,
+body.font-size-large .btn,
+body.font-size-small label,
+body.font-size-medium label,
+body.font-size-large label,
+body.font-size-small input,
+body.font-size-medium input,
+body.font-size-large input,
+body.font-size-small select,
+body.font-size-medium select,
+body.font-size-large select,
+body.font-size-small textarea,
+body.font-size-medium textarea,
+body.font-size-large textarea,
+body.font-size-small .table th,
+body.font-size-medium .table th,
+body.font-size-large .table th,
+body.font-size-small .table td,
+body.font-size-medium .table td,
+body.font-size-large .table td,
+body.font-size-small .summary-label,
+body.font-size-medium .summary-label,
+body.font-size-large .summary-label,
+body.font-size-small .summary-value,
+body.font-size-medium .summary-value,
+body.font-size-large .summary-value,
+body.font-size-small .stat-label,
+body.font-size-medium .stat-label,
+body.font-size-large .stat-label,
+body.font-size-small .stat-value,
+body.font-size-medium .stat-value,
+body.font-size-large .stat-value,
+body.font-size-small .param-label,
+body.font-size-medium .param-label,
+body.font-size-large .param-label,
+body.font-size-small .param-value,
+body.font-size-medium .param-value,
+body.font-size-large .param-value,
+body.font-size-small .profile-user-name,
+body.font-size-medium .profile-user-name,
+body.font-size-large .profile-user-name,
+body.font-size-small .profile-user-email,
+body.font-size-medium .profile-user-email,
+body.font-size-large .profile-user-email,
+body.font-size-small .profile-user-role,
+body.font-size-medium .profile-user-role,
+body.font-size-large .profile-user-role {
+  font-size: calc(1em * var(--font-scale)) !important;
 }
 
 /* ============================================================================

@@ -20,6 +20,8 @@ define('LOCKOUT_SECONDS',    900);   // 15 minutes
 define('BCRYPT_COST',        12);
 define('RESET_TOKEN_BYTES',  32);
 define('RESET_TOKEN_TTL',    3600);  // 1 hour
+define('REMEMBER_ME_COOKIE', 'ecotwin_remember');
+define('REMEMBER_ME_DAYS',   30);
 
 // ── CSRF ─────────────────────────────────────────────────────────────────────
 function csrf_token(): string
@@ -104,6 +106,158 @@ function clear_failed_attempts(string $email): void
     }
 }
 
+function ensure_remember_tokens_table(): void
+{
+    try {
+        db()->exec(
+            "CREATE TABLE IF NOT EXISTS `remember_tokens` (
+                `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                `user_id` INT UNSIGNED NOT NULL,
+                `selector` CHAR(24) NOT NULL,
+                `validator_hash` CHAR(64) NOT NULL,
+                `expires_at` DATETIME NOT NULL,
+                `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (`id`),
+                UNIQUE KEY `uniq_selector` (`selector`),
+                KEY `idx_user_id` (`user_id`),
+                KEY `idx_expires_at` (`expires_at`),
+                CONSTRAINT `fk_remember_tokens_user`
+                    FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
+                    ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+        );
+    } catch (PDOException $e) {
+        error_log('ensure_remember_tokens_table: ' . $e->getMessage());
+    }
+}
+
+function build_auth_session(array $user): void
+{
+    session_regenerate_id(true);
+    $_SESSION['user_id']    = $user['user_id'];
+    $_SESSION['user_name']  = $user['full_name'];
+    $_SESSION['user_email'] = $user['email'];
+    $_SESSION['user_role']  = $user['role'];
+    $_SESSION['last_regen'] = time();
+}
+
+function remember_cookie_options(int $expires): array
+{
+    return [
+        'expires'  => $expires,
+        'path'     => '/',
+        'secure'   => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ];
+}
+
+function clear_remember_me_cookie(): void
+{
+    setcookie(REMEMBER_ME_COOKIE, '', remember_cookie_options(time() - 3600));
+    unset($_COOKIE[REMEMBER_ME_COOKIE]);
+}
+
+function revoke_remember_me_token(?string $cookieValue = null): void
+{
+    $cookieValue ??= $_COOKIE[REMEMBER_ME_COOKIE] ?? '';
+    if ($cookieValue === '' || strpos($cookieValue, ':') === false) {
+        clear_remember_me_cookie();
+        return;
+    }
+
+    [$selector] = explode(':', $cookieValue, 2);
+
+    try {
+        ensure_remember_tokens_table();
+        db()->prepare("DELETE FROM remember_tokens WHERE selector = ?")->execute([$selector]);
+    } catch (PDOException $e) {
+        error_log('revoke_remember_me_token: ' . $e->getMessage());
+    }
+
+    clear_remember_me_cookie();
+}
+
+function create_remember_me_token(int $userId): void
+{
+    try {
+        ensure_remember_tokens_table();
+        $selector  = bin2hex(random_bytes(12));
+        $validator = bin2hex(random_bytes(32));
+        $hash      = hash('sha256', $validator);
+        $expiresAt = time() + (REMEMBER_ME_DAYS * 86400);
+        $expiresDb = date('Y-m-d H:i:s', $expiresAt);
+
+        db()->prepare("DELETE FROM remember_tokens WHERE user_id = ? OR expires_at < NOW()")
+            ->execute([$userId]);
+
+        db()->prepare(
+            "INSERT INTO remember_tokens (user_id, selector, validator_hash, expires_at)
+             VALUES (?, ?, ?, ?)"
+        )->execute([$userId, $selector, $hash, $expiresDb]);
+
+        $cookieValue = $selector . ':' . $validator;
+        setcookie(REMEMBER_ME_COOKIE, $cookieValue, remember_cookie_options($expiresAt));
+        $_COOKIE[REMEMBER_ME_COOKIE] = $cookieValue;
+    } catch (Throwable $e) {
+        error_log('create_remember_me_token: ' . $e->getMessage());
+        clear_remember_me_cookie();
+    }
+}
+
+function restore_remembered_login(): bool
+{
+    if (!empty($_SESSION['user_id'])) {
+        return true;
+    }
+
+    $cookie = $_COOKIE[REMEMBER_ME_COOKIE] ?? '';
+    if ($cookie === '' || strpos($cookie, ':') === false) {
+        return false;
+    }
+
+    [$selector, $validator] = explode(':', $cookie, 2);
+    if ($selector === '' || $validator === '') {
+        revoke_remember_me_token($cookie);
+        return false;
+    }
+
+    try {
+        ensure_remember_tokens_table();
+        db()->prepare("DELETE FROM remember_tokens WHERE expires_at < NOW()")->execute();
+
+        $stmt = db()->prepare(
+            "SELECT rt.user_id, rt.validator_hash,
+                    u.full_name, u.email, u.role, u.status
+               FROM remember_tokens rt
+               JOIN users u ON u.user_id = rt.user_id
+              WHERE rt.selector = ?
+              LIMIT 1"
+        );
+        $stmt->execute([$selector]);
+        $row = $stmt->fetch();
+
+        if (!$row || $row['status'] !== 'active') {
+            revoke_remember_me_token($cookie);
+            return false;
+        }
+
+        if (!hash_equals($row['validator_hash'], hash('sha256', $validator))) {
+            revoke_remember_me_token($cookie);
+            return false;
+        }
+
+        build_auth_session($row);
+        create_remember_me_token((int) $row['user_id']);
+        log_session_event((int) $row['user_id'], 'remember_login');
+        return true;
+    } catch (Throwable $e) {
+        error_log('restore_remembered_login: ' . $e->getMessage());
+        clear_remember_me_cookie();
+        return false;
+    }
+}
+
 // ── Session event logging ─────────────────────────────────────────────────────
 // Only called with a real user_id (> 0) to satisfy the FK on session_log.
 function log_session_event(int $userId, string $action, string $detail = ''): void
@@ -129,6 +283,10 @@ function log_session_event(int $userId, string $action, string $detail = ''): vo
 // ── Auth guard ────────────────────────────────────────────────────────────────
 function require_auth(): void
 {
+    if (empty($_SESSION['user_id'])) {
+        restore_remembered_login();
+    }
+
     if (empty($_SESSION['user_id'])) {
         header('Location: login.php');
         exit;

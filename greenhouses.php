@@ -7,6 +7,7 @@
 
 session_start();
 require_once __DIR__ . '/admin/db.php';
+require_once __DIR__ . '/preferences.php';
 
 // ── Auth guard ────────────────────────────────────────────────────────────────
 // Uncomment when session-based login is wired up:
@@ -17,6 +18,10 @@ require_once __DIR__ . '/admin/db.php';
 
 // ── Load greenhouse overview from DB ─────────────────────────────────────────
 $db = getDB();
+$preferences = ecotwinLoadUserPreferences($db, (int)($_SESSION['user_id'] ?? 0));
+$profileDetails = ecotwinLoadUserProfileDetails($db, (int)($_SESSION['user_id'] ?? 0));
+$preferenceBodyClass = ecotwinPreferenceBodyClass($preferences);
+$t = fn(string $key, array $replacements = []) => ecotwinT($preferences['language'], $key, $replacements);
 
 // Both greenhouses with plant and alert summary
 $stmt = $db->query("SELECT * FROM v_greenhouse_status ORDER BY code");
@@ -616,11 +621,11 @@ $rules_b_json = json_encode(array_values($data['B']['rules'] ?? []), JSON_HEX_TA
 
 ?>
 <!doctype html>
-<html lang="en">
+<html lang="<?= htmlspecialchars($preferences['language']) ?>">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Greenhouses – EcoTwin</title>
+    <title><?= htmlspecialchars($t('page.greenhouses.title')) ?> – EcoTwin</title>
     <link rel="stylesheet" href="css.main.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.main.css')) ?>" />
     <link rel="stylesheet" href="css.greenhouses.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.greenhouses.css')) ?>" />
     <style>
@@ -656,7 +661,10 @@ $rules_b_json = json_encode(array_values($data['B']['rules'] ?? []), JSON_HEX_TA
         }
     </style>
 </head>
-<body>
+<body class="<?= htmlspecialchars($preferenceBodyClass) ?>"
+      data-language="<?= htmlspecialchars($preferences['language']) ?>"
+      data-timezone="<?= htmlspecialchars($preferences['timezone']) ?>"
+      data-date-format="<?= htmlspecialchars($preferences['date_format']) ?>">
 
 <!-- Navigation Bar -->
 <nav class="navbar">
@@ -666,19 +674,23 @@ $rules_b_json = json_encode(array_values($data['B']['rules'] ?? []), JSON_HEX_TA
             <span class="logo-text">EcoTwin</span>
         </a>
         <div class="navbar-menu" id="navbarMenu">
-            <a href="dashboard.php"   class="nav-item">Dashboard</a>
-            <a href="experiments.php" class="nav-item">Experiments</a>
-            <a href="greenhouses.php" class="nav-item active">Greenhouses</a>
-            <a href="reports.php"     class="nav-item">Reports</a>
-            <a href="settings.php"    class="nav-item">Settings</a>
+            <a href="dashboard.php"   class="nav-item"><?= htmlspecialchars($t('nav.dashboard')) ?></a>
+            <a href="experiments.php" class="nav-item"><?= htmlspecialchars($t('nav.experiments')) ?></a>
+            <a href="greenhouses.php" class="nav-item active"><?= htmlspecialchars($t('nav.greenhouses')) ?></a>
+            <a href="reports.php"     class="nav-item"><?= htmlspecialchars($t('nav.reports')) ?></a>
+            <a href="settings.php"    class="nav-item"><?= htmlspecialchars($t('nav.settings')) ?></a>
             <?php if ($userRole === 'admin'): ?>
-            <a href="admin.php"       class="nav-item">Admin</a>
+            <a href="admin.php"       class="nav-item"><?= htmlspecialchars($t('nav.admin')) ?></a>
             <?php endif; ?>
         </div>
         <div class="navbar-user">
             <span class="db-live-badge">Live DB</span>
-            <div class="profile-icon" onclick="toggleProfileDropdown(event)">
+            <div class="profile-icon <?= !empty($profileDetails['avatar_url']) ? 'has-avatar' : '' ?>" onclick="toggleProfileDropdown(event)">
+                <?php if (!empty($profileDetails['avatar_url'])): ?>
+                <img src="<?= htmlspecialchars($profileDetails['avatar_url']) ?>" alt="Profile avatar" />
+                <?php else: ?>
                 <?= htmlspecialchars($current_user['initials']) ?>
+                <?php endif; ?>
             </div>
             <div class="profile-dropdown" id="profileDropdown">
                 <div class="profile-dropdown-header">
@@ -689,11 +701,11 @@ $rules_b_json = json_encode(array_values($data['B']['rules'] ?? []), JSON_HEX_TA
                     </div>
                 </div>
                 <div class="profile-dropdown-body">
-                    <a href="settings.php" class="profile-menu-item">Profile Settings</a>
-                    <a href="#"            class="profile-menu-item">Preferences</a>
+                    <a href="settings.php#profileSection" class="profile-menu-item"><?= htmlspecialchars($t('menu.profile_settings')) ?></a>
+                    <a href="settings.php#preferencesSettings" class="profile-menu-item"><?= htmlspecialchars($t('menu.preferences')) ?></a>
                 </div>
                 <div class="profile-dropdown-footer">
-                    <button class="logout-btn" onclick="logout()">Logout</button>
+                    <button class="logout-btn" onclick="logout()"><?= htmlspecialchars($t('menu.logout')) ?></button>
                 </div>
             </div>
         </div>
@@ -703,8 +715,8 @@ $rules_b_json = json_encode(array_values($data['B']['rules'] ?? []), JSON_HEX_TA
 <!-- Main Content -->
 <main class="main-content">
     <div class="page-header">
-        <h1 class="page-title">Greenhouse Monitoring</h1>
-        <p class="page-subtitle">Real-time environmental data from <strong>ecotwin_db</strong> — sensor readings, actuator control &amp; automation thresholds</p>
+        <h1 class="page-title"><?= htmlspecialchars($t('page.greenhouses.title')) ?></h1>
+        <p class="page-subtitle"><?= htmlspecialchars($t('page.greenhouses.subtitle')) ?></p>
     </div>
 
     <!-- Tab Navigation -->

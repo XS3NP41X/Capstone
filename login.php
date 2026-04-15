@@ -6,6 +6,8 @@
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/security.php';
 
+restore_remembered_login();
+
 // Already logged in → go straight to the right page
 if (!empty($_SESSION['user_id'])) {
     $dest = ($_SESSION['user_role'] === 'admin') ? 'admin.php' : 'dashboard.php';
@@ -81,12 +83,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
 
                     // 6. Build session
-                    session_regenerate_id(true);
-                    $_SESSION['user_id']    = $user['user_id'];
-                    $_SESSION['user_name']  = $user['full_name'];
-                    $_SESSION['user_email'] = $user['email'];
-                    $_SESSION['user_role']  = $user['role'];
-                    $_SESSION['last_regen'] = time();
+                    build_auth_session($user);
+
+                    if (!empty($_POST['remember_me'])) {
+                        create_remember_me_token((int) $user['user_id']);
+                    } else {
+                        revoke_remember_me_token();
+                    }
 
                     // 7. Update last login
                     try {
@@ -164,13 +167,20 @@ $token = csrf_token();
                         autocomplete="current-password"
                         maxlength="128"
                     />
-                    <button type="button" class="password-toggle" id="togglePw" title="Show/hide password">👁</button>
+                    <button
+                        type="button"
+                        class="password-toggle"
+                        id="togglePw"
+                        aria-label="Show password"
+                        aria-pressed="false"
+                        title="Show password"
+                    ><i class="bi bi-eye" aria-hidden="true"></i></button>
                 </div>
             </div>
 
             <div class="remember-row">
                 <label class="checkbox-label">
-                    <input type="checkbox" id="rememberMe" />
+                    <input type="checkbox" id="rememberMe" name="remember_me" value="1" />
                     <span>Remember me</span>
                 </label>
                 <a href="#" class="forgot-link" id="openForgot">Forgot password?</a>
@@ -237,11 +247,17 @@ $token = csrf_token();
 'use strict';
 
 // ── Password toggle ───────────────────────────────────────────────────────────
-document.getElementById('togglePw').addEventListener('click', function () {
+const togglePwButton = document.getElementById('togglePw');
+const togglePwIcon = togglePwButton.querySelector('i');
+
+togglePwButton.addEventListener('click', function () {
     const input  = document.getElementById('loginPassword');
     const hidden = input.type === 'password';
     input.type       = hidden ? 'text' : 'password';
-    this.textContent = hidden ? '🙈' : '👁';
+    togglePwIcon.className = hidden ? 'bi bi-eye-slash' : 'bi bi-eye';
+    this.setAttribute('aria-pressed', hidden ? 'true' : 'false');
+    this.setAttribute('aria-label', hidden ? 'Hide password' : 'Show password');
+    this.title = hidden ? 'Hide password' : 'Show password';
 });
 
 // ── Forgot password modal ─────────────────────────────────────────────────────

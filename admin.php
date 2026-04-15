@@ -7,6 +7,7 @@
 require_once __DIR__ . '/auth_guard.php';
 require_role('admin');
 require_once __DIR__ . '/admin/db.php';
+require_once __DIR__ . '/preferences.php';
 
 $error = null;
 $currentUser = [
@@ -17,6 +18,10 @@ $currentUser = [
 
 try {
     $pdo = getDB();
+    $preferences = ecotwinLoadUserPreferences($pdo, (int)($_SESSION['user_id'] ?? 0));
+    $profileDetails = ecotwinLoadUserProfileDetails($pdo, (int)($_SESSION['user_id'] ?? 0));
+    $preferenceBodyClass = ecotwinPreferenceBodyClass($preferences);
+    $t = fn(string $key, array $replacements = []) => ecotwinT($preferences['language'], $key, $replacements);
 
     // ---- Plant categories ------------------------------------------------
     $cats   = $pdo->query("SELECT code, label, emoji FROM plant_categories ORDER BY category_id")->fetchAll();
@@ -110,6 +115,10 @@ try {
 
 } catch (PDOException $e) {
     $error = $e->getMessage();
+    $preferences = ecotwinDefaultPreferences();
+    $profileDetails = ['avatar_url' => ''];
+    $preferenceBodyClass = ecotwinPreferenceBodyClass($preferences);
+    $t = fn(string $key, array $replacements = []) => ecotwinT($preferences['language'], $key, $replacements);
     $plantsJS     = [];
     $userRows     = [];
     $cats         = [];
@@ -134,15 +143,18 @@ function initials(string $name): string {
 }
 ?>
 <!doctype html>
-<html lang="en">
+<html lang="<?= htmlspecialchars($preferences['language']) ?>">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Panel - EcoTwin</title>
+  <title><?= htmlspecialchars($t('page.admin.title')) ?> - EcoTwin</title>
   <link rel="stylesheet" href="css.main.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.main.css')) ?>" />
   <link rel="stylesheet" href="css.admin.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.admin.css')) ?>" />
 </head>
-<body>
+<body class="<?= htmlspecialchars($preferenceBodyClass) ?>"
+      data-language="<?= htmlspecialchars($preferences['language']) ?>"
+      data-timezone="<?= htmlspecialchars($preferences['timezone']) ?>"
+      data-date-format="<?= htmlspecialchars($preferences['date_format']) ?>">
 
 <!-- ============================================================ NAVBAR -->
 <nav class="navbar">
@@ -152,32 +164,32 @@ function initials(string $name): string {
       <span class="logo-text">EcoTwin</span>
     </a>
     <div class="navbar-menu" id="navbarMenu">
-      <a href="dashboard.php"    class="nav-item">Dashboard</a>
-      <a href="experiments.php"  class="nav-item">Experiments</a>
-      <a href="greenhouses.php"  class="nav-item">Greenhouses</a>
-      <a href="reports.php"      class="nav-item">Reports</a>
-      <a href="settings.php"     class="nav-item">Settings</a>
-      <a href="admin.php"        class="nav-item active">Admin</a>
+      <a href="dashboard.php"    class="nav-item"><?= htmlspecialchars($t('nav.dashboard')) ?></a>
+      <a href="experiments.php"  class="nav-item"><?= htmlspecialchars($t('nav.experiments')) ?></a>
+      <a href="greenhouses.php"  class="nav-item"><?= htmlspecialchars($t('nav.greenhouses')) ?></a>
+      <a href="reports.php"      class="nav-item"><?= htmlspecialchars($t('nav.reports')) ?></a>
+      <a href="settings.php"     class="nav-item"><?= htmlspecialchars($t('nav.settings')) ?></a>
+      <a href="admin.php"        class="nav-item active"><?= htmlspecialchars($t('nav.admin')) ?></a>
     </div>
     <div class="navbar-user">
-      <div class="admin-badge-nav">⚙️ Admin</div>
-      <div class="profile-icon" onclick="toggleProfileDropdown(event)"><?= htmlspecialchars(initials($currentUser['full_name'])) ?></div>
+      <div class="admin-badge-nav">⚙️ <?= htmlspecialchars($t('admin.badge')) ?></div>
+      <div class="profile-icon <?= !empty($profileDetails['avatar_url']) ? 'has-avatar' : '' ?>" onclick="toggleProfileDropdown(event)"><?php if (!empty($profileDetails['avatar_url'])): ?><img src="<?= htmlspecialchars($profileDetails['avatar_url']) ?>" alt="Profile avatar" /><?php else: ?><?= htmlspecialchars(initials($currentUser['full_name'])) ?><?php endif; ?></div>
       <div class="profile-dropdown" id="profileDropdown">
         <div class="profile-dropdown-header">
           <div class="profile-user-info">
             <div class="profile-user-name"><?= htmlspecialchars($currentUser['full_name']) ?></div>
             <div class="profile-user-email"><?= htmlspecialchars($currentUser['email']) ?></div>
-            <div class="profile-user-role" style="color:#F59E0B;">⚙️ Administrator</div>
+            <div class="profile-user-role" style="color:#F59E0B;">⚙️ <?= htmlspecialchars($t('admin.badge')) ?></div>
           </div>
         </div>
         <div class="profile-dropdown-body">
-          <a href="#" class="profile-menu-item">Profile Settings</a>
-          <a href="#" class="profile-menu-item">Preferences</a>
+          <a href="settings.php#profileSection" class="profile-menu-item"><?= htmlspecialchars($t('menu.profile_settings')) ?></a>
+          <a href="settings.php#preferencesSettings" class="profile-menu-item"><?= htmlspecialchars($t('menu.preferences')) ?></a>
         </div>
         <div class="profile-dropdown-footer">
           <form id="logoutForm" method="POST" action="auth_handler.php" style="margin:0;">
             <input type="hidden" name="action" value="logout" />
-            <button type="submit" class="logout-btn">Logout</button>
+            <button type="submit" class="logout-btn"><?= htmlspecialchars($t('menu.logout')) ?></button>
           </form>
         </div>
       </div>
@@ -201,13 +213,13 @@ function initials(string $name): string {
       <div class="admin-title-row">
         <div class="admin-crown">⚙️</div>
         <div>
-          <h1 class="page-title">Admin Control Panel</h1>
-          <p class="page-subtitle">Plant configuration, greenhouse thresholds &amp; system management</p>
+          <h1 class="page-title"><?= htmlspecialchars($t('page.admin.title')) ?></h1>
+          <p class="page-subtitle"><?= htmlspecialchars($t('page.admin.subtitle')) ?></p>
         </div>
       </div>
     </div>
     <div class="admin-header-right">
-      <span class="admin-role-badge">Administrator Access</span>
+      <span class="admin-role-badge"><?= htmlspecialchars($t('admin.access')) ?></span>
     </div>
   </div>
 
