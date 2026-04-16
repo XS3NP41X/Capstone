@@ -701,8 +701,8 @@ $rules_b_json = json_encode(array_values($data['B']['rules'] ?? []), JSON_HEX_TA
                     </div>
                 </div>
                 <div class="profile-dropdown-body">
-                    <a href="settings.php#profileSection" class="profile-menu-item"><?= htmlspecialchars($t('menu.profile_settings')) ?></a>
-                    <a href="settings.php#preferencesSettings" class="profile-menu-item"><?= htmlspecialchars($t('menu.preferences')) ?></a>
+                    <a href="profile_settings.php" class="profile-menu-item"><?= htmlspecialchars($t('menu.profile_settings')) ?></a>
+                    <a href="preference_settings.php" class="profile-menu-item"><?= htmlspecialchars($t('menu.preferences')) ?></a>
                 </div>
                 <div class="profile-dropdown-footer">
                     <button class="logout-btn" onclick="logout()"><?= htmlspecialchars($t('menu.logout')) ?></button>
@@ -780,7 +780,7 @@ function showToast(msg, type = 'success') {
     const t = document.getElementById('toast');
     t.textContent = msg;
     t.className = 'toast show toast-' + type;
-    setTimeout(() => t.className = 'toast', 3000);
+    setTimeout(() => t.className = 'toast', 5000);
 }
 
 // ── Save automation rules via AJAX ─────────────────────────────────────────

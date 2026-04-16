@@ -279,7 +279,7 @@ foreach ($sensors as $s) { $sensorGroups[$s['sensor_type']][] = $s; }
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>System Settings - EcoTwin</title>
+  <title>Profile Settings - EcoTwin</title>
   <link rel="stylesheet" href="css.main.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.main.css')) ?>" />
   <link rel="stylesheet" href="css.settings.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.settings.css')) ?>" />
   <style>
@@ -371,58 +371,28 @@ foreach ($sensors as $s) { $sensorGroups[$s['sensor_type']][] = $s; }
       margin-bottom: 24px;
     }
     .settings-page-shortcuts {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
       margin-bottom: 24px;
     }
-    .settings-shortcut-card {
-      display: block;
+    .settings-page-shortcuts .btn {
       text-decoration: none;
-      background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
-      border: 1px solid #dbe7e4;
-      border-radius: 16px;
-      padding: 18px 20px;
-      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-      color: inherit;
     }
-    .settings-shortcut-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
-      border-color: #0d9488;
-    }
-    .settings-shortcut-kicker {
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #0d9488;
-      margin-bottom: 8px;
-    }
-    .settings-shortcut-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: #111827;
-      margin-bottom: 8px;
-    }
-    .settings-shortcut-copy {
-      font-size: 14px;
-      line-height: 1.6;
-      color: #4b5563;
-      margin: 0;
-    }
-    body.settings-home-page .settings-form-switcher,
-    body.settings-home-page #profileSection,
-    body.settings-home-page #preferencesSettings {
+    body.profile-settings-page .settings-form-switcher,
+    body.profile-settings-page #preferencesSettings,
+    body.profile-settings-page .settings-grid > section.card:not(#profileSection) {
       display: none !important;
+    }
+    body.profile-settings-page #profileSection {
+      display: block !important;
     }
     @media (max-width: 768px) {
       .page-header-row { flex-direction: column; gap: 12px; }
-      .settings-page-shortcuts { grid-template-columns: 1fr; }
     }
   </style>
 </head>
-<body class="<?= htmlspecialchars("settings-page settings-home-page {$themeClass} {$layoutClass} {$fontSizeClass} {$fontStyleClass}") ?>"
+<body class="<?= htmlspecialchars("settings-page profile-settings-page {$themeClass} {$layoutClass} {$fontSizeClass} {$fontStyleClass}") ?>"
       data-language="<?= htmlspecialchars($preferences['language']) ?>"
       data-timezone="<?= htmlspecialchars($preferences['timezone']) ?>"
       data-date-format="<?= htmlspecialchars($preferences['date_format']) ?>">
@@ -482,12 +452,17 @@ foreach ($sensors as $s) { $sensorGroups[$s['sensor_type']][] = $s; }
 
   <div class="page-header-row">
     <div class="page-header mb-0">
-      <h1 class="page-title">System Settings</h1>
-      <p class="page-subtitle">Manage system configuration, sensors, hardware, and maintenance from a less crowded settings hub.</p>
+      <h1 class="page-title">Profile Settings</h1>
+      <p class="page-subtitle">Manage your personal identity, contact details, and account security on a dedicated page.</p>
       <div class="section-refresh">
         Data refreshed at <?= date('M j, g:i A') ?>
       </div>
     </div>
+  </div>
+
+  <div class="settings-page-shortcuts">
+    <a href="settings.php" class="btn btn-secondary">System Settings</a>
+    <a href="preference_settings.php" class="btn btn-secondary">Preference Settings</a>
   </div>
 
   <!-- Access Notice -->
@@ -500,17 +475,6 @@ foreach ($sensors as $s) { $sensorGroups[$s['sensor_type']][] = $s; }
         <strong>Limited Access:</strong> System configuration remains read-only, but your personal Preferences can still be updated here.
       <?php endif; ?>
     </div>
-  </div>
-
-  <div class="settings-page-shortcuts">
-    <a href="profile_settings.php" class="settings-shortcut-card">    
-      <div class="settings-shortcut-title">Profile Settings</div>
-      <p class="settings-shortcut-copy">Manage your identity, contact information, avatar, and password on a focused page with fewer distractions.</p>
-    </a>
-    <a href="preference_settings.php" class="settings-shortcut-card">
-      <div class="settings-shortcut-title">Preference Settings</div>
-      <p class="settings-shortcut-copy">Adjust appearance, language, timezone, and notification preferences on a separate page built just for personal preferences.</p>
-    </a>
   </div>
 
   <div class="settings-grid">
@@ -1110,8 +1074,9 @@ foreach ($sensors as $s) { $sensorGroups[$s['sensor_type']][] = $s; }
           $autoKeys = [
             'auto_fan_on_high_temp' => 'Auto Fan on High Temp',
             'auto_ph_correction'    => 'Auto pH Correction',
+            'auto_ec_dosing'        => 'Auto EC Dosing',
             'auto_shading_on_light' => 'Auto Shading on Excess Light',
-            'auto_fan_on_humidity' => 'Auto Fan On Humidity',
+            'auto_humidity_misting' => 'Auto Humidity Misting',
           ];
           foreach ($autoKeys as $key => $label):
             $val = $config[$key]['config_value'] ?? 'false';

@@ -372,8 +372,8 @@ $userInitials = strtoupper(implode('', array_map(
                     </div>
                 </div>
                 <div class="profile-dropdown-body">
-                    <a href="settings.php#profileSection" class="profile-menu-item"><?= htmlspecialchars($t('menu.profile_settings')) ?></a>
-                    <a href="settings.php#preferencesSettings" class="profile-menu-item"><?= htmlspecialchars($t('menu.preferences')) ?></a>
+                    <a href="profile_settings.php" class="profile-menu-item"><?= htmlspecialchars($t('menu.profile_settings')) ?></a>
+                    <a href="preference_settings.php" class="profile-menu-item"><?= htmlspecialchars($t('menu.preferences')) ?></a>
                 </div>
                 <div class="profile-dropdown-footer">
                     <form id="logoutForm" method="POST" action="auth_handler.php" style="margin:0;">
@@ -660,8 +660,17 @@ $userInitials = strtoupper(implode('', array_map(
 
 </main>
 
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
 <script>
 'use strict';
+function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show toast-' + type;
+    setTimeout(() => t.className = 'toast', 5000);
+}
+
 function toggleProfileDropdown(event) {
     event.stopPropagation();
     document.getElementById('profileDropdown').classList.toggle('active');
@@ -685,10 +694,10 @@ document.getElementById('logoutForm').addEventListener('submit', function(e) {
         if (data.success && data.redirect) {
             window.location.href = data.redirect;
         } else {
-            alert('Logout failed.');
+            showToast('Logout failed.', 'error');
         }
     })
-    .catch(() => alert('Logout failed.'));
+    .catch(() => showToast('Logout failed.', 'error'));
 });
 </script>
 </body>

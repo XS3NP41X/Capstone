@@ -252,6 +252,8 @@ body.font-style-monospace {
 
 .logout-btn:hover {
   background: #fecaca;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
 }
 
 .user-avatar {
@@ -378,6 +380,11 @@ body.font-style-monospace {
   background: #dc2626;
 }
 
+.btn:hover:not(:disabled):not(.disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+}
+
 .btn:disabled,
 .btn.disabled {
   opacity: 0.5;
@@ -481,6 +488,37 @@ body.font-style-monospace {
 
 .alert-icon {
   font-size: 24px;
+}
+
+.toast {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  background: #1a1a1a;
+  color: white;
+  padding: 14px 22px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 99999;
+  max-width: 360px;
+}
+
+.toast.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.toast.toast-error {
+  background: #991b1b;
+}
+
+.toast.toast-warning {
+  background: #92400e;
 }
 
 /* ============================================================================
@@ -1141,6 +1179,13 @@ body.font-size-large .profile-user-role {
 
   .user-name {
     display: none;
+  }
+
+  .toast {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    max-width: none;
   }
 }
 

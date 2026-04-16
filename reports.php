@@ -374,8 +374,8 @@ function buildRange(int $cur, int $total): array {
           </div>
         </div>
         <div class="profile-dropdown-body">
-          <a href="settings.php#profileSection" class="profile-menu-item"><?= htmlspecialchars($t('menu.profile_settings')) ?></a>
-          <a href="settings.php#preferencesSettings" class="profile-menu-item"><?= htmlspecialchars($t('menu.preferences')) ?></a>
+          <a href="profile_settings.php" class="profile-menu-item"><?= htmlspecialchars($t('menu.profile_settings')) ?></a>
+          <a href="preference_settings.php" class="profile-menu-item"><?= htmlspecialchars($t('menu.preferences')) ?></a>
         </div>
         <div class="profile-dropdown-footer">
           <button class="logout-btn" onclick="logout()"><?= htmlspecialchars($t('menu.logout')) ?></button>
@@ -699,6 +699,8 @@ function buildRange(int $cur, int $total): array {
   </div>
 </div>
 
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
 <!-- ============================================================
      JAVASCRIPT
      ============================================================ -->
@@ -720,6 +722,15 @@ let alertStore = <?= json_encode(
 
 const API = 'reports/api/reports_api.php';
 let currentAlertPage = 1;
+let exportFeedbackTimer = null;
+
+function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show toast-' + type;
+    clearTimeout(exportFeedbackTimer);
+    exportFeedbackTimer = setTimeout(() => { t.className = 'toast'; }, 5000);
+}
 
 // ============================================================
 // ALERTS: load page via AJAX
@@ -744,6 +755,7 @@ async function loadAlerts(page = 1) {
         document.getElementById('alerts-tbody').innerHTML =
             `<tr><td colspan="6" class="text-center text-muted" style="padding:32px;">
              ⚠️ Failed to load: ${esc(e.message)}</td></tr>`;
+        showToast('Failed to refresh alerts.', 'error');
     }
 }
 
@@ -842,6 +854,14 @@ function showConfirmModal() {
     const gh  = document.getElementById('greenhouse-select').value;
     const dr  = document.getElementById('date-range-select').value;
     const fmt = document.getElementById('format-select').value;
+    if (dr === 'custom') {
+        const df = document.getElementById('date-from')?.value || '';
+        const dt = document.getElementById('date-to')?.value || '';
+        if (!df || !dt) {
+            showToast('Select both custom dates before exporting.', 'warning');
+            return;
+        }
+    }
     document.getElementById('m-gh').textContent  = ghLbl[gh]  || gh;
     document.getElementById('m-dr').textContent  = drLbl[dr]  || dr;
     document.getElementById('m-fmt').textContent = fmtLbl[fmt]|| fmt;
@@ -863,11 +883,16 @@ function doExport() {
     // Trigger browser download without leaving the page
     const btn = document.getElementById('export-btn');
     btn.disabled = true; btn.textContent = 'Preparing download…';
+    showToast('Preparing export. Your download should start shortly.');
 
     const a = document.createElement('a');
     a.href = url; a.download = ''; document.body.appendChild(a); a.click(); document.body.removeChild(a);
 
-    setTimeout(() => { btn.disabled = false; btn.textContent = 'Export Data'; }, 2500);
+    setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = 'Export Data';
+        showToast('Export started. Check your downloads folder.', 'success');
+    }, 2500);
 }
 
 // ============================================================
@@ -905,7 +930,22 @@ function toggleProfileDropdown(e) {
     e.stopPropagation();
     document.getElementById('profileDropdown').classList.toggle('active');
 }
-function logout() { window.location.href='login.php'; }
+function logout() {
+    fetch('auth_handler.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'action=logout'
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success && data.redirect) {
+            window.location.href = data.redirect;
+        } else {
+            showToast('Logout failed.', 'error');
+        }
+    })
+    .catch(() => showToast('Logout failed.', 'error'));
+}
 document.addEventListener('click', e => {
     if (!e.target.closest('.profile-icon') && !e.target.closest('.profile-dropdown'))
         document.getElementById('profileDropdown').classList.remove('active');

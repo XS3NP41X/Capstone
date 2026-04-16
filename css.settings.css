@@ -56,6 +56,27 @@
     color: #0D9488;
 }
 
+body.settings-page .btn,
+body.settings-page .settings-form-tab,
+body.settings-page .btn-edit-config,
+body.settings-page .btn-save-config,
+body.settings-page .btn-cancel-config,
+body.settings-page .user-action-btn,
+body.settings-page .btn-full {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+body.settings-page .btn:hover:not(:disabled),
+body.settings-page .settings-form-tab:hover,
+body.settings-page .btn-edit-config:hover,
+body.settings-page .btn-save-config:hover,
+body.settings-page .btn-cancel-config:hover,
+body.settings-page .user-action-btn:hover,
+body.settings-page .btn-full:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+}
+
 .settings-form-tab.active {
     background: #E0F2F1;
     color: #0F766E;
