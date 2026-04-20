@@ -8,6 +8,7 @@
 
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/security.php';
+require_once __DIR__ . '/auth_guard.php';
 require_once __DIR__ . '/preferences.php';
 
 // Session display vars (match dashboard.php)
@@ -18,6 +19,11 @@ $userInitials = strtoupper(implode('', array_map(
   fn($w) => $w[0],
   array_slice(explode(' ', trim($_SESSION['user_name'] ?? 'U')), 0, 2)
 )));
+
+if ($userRole === 'admin') {
+    header('Location: admin_reports.php');
+    exit;
+}
 
 $dbError = null;
 
@@ -352,7 +358,6 @@ function buildRange(int $cur, int $total): array {
       <a href="experiments.php" class="nav-item"><?= htmlspecialchars($t('nav.experiments')) ?></a>
       <a href="greenhouses.php" class="nav-item"><?= htmlspecialchars($t('nav.greenhouses')) ?></a>
       <a href="reports.php"     class="nav-item active"><?= htmlspecialchars($t('nav.reports')) ?></a>
-      <a href="settings.php"    class="nav-item"><?= htmlspecialchars($t('nav.settings')) ?></a>
       <?php if ($userRole === 'admin'): ?>
       <a href="admin.php"       class="nav-item"><?= htmlspecialchars($t('nav.admin')) ?></a>
       <?php endif; ?>

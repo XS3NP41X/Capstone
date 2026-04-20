@@ -349,7 +349,6 @@ $userInitials = strtoupper(implode('', array_map(
             <a href="experiments.php" class="nav-item"><?= htmlspecialchars($t('nav.experiments')) ?></a>
             <a href="greenhouses.php" class="nav-item"><?= htmlspecialchars($t('nav.greenhouses')) ?></a>
             <a href="reports.php"     class="nav-item"><?= htmlspecialchars($t('nav.reports')) ?></a>
-            <a href="settings.php"    class="nav-item"><?= htmlspecialchars($t('nav.settings')) ?></a>
             <?php if ($userRole === 'admin'): ?>
             <a href="admin.php"       class="nav-item"><?= htmlspecialchars($t('nav.admin')) ?></a>
             <?php endif; ?>

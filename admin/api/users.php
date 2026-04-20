@@ -5,6 +5,9 @@
 // ============================================================================
 
 require_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/../../config/security.php';
+
+require_role('admin');
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -22,7 +25,7 @@ try {
                    DATE_FORMAT(created_at,    '%b %d, %Y')        AS created_fmt
             FROM users
             ORDER BY
-                FIELD(role,'admin','researcher','student'),
+                FIELD(role,'admin','researcher'),
                 full_name ASC
         ");
         jsonResponse(['success' => true, 'data' => $stmt->fetchAll()]);
@@ -41,7 +44,7 @@ try {
         if (!$email) jsonResponse(['success' => false, 'error' => 'Valid email is required'], 422);
         if (strlen($pass) < 8) jsonResponse(['success' => false, 'error' => 'Password must be at least 8 characters'], 422);
 
-        $role = in_array($body['role'] ?? '', ['admin','researcher','student']) ? $body['role'] : 'student';
+        $role = in_array($body['role'] ?? '', ['admin','researcher']) ? $body['role'] : 'researcher';
 
         // Auto-generate username from email prefix
         $username = strtolower(explode('@', $email)[0]);
@@ -60,6 +63,7 @@ try {
         ");
         $ins->execute([$name, $email, $username, $hash, $role]);
         $userId = (int)$pdo->lastInsertId();
+        log_activity_event((int)($_SESSION['user_id'] ?? 0), 'users', 'create_user', "Created {$role} account for {$email}", 'user', $userId);
 
         jsonResponse(['success' => true, 'user_id' => $userId, 'message' => 'User created successfully']);
     }
@@ -73,7 +77,7 @@ try {
         $allowed = [];
         $params  = [];
 
-        if (isset($body['role']) && in_array($body['role'], ['admin','researcher','student'])) {
+        if (isset($body['role']) && in_array($body['role'], ['admin','researcher'])) {
             $allowed[] = 'role = ?';
             $params[]  = $body['role'];
         }
@@ -86,6 +90,7 @@ try {
 
         $params[] = $id;
         $pdo->prepare("UPDATE users SET " . implode(', ', $allowed) . " WHERE user_id = ?")->execute($params);
+        log_activity_event((int)($_SESSION['user_id'] ?? 0), 'users', 'update_user', 'Updated user #' . $id, 'user', $id);
         jsonResponse(['success' => true, 'message' => 'User updated']);
     }
 
@@ -107,12 +112,37 @@ try {
             }
         }
 
+        $startedTransaction = !$pdo->inTransaction();
+        if ($startedTransaction) {
+            $pdo->beginTransaction();
+        }
+        detach_user_references($pdo, $id);
         $pdo->prepare("DELETE FROM users WHERE user_id = ?")->execute([$id]);
+        log_activity_event((int)($_SESSION['user_id'] ?? 0), 'users', 'delete_user', 'Deleted user #' . $id, 'user', $id);
+        if ($startedTransaction && $pdo->inTransaction()) {
+            $pdo->commit();
+        }
         jsonResponse(['success' => true, 'message' => 'User removed']);
     }
 
     jsonResponse(['success' => false, 'error' => 'Method not allowed'], 405);
 
 } catch (PDOException $e) {
+    if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
+        try {
+            $pdo->rollBack();
+        } catch (Throwable $rollbackError) {
+            error_log('admin/api/users rollback: ' . $rollbackError->getMessage());
+        }
+    }
+    jsonResponse(['success' => false, 'error' => $e->getMessage()], 500);
+} catch (Throwable $e) {
+    if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
+        try {
+            $pdo->rollBack();
+        } catch (Throwable $rollbackError) {
+            error_log('admin/api/users rollback: ' . $rollbackError->getMessage());
+        }
+    }
     jsonResponse(['success' => false, 'error' => $e->getMessage()], 500);
 }

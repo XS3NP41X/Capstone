@@ -38,7 +38,6 @@ function roleLabel(string $role): string {
     return match ($role) {
         'admin'      => 'Admin',
         'researcher' => 'Researcher',
-        'student'    => 'Student',
         default      => ucfirst($role),
     };
 }
@@ -50,7 +49,6 @@ function roleBadgeClass(string $role): string {
     return match ($role) {
         'admin'      => 'badge-success',
         'researcher' => 'badge-info',
-        'student'    => 'badge-neutral',
         default      => 'badge-neutral',
     };
 }

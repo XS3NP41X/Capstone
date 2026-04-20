@@ -84,7 +84,7 @@ try {
                  'Never'
                ) AS last_active
         FROM users
-        ORDER BY FIELD(role,'admin','researcher','student'), full_name
+        ORDER BY FIELD(role,'admin','researcher'), full_name
     ")->fetchAll();
 
   // ---- Greenhouse assignments -------------------------------------------
@@ -173,7 +173,6 @@ function initials(string $name): string
         <a href="experiments.php" class="nav-item"><?= htmlspecialchars($t('nav.experiments')) ?></a>
         <a href="greenhouses.php" class="nav-item"><?= htmlspecialchars($t('nav.greenhouses')) ?></a>
         <a href="reports.php" class="nav-item"><?= htmlspecialchars($t('nav.reports')) ?></a>
-        <a href="settings.php" class="nav-item"><?= htmlspecialchars($t('nav.settings')) ?></a>
         <a href="admin.php" class="nav-item active"><?= htmlspecialchars($t('nav.admin')) ?></a>
       </div>
       <div class="navbar-user">
@@ -502,7 +501,7 @@ function initials(string $name): string
             </thead>
             <tbody id="usersTableBody">
               <?php
-              $roleColors = ['admin' => 'badge-success', 'researcher' => 'badge-info', 'student' => 'badge-neutral'];
+              $roleColors = ['admin' => 'badge-success', 'researcher' => 'badge-info'];
               foreach ($userRows as $u):
                 $initials = implode('', array_map(fn($w) => $w[0], array_slice(explode(' ', $u['full_name']), 0, 2)));
                 $badgeClass = $roleColors[$u['role']] ?? 'badge-neutral';
@@ -526,7 +525,6 @@ function initials(string $name): string
                       <select class="btn btn-secondary btn-sm role-dropdown" data-user-id="<?= $u['user_id'] ?>" onchange="changeUserRoleDropdown(this)">
                         <option value="admin" <?= $u['role'] === 'admin' ? 'selected' : '' ?>>Admin</option>
                         <option value="researcher" <?= $u['role'] === 'researcher' ? 'selected' : '' ?>>Researcher</option>
-                        <option value="student" <?= $u['role'] === 'student' ? 'selected' : '' ?>>Student</option>
                       </select>
                       <button class="btn btn-danger    btn-sm" onclick="deleteUser(<?= $u['user_id'] ?>)">Remove</button>
                     </div>
@@ -651,8 +649,7 @@ function initials(string $name): string
             <?php
             $automationRules = [
               'auto_cooling_fan'      => 'Auto-activate cooling fan on high temp',
-              'auto_ph_correction'    => 'Auto pH correction pump',
-              'auto_ec_dosing'        => 'Auto EC nutrient dosing',
+              'auto_ec_dosing'        => 'Auto pump control',
               'auto_shading_net'      => 'Auto shading net on excess light',
               'auto_humidity_misting' => 'Auto humidity misting',
             ];
@@ -845,7 +842,6 @@ function initials(string $name): string
           <select id="u-role" class="form-select-modal">
             <option value="admin">Administrator</option>
             <option value="researcher" selected>Researcher</option>
-            <option value="student">Student</option>
           </select>
         </div>
         <div class="form-group-modal">
@@ -899,7 +895,13 @@ function initials(string $name): string
       };
       if (body) opts.body = JSON.stringify(body);
       const res = await fetch(url, opts);
-      const data = await res.json();
+      const raw = await res.text();
+      let data;
+      try {
+        data = JSON.parse(raw);
+      } catch (e) {
+        throw new Error(raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() || 'Invalid server response');
+      }
       if (!data.success) throw new Error(data.error || 'Request failed');
       return data;
     }
@@ -1601,8 +1603,7 @@ function initials(string $name): string
         });
         const colors = {
           admin: 'badge-success',
-          researcher: 'badge-info',
-          student: 'badge-neutral'
+          researcher: 'badge-info'
         };
         badgeEl.textContent = newRole.charAt(0).toUpperCase() + newRole.slice(1);
         badgeEl.className = 'badge ' + colors[newRole];
@@ -1666,7 +1667,7 @@ function initials(string $name): string
       try {
         await api('admin/api/system.php', 'POST', {
           settings: collectSettings([
-            'auto_cooling_fan', 'auto_ph_correction', 'auto_ec_dosing', 'auto_shading_net', 'auto_humidity_misting'
+            'auto_cooling_fan', 'auto_ec_dosing', 'auto_shading_net', 'auto_humidity_misting'
           ])
         });
         showToast('✅ Automation rules saved');

@@ -79,6 +79,7 @@ function loadRules(PDO $db, int $gh_id): array {
         FROM automation_rules r
         JOIN actuators a ON r.actuator_id = a.actuator_id
         WHERE r.greenhouse_id = ?
+          AND a.actuator_type NOT IN ('ph_pump_up', 'ph_pump_down', 'water_refill_pump')
         ORDER BY r.parameter, r.trigger_when
     ");
     $stmt->execute([$gh_id]);
@@ -99,7 +100,10 @@ function loadSensors(PDO $db, int $gh_id): array {
 function loadActuators(PDO $db, int $gh_id): array {
     $stmt = $db->prepare("
         SELECT actuator_id, actuator_type, label, status, last_changed_at
-        FROM actuators WHERE greenhouse_id = ? ORDER BY actuator_id
+        FROM actuators
+        WHERE greenhouse_id = ?
+          AND actuator_type NOT IN ('ph_pump_up', 'ph_pump_down', 'water_refill_pump')
+        ORDER BY actuator_id
     ");
     $stmt->execute([$gh_id]);
     return $stmt->fetchAll();
@@ -187,7 +191,7 @@ function sensorStatusDot(string $status): string {
 // ── Actuator type → icon map ──────────────────────────────────────────────────
 function actuatorIcon(string $type): string {
     return match($type) {
-        'nutrient_pump', 'ph_pump_up', 'ph_pump_down', 'water_refill_pump' => '💧',
+        'nutrient_pump' => '💧',
         'exhaust_fan', 'circulation_fan' => '🌀',
         'shading_net'    => '☀️',
         'misting_system' => '💦',
@@ -197,14 +201,11 @@ function actuatorIcon(string $type): string {
 
 function actuatorLabel(string $type): string {
     return match($type) {
-        'nutrient_pump'     => 'Nutrient Pump',
+        'nutrient_pump'     => 'Pump',
         'exhaust_fan'       => 'Exhaust Fan',
         'circulation_fan'   => 'Circulation Fan',
         'shading_net'       => 'Shading Net',
         'misting_system'    => 'Misting System',
-        'ph_pump_up'        => 'pH Up Pump',
-        'ph_pump_down'      => 'pH Down Pump',
-        'water_refill_pump' => 'Water Refill Pump',
         default             => ucfirst(str_replace('_', ' ', $type)),
     };
 }
@@ -251,7 +252,7 @@ $current_user = [
 $userRole = strtolower($_SESSION['user_role'] ?? 'researcher');
 
 // ── Helper: render one greenhouse panel ───────────────────────────────────────
-function renderGreenhousePanel(string $code, array $d, array $exp): string {
+function renderGreenhousePanel(string $code, array $d, array $exp, bool $hasActiveExperiment): string {
     $info       = $d['info'];
     $readings   = $d['readings'];
     $thresholds = $d['thresholds'];
@@ -340,14 +341,8 @@ function renderGreenhousePanel(string $code, array $d, array $exp): string {
          'above_label' => 'Activate Shading Above:', 'below_label' => 'Retract Shading Below:',
          'above_default' => 20000, 'below_default' => 15000, 'step' => '100', 'unit' => 'lux'],
         ['param' => 'ec',          'icon' => '🧪',  'label' => 'EC/TDS Control (mS/cm)',
-         'above_label' => 'Add Water When Above:', 'below_label' => 'Add Nutrients When Below:',
+         'above_label' => 'Turn Pump Off When Above:', 'below_label' => 'Turn Pump On When Below:',
          'above_default' => 2.5, 'below_default' => 1.2, 'step' => '0.1', 'unit' => 'mS/cm'],
-        ['param' => 'ph',          'icon' => '🧪',  'label' => 'pH Level Control',
-         'above_label' => 'Add pH Down When Above:', 'below_label' => 'Add pH Up When Below:',
-         'above_default' => 7.0, 'below_default' => 5.0, 'step' => '0.1', 'unit' => 'pH'],
-        ['param' => 'water_level', 'icon' => '🌊',  'label' => 'Water Level Control (%)',
-         'above_label' => 'Stop Refill When Above:', 'below_label' => 'Activate Refill When Below:',
-         'above_default' => 90, 'below_default' => 60, 'step' => '1', 'unit' => '%'],
     ];
 
     $rules_html = '';
@@ -398,7 +393,7 @@ function renderGreenhousePanel(string $code, array $d, array $exp): string {
     $actuators_html = '';
     foreach ($actuators as $act) {
         $icon  = actuatorIcon($act['actuator_type']);
-        $lbl   = htmlspecialchars($act['label']);
+        $lbl   = htmlspecialchars($act['actuator_type'] === 'nutrient_pump' ? 'Pump' : $act['label']);
         $desc  = htmlspecialchars(actuatorLabel($act['actuator_type']));
         $badge = actuatorBadge($act['status']);
         $actuators_html .= <<<HTML
@@ -413,6 +408,9 @@ function renderGreenhousePanel(string $code, array $d, array $exp): string {
             {$badge}
         </div>
         HTML;
+    }
+    if ($actuators_html === '') {
+        $actuators_html = '<div class="text-muted" style="padding:12px 0;">No actuator hardware is registered for this greenhouse.</div>';
     }
 
     // ── Sensor rows ───────────────────────────────────────────────────────────
@@ -452,6 +450,12 @@ function renderGreenhousePanel(string $code, array $d, array $exp): string {
     $alerts_section = $alerts_html
         ? "<div class=\"gh-alerts mb-3\">{$alerts_html}</div>"
         : '';
+
+    $manualControlNotice = $hasActiveExperiment
+        ? '<strong>Manual Control:</strong> Controls are locked during active experiments to maintain experimental integrity. Automatic control is managing all actuators.'
+        : '<strong>Manual Control:</strong> No active experiment is running, so actuator controls are available for direct pump, fan, and shading toggles.';
+    $noticeIcon = $hasActiveExperiment ? '🔒' : '🟢';
+    $buttonDisabled = $hasActiveExperiment ? 'disabled' : '';
 
     $lc_code = strtolower($code);
 
@@ -516,17 +520,15 @@ function renderGreenhousePanel(string $code, array $d, array $exp): string {
                     </div>
                     <div class="control-panel">
                         <div class="control-notice">
-                            <div class="notice-icon">🔒</div>
+                            <div class="notice-icon">{$noticeIcon}</div>
                             <div>
-                                <strong>Manual Control:</strong> Controls are locked during
-                                active experiments to maintain experimental integrity.
-                                Automatic control is managing all actuators.
+                                {$manualControlNotice}
                             </div>
                         </div>
                         <div class="control-buttons">
-                            <button class="btn btn-secondary" disabled>Toggle Pump</button>
-                            <button class="btn btn-secondary" disabled>Toggle Fan</button>
-                            <button class="btn btn-secondary" disabled>Toggle Shading</button>
+                            <button class="btn btn-secondary" {$buttonDisabled} onclick="toggleActuator('{$code}', 'pump')">Toggle Pump</button>
+                            <button class="btn btn-secondary" {$buttonDisabled} onclick="toggleActuator('{$code}', 'fan')">Toggle Fan</button>
+                            <button class="btn btn-secondary" {$buttonDisabled} onclick="toggleActuator('{$code}', 'shading')">Toggle Shading</button>
                         </div>
                     </div>
                 </div>
@@ -594,10 +596,10 @@ $panel_a_html = '';
 $panel_b_html = '';
 
 if (isset($data['A'])) {
-    $panel_a_html = renderGreenhousePanel('A', $data['A'], $active_exp ?: []);
+    $panel_a_html = renderGreenhousePanel('A', $data['A'], $active_exp ?: [], !empty($active_exp));
 }
 if (isset($data['B'])) {
-    $panel_b_html = renderGreenhousePanel('B', $data['B'], $active_exp ?: []);
+    $panel_b_html = renderGreenhousePanel('B', $data['B'], $active_exp ?: [], !empty($active_exp));
     $panel_b_badge = badgeFromActualReadings($data['B']['readings'] ?? [], $data['B']['thresholds'] ?? []);
     $panel_b_html = preg_replace('/<div class="banner-status">.*?<\/div>/s', '<div class="banner-status">' . $panel_b_badge . '</div>', $panel_b_html, 1);
     $panel_b_html = preg_replace('/<div class="gh-alerts mb-3">.*?<\/div>\s*(<div class="greenhouse-grid">)/s', '$1', $panel_b_html, 1);
@@ -678,7 +680,6 @@ $rules_b_json = json_encode(array_values($data['B']['rules'] ?? []), JSON_HEX_TA
             <a href="experiments.php" class="nav-item"><?= htmlspecialchars($t('nav.experiments')) ?></a>
             <a href="greenhouses.php" class="nav-item active"><?= htmlspecialchars($t('nav.greenhouses')) ?></a>
             <a href="reports.php"     class="nav-item"><?= htmlspecialchars($t('nav.reports')) ?></a>
-            <a href="settings.php"    class="nav-item"><?= htmlspecialchars($t('nav.settings')) ?></a>
             <?php if ($userRole === 'admin'): ?>
             <a href="admin.php"       class="nav-item"><?= htmlspecialchars($t('nav.admin')) ?></a>
             <?php endif; ?>
@@ -880,6 +881,72 @@ async function refreshSensors(ghCode) {
         showToast(`↻ Greenhouse ${ghCode} sensor status refreshed`);
     } catch (err) {
         showToast('❌ Failed to refresh sensors', 'error');
+    }
+}
+
+async function refreshActuators(ghCode) {
+    try {
+        const res = await fetch(`greenhouses/greenhouses_api.php?action=get_actuators&gh=${ghCode}`);
+        const actuators = await res.json();
+        const el = document.getElementById(`actuators-${ghCode.toLowerCase()}`);
+        if (!el) return;
+
+        const actuatorDescs = {
+            nutrient_pump: 'Pump',
+            exhaust_fan: 'Exhaust Fan',
+            circulation_fan: 'Circulation Fan',
+            shading_net: 'Shading Net',
+            misting_system: 'Misting System'
+        };
+        const actuatorIcons = {
+            nutrient_pump: '💧',
+            exhaust_fan: '🌀',
+            circulation_fan: '🌀',
+            shading_net: '☀️',
+            misting_system: '💦'
+        };
+        const badgeClass = {
+            on: 'badge badge-success',
+            off: 'badge badge-neutral',
+            auto: 'badge badge-info',
+            fault: 'badge badge-danger'
+        };
+
+        if (!Array.isArray(actuators) || !actuators.length) {
+            el.innerHTML = '<div class="text-muted" style="padding:12px 0;">No actuator hardware is registered for this greenhouse.</div>';
+            return;
+        }
+
+        el.innerHTML = actuators.map(act => `
+            <div class="actuator-item">
+                <div class="actuator-info">
+                    <div class="actuator-icon">${actuatorIcons[act.actuator_type] ?? '⚙️'}</div>
+                    <div>
+                        <div class="actuator-name">${escHtml(act.actuator_type === 'nutrient_pump' ? 'Pump' : act.label)}</div>
+                        <div class="actuator-desc">${escHtml(actuatorDescs[act.actuator_type] ?? act.actuator_type.replaceAll('_', ' '))}</div>
+                    </div>
+                </div>
+                <span class="${badgeClass[act.status] ?? 'badge badge-neutral'}">${escHtml(String(act.status).toUpperCase())}</span>
+            </div>
+        `).join('');
+    } catch (err) {
+        showToast('❌ Failed to refresh actuators', 'error');
+    }
+}
+
+async function toggleActuator(ghCode, target) {
+    try {
+        const res = await fetch('greenhouses/greenhouses_api.php?action=toggle_actuator', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ gh: ghCode, target })
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message || 'Unable to toggle actuator');
+        await refreshActuators(ghCode);
+        showToast(data.message || `Greenhouse ${ghCode} actuator updated`);
+    } catch (err) {
+        showToast('❌ ' + (err.message || 'Failed to toggle actuator'), 'error');
     }
 }
 

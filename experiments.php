@@ -20,7 +20,7 @@ if (empty($_SESSION['last_regen']) || time() - $_SESSION['last_regen'] > 300) {
 
 $pdo      = db();
 $userId   = (int)$_SESSION['user_id'];
-$userRole = $_SESSION['user_role'] ?? 'student';
+$userRole = $_SESSION['user_role'] ?? 'researcher';
 $preferences = ecotwinLoadUserPreferences($pdo, $userId);
 $profileDetails = ecotwinLoadUserProfileDetails($pdo, $userId);
 $preferenceBodyClass = ecotwinPreferenceBodyClass($preferences);
@@ -458,7 +458,6 @@ $csrfToken = csrf_token();
             <a href="experiments.php"  class="nav-item active"><?= htmlspecialchars($t('nav.experiments')) ?></a>
             <a href="greenhouses.php" class="nav-item"><?= htmlspecialchars($t('nav.greenhouses')) ?></a>
             <a href="reports.php"     class="nav-item"><?= htmlspecialchars($t('nav.reports')) ?></a>
-            <a href="settings.php"    class="nav-item"><?= htmlspecialchars($t('nav.settings')) ?></a>
             <?php if ($userRole === 'admin'): ?>
             <a href="admin.php"       class="nav-item"><?= htmlspecialchars($t('nav.admin')) ?></a>
             <?php endif; ?>

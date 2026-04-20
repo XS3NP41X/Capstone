@@ -23,6 +23,18 @@ define('RESET_TOKEN_TTL',    3600);  // 1 hour
 define('REMEMBER_ME_COOKIE', 'ecotwin_remember');
 define('REMEMBER_ME_DAYS',   30);
 
+function security_db(): PDO
+{
+    if (function_exists('db')) {
+        return db();
+    }
+    if (function_exists('getDB')) {
+        return getDB();
+    }
+
+    throw new RuntimeException('No database connection helper is available.');
+}
+
 // ── CSRF ─────────────────────────────────────────────────────────────────────
 function csrf_token(): string
 {
@@ -43,7 +55,7 @@ function csrf_verify(string $token): bool
 function ensure_attempts_table(): void
 {
     try {
-        db()->exec(
+        security_db()->exec(
             "CREATE TABLE IF NOT EXISTS `login_attempts` (
                 `id`           INT UNSIGNED NOT NULL AUTO_INCREMENT,
                 `email`        VARCHAR(150) NOT NULL,
@@ -63,7 +75,7 @@ function get_failed_attempts(string $email): int
     try {
         ensure_attempts_table();
         $cutoff = date('Y-m-d H:i:s', time() - LOCKOUT_SECONDS);
-        $stmt   = db()->prepare(
+        $stmt   = security_db()->prepare(
             "SELECT COUNT(*) FROM login_attempts
               WHERE email = :email AND attempted_at >= :cutoff"
         );
@@ -84,7 +96,7 @@ function record_failed_attempt(string $email): void
 {
     try {
         ensure_attempts_table();
-        db()->prepare(
+        security_db()->prepare(
             "INSERT INTO login_attempts (email, ip_address) VALUES (:email, :ip)"
         )->execute([
             ':email' => $email,
@@ -99,7 +111,7 @@ function clear_failed_attempts(string $email): void
 {
     try {
         ensure_attempts_table();
-        db()->prepare("DELETE FROM login_attempts WHERE email = :email")
+        security_db()->prepare("DELETE FROM login_attempts WHERE email = :email")
             ->execute([':email' => $email]);
     } catch (PDOException $e) {
         error_log('clear_failed_attempts: ' . $e->getMessage());
@@ -109,7 +121,7 @@ function clear_failed_attempts(string $email): void
 function ensure_remember_tokens_table(): void
 {
     try {
-        db()->exec(
+        security_db()->exec(
             "CREATE TABLE IF NOT EXISTS `remember_tokens` (
                 `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
                 `user_id` INT UNSIGNED NOT NULL,
@@ -128,6 +140,58 @@ function ensure_remember_tokens_table(): void
         );
     } catch (PDOException $e) {
         error_log('ensure_remember_tokens_table: ' . $e->getMessage());
+    }
+}
+
+function ensure_session_log_table(): void
+{
+    try {
+        security_db()->exec(
+            "CREATE TABLE IF NOT EXISTS `session_log` (
+                `log_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                `user_id` INT UNSIGNED NOT NULL,
+                `ip_address` VARCHAR(45) NOT NULL,
+                `user_agent` VARCHAR(255) NOT NULL,
+                `action` VARCHAR(50) NOT NULL,
+                `detail` VARCHAR(200) NULL,
+                `logged_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (`log_id`),
+                KEY `idx_session_log_user_time` (`user_id`, `logged_at`),
+                KEY `idx_session_log_action_time` (`action`, `logged_at`),
+                CONSTRAINT `fk_session_log_user`
+                    FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
+                    ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+        );
+    } catch (PDOException $e) {
+        error_log('ensure_session_log_table: ' . $e->getMessage());
+    }
+}
+
+function ensure_activity_log_table(): void
+{
+    try {
+        security_db()->exec(
+            "CREATE TABLE IF NOT EXISTS `activity_log` (
+                `activity_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                `user_id` INT UNSIGNED NULL,
+                `category` VARCHAR(50) NOT NULL,
+                `action` VARCHAR(100) NOT NULL,
+                `detail` TEXT NULL,
+                `target_type` VARCHAR(50) NULL,
+                `target_id` BIGINT NULL,
+                `ip_address` VARCHAR(45) NOT NULL,
+                `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (`activity_id`),
+                KEY `idx_activity_log_category_time` (`category`, `created_at`),
+                KEY `idx_activity_log_user_time` (`user_id`, `created_at`),
+                CONSTRAINT `fk_activity_log_user`
+                    FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
+                    ON DELETE SET NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+        );
+    } catch (PDOException $e) {
+        error_log('ensure_activity_log_table: ' . $e->getMessage());
     }
 }
 
@@ -170,7 +234,7 @@ function revoke_remember_me_token(?string $cookieValue = null): void
 
     try {
         ensure_remember_tokens_table();
-        db()->prepare("DELETE FROM remember_tokens WHERE selector = ?")->execute([$selector]);
+        security_db()->prepare("DELETE FROM remember_tokens WHERE selector = ?")->execute([$selector]);
     } catch (PDOException $e) {
         error_log('revoke_remember_me_token: ' . $e->getMessage());
     }
@@ -188,10 +252,10 @@ function create_remember_me_token(int $userId): void
         $expiresAt = time() + (REMEMBER_ME_DAYS * 86400);
         $expiresDb = date('Y-m-d H:i:s', $expiresAt);
 
-        db()->prepare("DELETE FROM remember_tokens WHERE user_id = ? OR expires_at < NOW()")
+        security_db()->prepare("DELETE FROM remember_tokens WHERE user_id = ? OR expires_at < NOW()")
             ->execute([$userId]);
 
-        db()->prepare(
+        security_db()->prepare(
             "INSERT INTO remember_tokens (user_id, selector, validator_hash, expires_at)
              VALUES (?, ?, ?, ?)"
         )->execute([$userId, $selector, $hash, $expiresDb]);
@@ -224,9 +288,9 @@ function restore_remembered_login(): bool
 
     try {
         ensure_remember_tokens_table();
-        db()->prepare("DELETE FROM remember_tokens WHERE expires_at < NOW()")->execute();
+        security_db()->prepare("DELETE FROM remember_tokens WHERE expires_at < NOW()")->execute();
 
-        $stmt = db()->prepare(
+        $stmt = security_db()->prepare(
             "SELECT rt.user_id, rt.validator_hash,
                     u.full_name, u.email, u.role, u.status
                FROM remember_tokens rt
@@ -265,7 +329,8 @@ function log_session_event(int $userId, string $action, string $detail = ''): vo
     if ($userId <= 0) return;
 
     try {
-        db()->prepare(
+        ensure_session_log_table();
+        security_db()->prepare(
             "INSERT INTO session_log (user_id, ip_address, user_agent, action, detail, logged_at)
              VALUES (:uid, :ip, :ua, :action, :detail, NOW())"
         )->execute([
@@ -277,6 +342,65 @@ function log_session_event(int $userId, string $action, string $detail = ''): vo
         ]);
     } catch (PDOException $e) {
         error_log('log_session_event: ' . $e->getMessage());
+    }
+}
+
+function log_activity_event(
+    ?int $userId,
+    string $category,
+    string $action,
+    string $detail = '',
+    ?string $targetType = null,
+    $targetId = null
+): void {
+    try {
+        ensure_activity_log_table();
+        security_db()->prepare(
+            "INSERT INTO activity_log (user_id, category, action, detail, target_type, target_id, ip_address, created_at)
+             VALUES (:uid, :category, :action, :detail, :target_type, :target_id, :ip, NOW())"
+        )->execute([
+            ':uid' => ($userId && $userId > 0) ? $userId : null,
+            ':category' => substr($category, 0, 50),
+            ':action' => substr($action, 0, 100),
+            ':detail' => $detail !== '' ? $detail : null,
+            ':target_type' => $targetType !== null && $targetType !== '' ? substr($targetType, 0, 50) : null,
+            ':target_id' => $targetId !== null && $targetId !== '' ? (string)$targetId : null,
+            ':ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+        ]);
+    } catch (PDOException $e) {
+        error_log('log_activity_event: ' . $e->getMessage());
+    }
+}
+
+function detach_user_references(PDO $pdo, int $userId): void
+{
+    if ($userId <= 0) {
+        return;
+    }
+
+    $refs = [
+        ['table' => 'maintenance_log', 'column' => 'performed_by', 'fallback' => 'delete'],
+        ['table' => 'plants', 'column' => 'created_by', 'fallback' => 'delete'],
+        ['table' => 'data_exports', 'column' => 'requested_by', 'fallback' => 'delete'],
+    ];
+
+    foreach ($refs as $ref) {
+        try {
+            $stmt = $pdo->prepare("UPDATE `{$ref['table']}` SET `{$ref['column']}` = NULL WHERE `{$ref['column']}` = ?");
+            $stmt->execute([$userId]);
+        } catch (PDOException $e) {
+            if (($ref['fallback'] ?? '') === 'delete') {
+                try {
+                    $deleteStmt = $pdo->prepare("DELETE FROM `{$ref['table']}` WHERE `{$ref['column']}` = ?");
+                    $deleteStmt->execute([$userId]);
+                    continue;
+                } catch (PDOException $deleteError) {
+                    error_log('detach_user_references fallback delete ' . $ref['table'] . '.' . $ref['column'] . ': ' . $deleteError->getMessage());
+                }
+            }
+            error_log('detach_user_references ' . $ref['table'] . '.' . $ref['column'] . ': ' . $e->getMessage());
+            throw $e;
+        }
     }
 }
 

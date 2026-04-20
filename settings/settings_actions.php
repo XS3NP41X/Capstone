@@ -290,13 +290,13 @@ switch ($action) {
         $email     = trim($_POST['email']     ?? '');
         $username  = trim($_POST['username']  ?? '');
         $password  = $_POST['password']       ?? '';
-        $role      = $_POST['role']           ?? 'student';
+        $role      = $_POST['role']           ?? 'researcher';
 
         if (!$full_name || !$email || !$username || !$password)
             jsonError('All fields are required.');
         if (!filter_var($email, FILTER_VALIDATE_EMAIL))
             jsonError('Invalid email address.');
-        if (!in_array($role, ['admin','researcher','student'], true))
+        if (!in_array($role, ['admin','researcher'], true))
             jsonError('Invalid role.');
 
         // Check uniqueness
@@ -311,6 +311,7 @@ switch ($action) {
              VALUES (?, ?, ?, ?, ?, 'active')"
         );
         $stmt->execute([$full_name, $email, $username, $hash, $role]);
+        log_activity_event((int)$user['user_id'], 'users', 'create_user', "Created {$role} account for {$email}", 'user', (int)$db->lastInsertId());
         jsonSuccess(['user_id' => $db->lastInsertId(), 'message' => 'User created successfully.']);
 
     // ── Update user role/status (admin only) ─────────────────────────────────
@@ -321,7 +322,7 @@ switch ($action) {
         $status    = $_POST['status'] ?? '';
 
         if ($target_id <= 0) jsonError('Invalid user_id.');
-        if (!in_array($role,   ['admin','researcher','student'], true)) jsonError('Invalid role.');
+        if (!in_array($role,   ['admin','researcher'], true)) jsonError('Invalid role.');
         if (!in_array($status, ['active','inactive','suspended'], true)) jsonError('Invalid status.');
 
         // Prevent self-demotion
@@ -332,6 +333,7 @@ switch ($action) {
             "UPDATE users SET role = ?, status = ?, updated_at = NOW() WHERE user_id = ?"
         );
         $stmt->execute([$role, $status, $target_id]);
+        log_activity_event((int)$user['user_id'], 'users', 'update_user', "Updated user #{$target_id} to role {$role} with status {$status}", 'user', $target_id);
         jsonSuccess(['message' => 'User updated successfully.']);
 
     // ── Delete a user (admin only) ───────────────────────────────────────────
@@ -340,9 +342,37 @@ switch ($action) {
         $target_id = (int)($_POST['user_id'] ?? 0);
         if ($target_id <= 0) jsonError('Invalid user_id.');
         if ($target_id === (int)$user['user_id']) jsonError('You cannot delete your own account.');
+        try {
+            $checkStmt = $db->prepare("SELECT role FROM users WHERE user_id = ? LIMIT 1");
+            $checkStmt->execute([$target_id]);
+            $targetUser = $checkStmt->fetch();
+            if (!$targetUser) jsonError('User not found.', 404);
+            if (($targetUser['role'] ?? '') === 'admin') {
+                $adminCount = (int)$db->query("SELECT COUNT(*) FROM users WHERE role = 'admin'")->fetchColumn();
+                if ($adminCount <= 1) jsonError('Cannot remove the only admin user.', 409);
+            }
 
-        $stmt = $db->prepare("DELETE FROM users WHERE user_id = ?");
-        $stmt->execute([$target_id]);
+            $startedTransaction = !$db->inTransaction();
+            if ($startedTransaction) {
+                $db->beginTransaction();
+            }
+            detach_user_references($db, $target_id);
+            $stmt = $db->prepare("DELETE FROM users WHERE user_id = ?");
+            $stmt->execute([$target_id]);
+            log_activity_event((int)$user['user_id'], 'users', 'delete_user', "Deleted user #{$target_id}", 'user', $target_id);
+            if ($startedTransaction && $db->inTransaction()) {
+                $db->commit();
+            }
+        } catch (Throwable $e) {
+            if ($db->inTransaction()) {
+                try {
+                    $db->rollBack();
+                } catch (Throwable $rollbackError) {
+                    error_log('settings_actions delete_user rollback: ' . $rollbackError->getMessage());
+                }
+            }
+            jsonError($e->getMessage(), 500);
+        }
         jsonSuccess(['message' => 'User deleted.']);
 
     // ── Log a maintenance action ─────────────────────────────────────────────
@@ -364,6 +394,7 @@ switch ($action) {
              VALUES (?, ?, ?, ?, ?, ?)"
         );
         $stmt->execute([$comp_type, $comp_id, $act, $desc, $user['user_id'], $next_due]);
+        log_activity_event((int)$user['user_id'], 'maintenance', 'log_maintenance', $act . ($desc !== '' ? ' - ' . $desc : ''), $comp_type, $comp_id);
         jsonSuccess(['log_id' => $db->lastInsertId(), 'message' => 'Maintenance logged.']);
 
     default:

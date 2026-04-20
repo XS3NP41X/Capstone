@@ -7,6 +7,7 @@
 require_once __DIR__ . '/../../auth_guard.php';
 require_role('admin');
 require_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/../../config/security.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -127,6 +128,7 @@ try {
     updateSensorHeartbeat($pdo, $sensorColumns, (int)$greenhouse['greenhouse_id']);
 
     $pdo->commit();
+    log_activity_event((int)($_SESSION['user_id'] ?? 0), 'simulator', 'push_readings', "Pushed {$insertedRows} simulated reading rows for greenhouse {$ghCode}", 'greenhouse', $ghCode);
 
     jsonResponse([
         'success' => true,

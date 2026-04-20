@@ -5,8 +5,11 @@
 // ============================================================================
 
 require_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/../../config/security.php';
 
 header('Content-Type: application/json; charset=utf-8');
+
+require_role('admin');
 
 $method = $_SERVER['REQUEST_METHOD'];
 $code   = strtoupper($_GET['code'] ?? ''); // 'A' or 'B'
@@ -73,6 +76,7 @@ try {
 
         $pdo->prepare("UPDATE greenhouses SET assigned_plant_id = ? WHERE code = ?")
             ->execute([$plantId, $code]);
+        log_activity_event((int)($_SESSION['user_id'] ?? 0), 'greenhouse', 'assign_plant', "Assigned plant #{$plantId} to greenhouse {$code}", 'greenhouse', $code);
 
         jsonResponse([
             'success' => true,
@@ -87,6 +91,7 @@ try {
         }
         $pdo->prepare("UPDATE greenhouses SET assigned_plant_id = NULL WHERE code = ?")
             ->execute([$code]);
+        log_activity_event((int)($_SESSION['user_id'] ?? 0), 'greenhouse', 'clear_assignment', "Cleared greenhouse {$code} assignment", 'greenhouse', $code);
         jsonResponse(['success' => true, 'message' => "Greenhouse $code assignment cleared"]);
     }
 

@@ -75,6 +75,14 @@ try {
             echo json_encode(saveAutomationRules($input));
             break;
 
+        case 'toggle_actuator':
+            $input = json_decode(file_get_contents('php://input'), true);
+            if (!$input) {
+                $input = $_POST;
+            }
+            echo json_encode(toggleActuatorState($input));
+            break;
+
         // ----------------------------------------------------------------
         // GET: Historical trend data (last N hours)
         // ----------------------------------------------------------------
@@ -204,6 +212,7 @@ function getActuators(string $gh_code): array {
         FROM actuators a
         JOIN greenhouses g ON a.greenhouse_id = g.greenhouse_id
         WHERE g.code = ?
+          AND a.actuator_type NOT IN ('ph_pump_up', 'ph_pump_down', 'water_refill_pump')
         ORDER BY a.actuator_id
     ");
     $stmt->execute([$gh_code]);
@@ -255,6 +264,7 @@ function getAutomationRules(string $gh_code): array {
         JOIN actuators a ON r.actuator_id = a.actuator_id
         JOIN greenhouses g ON r.greenhouse_id = g.greenhouse_id
         WHERE g.code = ?
+          AND a.actuator_type NOT IN ('ph_pump_up', 'ph_pump_down', 'water_refill_pump')
         ORDER BY r.parameter, r.trigger_when
     ");
     $stmt->execute([$gh_code]);
@@ -295,6 +305,65 @@ function saveAutomationRules(array $input): array {
     }
 
     return ['success' => true, 'message' => "Saved $updated rule(s) for Greenhouse $gh_code"];
+}
+
+function toggleActuatorState(array $input): array {
+    $db = getDB();
+
+    $gh_code = strtoupper((string)($input['gh'] ?? ''));
+    $target = strtolower((string)($input['target'] ?? ''));
+    if (!in_array($gh_code, ['A', 'B'], true)) {
+        return ['success' => false, 'message' => 'Invalid greenhouse code'];
+    }
+
+    $targetMap = [
+        'pump' => ['nutrient_pump'],
+        'fan' => ['exhaust_fan', 'circulation_fan'],
+        'shading' => ['shading_net'],
+    ];
+    if (!isset($targetMap[$target])) {
+        return ['success' => false, 'message' => 'Invalid actuator target'];
+    }
+
+    $activeExperiment = $db->query("SELECT 1 FROM experiments WHERE status = 'active' LIMIT 1")->fetchColumn();
+    if ($activeExperiment) {
+        return ['success' => false, 'message' => 'Manual controls are locked while an experiment is active'];
+    }
+
+    $placeholders = implode(',', array_fill(0, count($targetMap[$target]), '?'));
+    $params = array_merge([$gh_code], $targetMap[$target]);
+    $stmt = $db->prepare("
+        SELECT a.actuator_id, a.status
+        FROM actuators a
+        JOIN greenhouses g ON g.greenhouse_id = a.greenhouse_id
+        WHERE g.code = ?
+          AND a.actuator_type IN ($placeholders)
+        ORDER BY a.actuator_id
+    ");
+    $stmt->execute($params);
+    $rows = $stmt->fetchAll();
+    if (!$rows) {
+        return ['success' => false, 'message' => 'No actuator found for this control'];
+    }
+
+    $nextStatus = 'on';
+    foreach ($rows as $row) {
+        if (($row['status'] ?? 'off') === 'on') {
+            $nextStatus = 'off';
+            break;
+        }
+    }
+
+    $update = $db->prepare("UPDATE actuators SET status = ?, last_changed_at = NOW() WHERE actuator_id = ?");
+    foreach ($rows as $row) {
+        $update->execute([$nextStatus, $row['actuator_id']]);
+    }
+
+    return [
+        'success' => true,
+        'message' => 'Greenhouse ' . $gh_code . ' ' . ucfirst($target) . ' set to ' . strtoupper($nextStatus),
+        'status' => $nextStatus,
+    ];
 }
 
 function getTrendData(string $gh_code, int $hours): array {

@@ -5,8 +5,11 @@
 // ============================================================================
 
 require_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/../../config/security.php';
 
 header('Content-Type: application/json; charset=utf-8');
+
+require_role('admin');
 
 $method = $_SERVER['REQUEST_METHOD'];
 $id     = isset($_GET['id']) ? (int)$_GET['id'] : null;
@@ -126,6 +129,7 @@ try {
         _saveThresholds($pdo, $plantId, $body);
 
         $pdo->commit();
+        log_activity_event((int)($_SESSION['user_id'] ?? 0), 'plants', 'create_plant', "Created plant profile {$name}", 'plant', $plantId);
         jsonResponse(['success' => true, 'plant_id' => $plantId, 'message' => 'Plant added to library']);
     }
 
@@ -164,6 +168,7 @@ try {
         _saveThresholds($pdo, $id, $body);
 
         $pdo->commit();
+        log_activity_event((int)($_SESSION['user_id'] ?? 0), 'plants', 'update_plant', "Updated plant profile {$name}", 'plant', $id);
         jsonResponse(['success' => true, 'message' => 'Plant profile updated']);
     }
 
@@ -179,6 +184,7 @@ try {
         }
 
         $pdo->prepare("DELETE FROM plants WHERE plant_id = ?")->execute([$id]);
+        log_activity_event((int)($_SESSION['user_id'] ?? 0), 'plants', 'delete_plant', "Deleted plant #{$id}", 'plant', $id);
         jsonResponse(['success' => true, 'message' => 'Plant deleted']);
     }
 

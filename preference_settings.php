@@ -11,7 +11,7 @@ $db = db();
 $userId      = (int)($_SESSION['user_id'] ?? 0);
 $userName    = htmlspecialchars($_SESSION['user_name'] ?? 'User');
 $userEmail   = htmlspecialchars($_SESSION['user_email'] ?? '');
-$userRole    = $_SESSION['user_role'] ?? 'student';
+$userRole    = $_SESSION['user_role'] ?? 'researcher';
 $userInitials = strtoupper(implode('', array_map(
     fn($w) => $w[0],
     array_slice(explode(' ', trim($_SESSION['user_name'] ?? 'U')), 0, 2)
@@ -410,7 +410,6 @@ foreach ($sensors as $s) { $sensorGroups[$s['sensor_type']][] = $s; }
       <a href="experiments.php" class="nav-item"><?= htmlspecialchars($t('nav.experiments')) ?></a>
       <a href="greenhouses.php" class="nav-item"><?= htmlspecialchars($t('nav.greenhouses')) ?></a>
       <a href="reports.php"     class="nav-item"><?= htmlspecialchars($t('nav.reports')) ?></a>
-      <a href="settings.php"    class="nav-item active"><?= htmlspecialchars($t('nav.settings')) ?></a>
       <?php if ($isAdmin): ?>
       <a href="admin.php"       class="nav-item"><?= htmlspecialchars($t('nav.admin')) ?></a>
       <?php endif; ?>
@@ -460,11 +459,6 @@ foreach ($sensors as $s) { $sensorGroups[$s['sensor_type']][] = $s; }
     </div>
   </div>
 
-  <div class="settings-page-shortcuts">
-    <a href="settings.php" class="btn btn-secondary">System Settings</a>
-    <a href="profile_settings.php" class="btn btn-secondary">Profile Settings</a>
-  </div>
-
   <!-- Access Notice -->
   <div class="alert <?= $isAdmin ? 'alert-success' : 'alert-info' ?> mb-3">
     <span class="alert-icon"><?= $isAdmin ? '✅' : '🔒' ?></span>
@@ -478,11 +472,6 @@ foreach ($sensors as $s) { $sensorGroups[$s['sensor_type']][] = $s; }
   </div>
 
   <div class="settings-grid">
-    <div class="settings-form-switcher">
-      <button class="settings-form-tab active" type="button" data-target="profileSection" onclick="openSettingsForm('profileSection', true)"><?= htmlspecialchars($t('settings.forms.profile')) ?></button>
-      <button class="settings-form-tab" type="button" data-target="preferencesSettings" onclick="openSettingsForm('preferencesSettings', true)"><?= htmlspecialchars($t('settings.forms.preferences')) ?></button>
-    </div>
-
     <section class="card profile-summary-card settings-form-panel active" id="profileSection">
       <div class="card-header">
         <div>
@@ -767,6 +756,7 @@ foreach ($sensors as $s) { $sensorGroups[$s['sensor_type']][] = $s; }
       </div>
     </section>
 
+    <?php if ($isAdmin): ?>
     <!-- ══════════════════════════════ 1. NETWORK CONFIGURATION ═══ -->
     <section class="card">
       <div class="card-header">
@@ -989,17 +979,17 @@ foreach ($sensors as $s) { $sensorGroups[$s['sensor_type']][] = $s; }
                     COUNT(*) AS total,
                     SUM(status NOT IN ('on','off','auto')) AS fault_count,
                     GROUP_CONCAT(DISTINCT status ORDER BY status) AS statuses
-             FROM actuators GROUP BY actuator_type ORDER BY actuator_type"
+             FROM actuators
+             WHERE actuator_type NOT IN ('ph_pump_up', 'ph_pump_down', 'water_refill_pump')
+             GROUP BY actuator_type
+             ORDER BY actuator_type"
         )->fetchAll();
         $actuatorLabels = [
-          'nutrient_pump'      => 'Nutrient Pump',
+          'nutrient_pump'      => 'Pump',
           'exhaust_fan'        => 'Exhaust Fan',
           'circulation_fan'   => 'Circulation Fan',
           'shading_net'        => 'Shading Net Motor',
           'misting_system'     => 'Misting System',
-          'ph_pump_up'         => 'pH Pump (Up)',
-          'ph_pump_down'       => 'pH Pump (Down)',
-          'water_refill_pump'  => 'Water Refill Pump',
         ];
         if ($actuatorTypes):
         ?>
@@ -1073,8 +1063,7 @@ foreach ($sensors as $s) { $sensorGroups[$s['sensor_type']][] = $s; }
           <?php
           $autoKeys = [
             'auto_fan_on_high_temp' => 'Auto Fan on High Temp',
-            'auto_ph_correction'    => 'Auto pH Correction',
-            'auto_ec_dosing'        => 'Auto EC Dosing',
+            'auto_ec_dosing'        => 'Auto Pump Control',
             'auto_shading_on_light' => 'Auto Shading on Excess Light',
             'auto_humidity_misting' => 'Auto Humidity Misting',
           ];
@@ -1142,12 +1131,14 @@ foreach ($sensors as $s) { $sensorGroups[$s['sensor_type']][] = $s; }
         <?php endif; ?>
       </div>
     </section>
+    <?php endif; ?>
 
   </div><!-- /.settings-grid -->
 </main>
 
 <!-- ═══════════════════════════════════ MODALS ═══════════════════════ -->
 
+<?php if ($isAdmin): ?>
 <!-- Maintenance Log Modal -->
 <div class="modal-overlay" id="maintenanceModal">
   <div class="modal-box">
@@ -1179,6 +1170,7 @@ foreach ($sensors as $s) { $sensorGroups[$s['sensor_type']][] = $s; }
     </div>
   </div>
 </div>
+<?php endif; ?>
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
@@ -1561,14 +1553,17 @@ async function saveConfigToggle(key, checkbox) {
 
 // ── Maintenance modal ──────────────────────────────────────────────────────
 function openMaintenanceModal() {
+  if (!document.getElementById('maintenanceModal')) return;
   ['mAction','mDesc'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('mNextDue').value = '';
   document.getElementById('maintenanceModal').classList.add('open');
 }
 function closeMaintenanceModal() {
+  if (!document.getElementById('maintenanceModal')) return;
   document.getElementById('maintenanceModal').classList.remove('open');
 }
 async function submitMaintenanceLog() {
+  if (!document.getElementById('maintenanceModal')) return;
   const fd = new FormData();
   fd.append('action',         'log_maintenance');
   fd.append('component_type', document.getElementById('mCompType').value);
@@ -1591,7 +1586,9 @@ async function submitMaintenanceLog() {
 
 // Close modals on overlay click
 ['maintenanceModal'].forEach(id => {
-  document.getElementById(id).addEventListener('click', function(e) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('click', function(e) {
     if (e.target === this) this.classList.remove('open');
   });
 });
