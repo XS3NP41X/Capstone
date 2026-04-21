@@ -7,6 +7,7 @@
 
 require_once __DIR__ . '/../../admin/db.php';
 require_once __DIR__ . '/../../config/security.php';
+require_auth();
 
 function ensureDataExportsTable(PDO $pdo): void
 {
@@ -307,6 +308,13 @@ try {
     } catch (PDOException $logError) {
         error_log('Export log failed: ' . $logError->getMessage());
     }
+    log_activity_event(
+        (int)($_SESSION['user_id'] ?? 0),
+        'reports',
+        'export_data',
+        "Exported {$rowCount} readings as {$format} for greenhouse scope {$ghCode} ({$label})",
+        'data_export'
+    );
 
     // ---- Stream the file -----------------------------------------------
     header('Content-Disposition: attachment; filename="' . $filename . '"');

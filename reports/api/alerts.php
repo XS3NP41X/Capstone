@@ -5,8 +5,10 @@
 // ============================================================================
 
 require_once __DIR__ . '/../../admin/db.php';
+require_once __DIR__ . '/../../config/security.php';
 
 header('Content-Type: application/json; charset=utf-8');
+require_auth();
 
 $method   = $_SERVER['REQUEST_METHOD'];
 $page     = max(1, (int)($_GET['page']     ?? 1));
@@ -24,6 +26,14 @@ try {
     if ($method === 'POST' && $resolveId) {
         $pdo->prepare("UPDATE alerts SET is_resolved = 1, resolved_at = NOW() WHERE alert_id = ?")
             ->execute([$resolveId]);
+        log_activity_event(
+            (int)($_SESSION['user_id'] ?? 0),
+            'reports',
+            'resolve_alert',
+            "Resolved historical alert #{$resolveId}",
+            'alert',
+            $resolveId
+        );
         jsonResponse(['success' => true, 'message' => 'Alert resolved']);
     }
 

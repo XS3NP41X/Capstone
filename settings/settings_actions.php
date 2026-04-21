@@ -193,6 +193,14 @@ switch ($action) {
 
         $_SESSION['user_name'] = $fullName;
         $_SESSION['user_email'] = $email;
+        log_activity_event(
+            (int)$user['user_id'],
+            'account',
+            'save_profile',
+            'Updated profile settings',
+            'user',
+            (int)$user['user_id']
+        );
 
         jsonSuccess([
             'message' => 'Profile settings saved successfully.',
@@ -232,6 +240,14 @@ switch ($action) {
         $newHash = password_hash($newPassword, PASSWORD_BCRYPT);
         $updateStmt = $db->prepare("UPDATE users SET password_hash = ?, updated_at = NOW() WHERE user_id = ?");
         $updateStmt->execute([$newHash, $user['user_id']]);
+        log_activity_event(
+            (int)$user['user_id'],
+            'account',
+            'change_password',
+            'Changed account password',
+            'user',
+            (int)$user['user_id']
+        );
 
         jsonSuccess(['message' => 'Password updated successfully.']);
 
@@ -266,6 +282,14 @@ switch ($action) {
             }
             $stmt->execute([$user['user_id'], $key, $value]);
         }
+        log_activity_event(
+            (int)$user['user_id'],
+            'account',
+            'save_preferences',
+            'Updated interface and notification preferences',
+            'user',
+            (int)$user['user_id']
+        );
 
         jsonSuccess(['message' => 'Preferences saved successfully.']);
 
@@ -281,6 +305,7 @@ switch ($action) {
         );
         $stmt->execute([$value, $user['user_id'], $key]);
         if ($stmt->rowCount() === 0) jsonError("Config key '{$key}' not found.");
+        log_activity_event((int)$user['user_id'], 'system', 'update_config', "Updated config {$key}", 'system');
         jsonSuccess(['message' => "Config '{$key}' updated."]);
 
     // ── Add a new user (admin only) ──────────────────────────────────────────
