@@ -17,11 +17,13 @@ $dbError = null;
 ensure_session_log_table();
 ensure_activity_log_table();
 
+// Builds the export filename for admin report downloads.
 function adminExportFilename(string $type, string $format): string
 {
     return sprintf('ecotwin_admin_%s_%s.%s', $type, date('Ymd_His'), $format);
 }
 
+// Streams the admin report export in the requested format.
 function streamAdminExport(string $type, string $format, array $rows): never
 {
     $filename = adminExportFilename($type, $format);
@@ -216,6 +218,7 @@ $sensorRowsDisplay = array_slice($sensorRows, 0, 10);
 $loginLogsDisplay = array_slice($loginLogs, 0, 10);
 $activityLogsDisplay = array_slice($activityLogs, 0, 10);
 
+// Returns the CSS class used for admin report status display.
 function adminReportStatusClass(string $status): string {
     return match ($status) {
         'online' => 'badge-success',
@@ -464,6 +467,7 @@ function adminReportStatusClass(string $status): string {
 </main>
 
 <script>
+// Toggles the profile dropdown menu in the page header.
 function toggleProfileDropdown(event) {
   event.stopPropagation();
   document.getElementById('profileDropdown').classList.toggle('active');
@@ -475,6 +479,8 @@ document.addEventListener('click', function (event) {
   }
 });
 
+// Redirects the user out of the current session from this page.
+// Redirects the user out of the current session from this page.
 function logout() {
   fetch('auth_handler.php', {
     method: 'POST',

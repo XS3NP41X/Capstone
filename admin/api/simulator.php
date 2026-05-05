@@ -149,6 +149,7 @@ try {
     jsonResponse(['success' => false, 'error' => $e->getMessage()], 500);
 }
 
+// Normalizes parameter values before they are stored or compared.
 function normalizeParameter(string $parameter): ?string {
     $parameter = strtolower(trim($parameter));
     $aliases = [
@@ -169,6 +170,7 @@ function normalizeParameter(string $parameter): ?string {
     return $aliases[$parameter] ?? null;
 }
 
+// Describes table metadata for the current request.
 function describeTable(PDO $pdo, string $table): array {
     $stmt = $pdo->query("DESCRIBE `$table`");
     $rows = $stmt ? $stmt->fetchAll() : [];
@@ -179,6 +181,7 @@ function describeTable(PDO $pdo, string $table): array {
     return $out;
 }
 
+// Detects missing required columns from the current schema or payload.
 function detectMissingRequiredColumns(array $columns, array $supported): array {
     $missing = [];
     foreach ($columns as $name => $meta) {
@@ -193,6 +196,7 @@ function detectMissingRequiredColumns(array $columns, array $supported): array {
     return $missing;
 }
 
+// Builds reading row data or markup for the current flow.
 function buildReadingRow(
     array $columns,
     array $sensor,
@@ -250,6 +254,7 @@ function buildReadingRow(
     return $row;
 }
 
+// Returns the sensor unit that matches the current parameter.
 function sensorUnit(array $sensor, string $parameter): string {
     if (!empty($sensor['unit'])) {
         return (string)$sensor['unit'];
@@ -265,6 +270,7 @@ function sensorUnit(array $sensor, string $parameter): string {
     ][$parameter] ?? '';
 }
 
+// Picks the best matching database column from the preferred list.
 function preferredColumnValue(array $columnMeta, array $preferred): ?string {
     $type = strtolower((string)($columnMeta['Type'] ?? ''));
     if (str_starts_with($type, 'enum(')) {
@@ -281,6 +287,7 @@ function preferredColumnValue(array $columnMeta, array $preferred): ?string {
     return $preferred[0] ?? null;
 }
 
+// Applies a small variation to simulated readings so the data looks natural.
 function jitterValue(string $parameter, float $value, int $sampleIndex): float {
     $ranges = [
         'temperature' => 0.35,
@@ -299,6 +306,7 @@ function jitterValue(string $parameter, float $value, int $sampleIndex): float {
     return roundedValue($parameter, $value + $seed);
 }
 
+// Rounds simulated readings to the precision expected by the database.
 function roundedValue(string $parameter, float $value): float {
     return match ($parameter) {
         'light', 'water_level' => round($value, 0),
@@ -306,6 +314,7 @@ function roundedValue(string $parameter, float $value): float {
     };
 }
 
+// Inserts a generated row into the selected table using dynamic columns.
 function insertDynamicRow(PDO $pdo, string $table, array $row): void {
     if (!$row) {
         throw new RuntimeException('No writable columns resolved for simulated reading');
@@ -320,6 +329,7 @@ function insertDynamicRow(PDO $pdo, string $table, array $row): void {
     $stmt->execute(array_values($row));
 }
 
+// Updates sensor heartbeat based on the latest action.
 function updateSensorHeartbeat(PDO $pdo, array $sensorColumns, int $greenhouseId): void {
     $updates = [];
 

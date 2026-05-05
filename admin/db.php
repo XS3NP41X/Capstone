@@ -12,6 +12,7 @@ defined('APP_TIMEZONE') || define('APP_TIMEZONE', 'Asia/Manila');
 
 date_default_timezone_set(APP_TIMEZONE);
 
+// Returns the shared PDO connection for application queries.
 function getDB(): PDO {
     static $pdo = null;
     if ($pdo === null) {
@@ -32,6 +33,8 @@ function getDB(): PDO {
     return $pdo;
 }
 
+// Sends a JSON response and stops the current request.
+// Sends a JSON response and stops the current request.
 function jsonResponse(array $data, int $code = 200): void {
     http_response_code($code);
     header('Content-Type: application/json; charset=utf-8');
@@ -39,6 +42,7 @@ function jsonResponse(array $data, int $code = 200): void {
     exit;
 }
 
+// Sanitizes a string before it is stored or displayed.
 function sanitize(string $val): string {
     return htmlspecialchars(strip_tags(trim($val)), ENT_QUOTES, 'UTF-8');
 }

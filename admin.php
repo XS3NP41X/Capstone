@@ -135,6 +135,7 @@ function setting(array $s, string $key, $default = '')
   return $s[$key] ?? $default;
 }
 
+// Returns the initials built from the provided display name.
 function initials(string $name): string
 {
   $parts = preg_split('/\s+/', trim($name)) ?: [];
@@ -909,6 +910,7 @@ function initials(string $name): string
     // ============================================================================
     // TABS
     // ============================================================================
+    // Switches the active tab and refreshes the matching page state.
     function switchTab(name, btn) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
@@ -923,6 +925,7 @@ function initials(string $name): string
     // ============================================================================
     // PLANT LIBRARY
     // ============================================================================
+    // Returns the label text for cat.
     function catLabel(c) {
       return {
         leafy: '🥬 Leafy',
@@ -932,6 +935,7 @@ function initials(string $name): string
       } [c] || c;
     }
 
+    // Filters plants in the current interface.
     function filterPlants() {
       const q = document.getElementById('plantSearch').value.toLowerCase();
       renderPlantList(plants.filter(p =>
@@ -940,6 +944,7 @@ function initials(string $name): string
       ));
     }
 
+    // Filters by category in the current interface.
     function filterByCategory(cat, btn) {
       currentCategory = cat;
       document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
@@ -947,6 +952,7 @@ function initials(string $name): string
       filterPlants();
     }
 
+    // Renders plant list in the current interface.
     function renderPlantList(list) {
       const el = document.getElementById('plantList');
       if (!list.length) {
@@ -965,12 +971,14 @@ function initials(string $name): string
   `).join('');
     }
 
+    // Selects plant in the current workflow.
     function selectPlant(id) {
       selectedPlantId = id;
       filterPlants();
       renderPlantDetail(plants.find(p => p.id === id));
     }
 
+    // Renders plant detail in the current interface.
     function renderPlantDetail(p) {
       document.getElementById('detailPlaceholder').style.display = 'none';
       const content = document.getElementById('plantDetailContent');
@@ -1009,6 +1017,7 @@ function initials(string $name): string
   `;
     }
 
+    // Builds the threshold card markup for the selected plant.
     function thresholdCard(icon, label, min, optLow, optHigh, max, unit) {
       return `
     <div class="th-card">
@@ -1020,6 +1029,7 @@ function initials(string $name): string
     }
 
     // ---- Plant Modal --------------------------------------------------------
+    // Opens the add plant modal panel or modal.
     function openAddPlantModal() {
       editingPlantId = null;
       document.getElementById('plantModalTitle').textContent = 'Add New Plant';
@@ -1027,6 +1037,7 @@ function initials(string $name): string
       document.getElementById('plantModal').style.display = 'flex';
     }
 
+    // Opens the edit plant modal panel or modal.
     function openEditPlantModal(id) {
       editingPlantId = id;
       const p = plants.find(x => x.id === id);
@@ -1075,10 +1086,13 @@ function initials(string $name): string
       document.getElementById('plantModal').style.display = 'flex';
     }
 
+    // Sets val for the current flow.
+    // Sets val for the current flow.
     function setVal(id, val) {
       document.getElementById(id).value = val ?? '';
     }
 
+    // Clears plant form state before the next action.
     function clearPlantForm() {
       ['m-name', 'm-sci', 'm-icon', 'm-notes'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('m-icon').value = '🌱';
@@ -1154,6 +1168,7 @@ function initials(string $name): string
       }
     }
 
+    // Builds local plant data or markup for the current flow.
     function buildLocalPlant(id, b) {
       return {
         id: +id,
@@ -1216,10 +1231,12 @@ function initials(string $name): string
       }
     }
 
+    // Closes the plant modal panel or modal.
     function closePlantModal(e) {
       if (e.target === document.getElementById('plantModal')) closePlantModalDirect();
     }
 
+    // Closes the plant modal direct panel or modal.
     function closePlantModalDirect() {
       document.getElementById('plantModal').style.display = 'none';
     }
@@ -1227,17 +1244,21 @@ function initials(string $name): string
     // ============================================================================
     // GREENHOUSE ASSIGNMENT
     // ============================================================================
+    // Returns selected gh plant id for the current request.
     function getSelectedGhPlantId(gh) {
       const val = document.getElementById('gh' + gh + '-plant').value;
       return val ? Number(val) : null;
     }
 
+    // Sets gh feedback for the current flow.
+    // Sets gh feedback for the current flow.
     function setGhFeedback(gh, message, tone = 'neutral') {
       const el = document.getElementById('gh' + gh + '-feedback');
       el.textContent = message;
       el.className = 'gh-inline-feedback gh-feedback-' + tone;
     }
 
+    // Updates gh action state based on the latest action.
     function updateGhActionState(gh) {
       const selectedId = getSelectedGhPlantId(gh);
       const savedId = ghAssignments[gh] ? Number(ghAssignments[gh]) : null;
@@ -1267,6 +1288,7 @@ function initials(string $name): string
       }
     }
 
+    // Renders gh selects in the current interface.
     function renderGhSelects() {
       ['A', 'B'].forEach(gh => {
         const sel = document.getElementById('gh' + gh + '-plant');
@@ -1277,6 +1299,7 @@ function initials(string $name): string
       renderActiveProfiles();
     }
 
+    // Refreshes greenhouse assignment state after the selected plant changes.
     function onGhPlantChange(gh) {
       const val = document.getElementById('gh' + gh + '-plant').value;
       const preview = document.getElementById('gh' + gh + '-preview');
@@ -1305,6 +1328,7 @@ function initials(string $name): string
       updateGhActionState(gh);
     }
 
+    // Builds the compact threshold card markup for greenhouse previews.
     function miniThreshCard(icon, label, val) {
       return `<div class="mini-thresh"><div class="mini-thresh-icon">${icon}</div><div class="mini-thresh-label">${label}</div><div class="mini-thresh-val">${val}</div></div>`;
     }
@@ -1367,6 +1391,7 @@ function initials(string $name): string
       }
     }
 
+    // Renders active profiles in the current interface.
     function renderActiveProfiles() {
       const body = document.getElementById('activeProfilesBody');
       let rows = '';
@@ -1387,14 +1412,18 @@ function initials(string $name): string
       body.innerHTML = rows;
     }
 
+    // Returns simulator greenhouse for the current request.
     function getSimulatorGreenhouse() {
       return document.getElementById('sim-gh').value;
     }
 
+    // Returns assigned plant for gh for the current request.
     function getAssignedPlantForGh(gh) {
       return ghAssignments[gh] ? plants.find(x => x.id === ghAssignments[gh]) : null;
     }
 
+    // Sets simulator field for the current flow.
+    // Sets simulator field for the current flow.
     function setSimulatorField(param, value) {
       const id = simulatorFieldMap[param];
       if (!id) return;
@@ -1402,6 +1431,7 @@ function initials(string $name): string
       if (el) el.value = value ?? '';
     }
 
+    // Returns simulator field for the current request.
     function getSimulatorField(param) {
       const id = simulatorFieldMap[param];
       const el = id ? document.getElementById(id) : null;
@@ -1410,6 +1440,7 @@ function initials(string $name): string
       return val === '' ? null : Number(val);
     }
 
+    // Returns plant threshold for the current request.
     function getPlantThreshold(plant, param) {
       if (!plant) return null;
       if (param === 'temperature') return plant.temp || null;
@@ -1421,15 +1452,18 @@ function initials(string $name): string
       return null;
     }
 
+    // Returns the midpoint between two numeric bounds.
     function midpoint(low, high) {
       return ((Number(low) + Number(high)) / 2);
     }
 
+    // Rounds for param to the expected precision.
     function roundForParam(param, value) {
       const precision = ['light', 'water_level'].includes(param) ? 0 : 1;
       return Number(value.toFixed(precision));
     }
 
+    // Picks scenario value for the current scenario.
     function pickScenarioValue(param, threshold, scenario) {
       if (!threshold) {
         const fallback = {
@@ -1470,6 +1504,8 @@ function initials(string $name): string
       return roundForParam(param, midpoint(optLow, optHigh));
     }
 
+    // Fills the simulator form using the selected plant thresholds.
+    // Fills the simulator form using the selected plant thresholds.
     function fillSimulatorFromPlant() {
       const gh = getSimulatorGreenhouse();
       const plant = getAssignedPlantForGh(gh);
@@ -1490,6 +1526,8 @@ function initials(string $name): string
       });
     }
 
+    // Generates a simulator scenario from the current greenhouse and plant settings.
+    // Generates a simulator scenario from the current greenhouse and plant settings.
     function generateSimulatorScenario() {
       const gh = getSimulatorGreenhouse();
       const plant = getAssignedPlantForGh(gh);
@@ -1512,6 +1550,7 @@ function initials(string $name): string
         `Greenhouse ${gh} has no assigned plant profile.`;
     }
 
+    // Refreshes simulator defaults when the selected greenhouse changes.
     function onSimulatorGreenhouseChange() {
       fillSimulatorFromPlant();
     }
@@ -1550,14 +1589,17 @@ function initials(string $name): string
     // ============================================================================
     // USER MANAGEMENT
     // ============================================================================
+    // Opens the add user modal panel or modal.
     function openAddUserModal() {
       document.getElementById('userModal').style.display = 'flex';
     }
 
+    // Closes the user modal panel or modal.
     function closeUserModal(e) {
       if (e.target === document.getElementById('userModal')) closeUserModalDirect();
     }
 
+    // Closes the user modal direct panel or modal.
     function closeUserModalDirect() {
       document.getElementById('userModal').style.display = 'none';
     }
@@ -1627,6 +1669,7 @@ function initials(string $name): string
     // ============================================================================
     // SYSTEM SETTINGS
     // ============================================================================
+    // Collects settings values from the current form.
     function collectSettings(keys) {
       const out = {};
       keys.forEach(k => {
@@ -1697,6 +1740,7 @@ function initials(string $name): string
     // ============================================================================
     // TOAST
     // ============================================================================
+    // Shows a toast message so action results are easier to notice while debugging.
     function showToast(msg, type = 'success') {
       const t = document.getElementById('toast');
       t.textContent = msg;
@@ -1707,6 +1751,7 @@ function initials(string $name): string
     // ============================================================================
     // PROFILE DROPDOWN & LOGOUT
     // ============================================================================
+    // Toggles the profile dropdown menu in the page header.
     function toggleProfileDropdown(event) {
       event.stopPropagation();
       document.getElementById('profileDropdown').classList.toggle('active');

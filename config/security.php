@@ -23,6 +23,7 @@ define('RESET_TOKEN_TTL',    3600);  // 1 hour
 define('REMEMBER_ME_COOKIE', 'ecotwin_remember');
 define('REMEMBER_ME_DAYS',   30);
 
+// Returns the PDO connection used by the security helpers.
 function security_db(): PDO
 {
     if (function_exists('db')) {
@@ -36,6 +37,7 @@ function security_db(): PDO
 }
 
 // ── CSRF ─────────────────────────────────────────────────────────────────────
+// Returns the CSRF token for the current session.
 function csrf_token(): string
 {
     if (empty($_SESSION['csrf_token'])) {
@@ -44,6 +46,7 @@ function csrf_token(): string
     return $_SESSION['csrf_token'];
 }
 
+// Checks whether the submitted CSRF token is valid.
 function csrf_verify(string $token): bool
 {
     return !empty($_SESSION['csrf_token'])
@@ -52,6 +55,7 @@ function csrf_verify(string $token): bool
 
 // ── Rate limiting via login_attempts table ────────────────────────────────────
 // Uses its own lightweight table to avoid the FK constraint on session_log.
+// Ensures attempts table exists before it is used.
 function ensure_attempts_table(): void
 {
     try {
@@ -70,6 +74,7 @@ function ensure_attempts_table(): void
     }
 }
 
+// Returns failed attempts for the current request.
 function get_failed_attempts(string $email): int
 {
     try {
@@ -87,11 +92,13 @@ function get_failed_attempts(string $email): int
     }
 }
 
+// Checks whether the account is currently locked out by failed attempts.
 function is_locked_out(string $email): bool
 {
     return get_failed_attempts($email) >= MAX_LOGIN_ATTEMPTS;
 }
 
+// Records a failed login attempt for the current email and IP.
 function record_failed_attempt(string $email): void
 {
     try {
@@ -107,6 +114,7 @@ function record_failed_attempt(string $email): void
     }
 }
 
+// Clears failed attempts state before the next action.
 function clear_failed_attempts(string $email): void
 {
     try {
@@ -118,6 +126,7 @@ function clear_failed_attempts(string $email): void
     }
 }
 
+// Ensures remember tokens table exists before it is used.
 function ensure_remember_tokens_table(): void
 {
     try {
@@ -143,6 +152,7 @@ function ensure_remember_tokens_table(): void
     }
 }
 
+// Ensures session log table exists before it is used.
 function ensure_session_log_table(): void
 {
     try {
@@ -168,6 +178,7 @@ function ensure_session_log_table(): void
     }
 }
 
+// Ensures activity log table exists before it is used.
 function ensure_activity_log_table(): void
 {
     try {
@@ -195,6 +206,7 @@ function ensure_activity_log_table(): void
     }
 }
 
+// Builds auth session data or markup for the current flow.
 function build_auth_session(array $user): void
 {
     session_regenerate_id(true);
@@ -205,6 +217,7 @@ function build_auth_session(array $user): void
     $_SESSION['last_regen'] = time();
 }
 
+// Builds the remember-me cookie options for the requested expiry time.
 function remember_cookie_options(int $expires): array
 {
     return [
@@ -216,12 +229,14 @@ function remember_cookie_options(int $expires): array
     ];
 }
 
+// Clears remember me cookie state before the next action.
 function clear_remember_me_cookie(): void
 {
     setcookie(REMEMBER_ME_COOKIE, '', remember_cookie_options(time() - 3600));
     unset($_COOKIE[REMEMBER_ME_COOKIE]);
 }
 
+// Revokes the remember-me token tied to the current cookie value.
 function revoke_remember_me_token(?string $cookieValue = null): void
 {
     $cookieValue ??= $_COOKIE[REMEMBER_ME_COOKIE] ?? '';
@@ -242,6 +257,7 @@ function revoke_remember_me_token(?string $cookieValue = null): void
     clear_remember_me_cookie();
 }
 
+// Creates and stores a new remember-me token for the user.
 function create_remember_me_token(int $userId): void
 {
     try {
@@ -269,6 +285,7 @@ function create_remember_me_token(int $userId): void
     }
 }
 
+// Restores a remembered login when the cookie token is still valid.
 function restore_remembered_login(): bool
 {
     if (!empty($_SESSION['user_id'])) {
@@ -324,6 +341,7 @@ function restore_remembered_login(): bool
 
 // ── Session event logging ─────────────────────────────────────────────────────
 // Only called with a real user_id (> 0) to satisfy the FK on session_log.
+// Writes a session log entry for the current authentication event.
 function log_session_event(int $userId, string $action, string $detail = ''): void
 {
     if ($userId <= 0) return;
@@ -345,6 +363,7 @@ function log_session_event(int $userId, string $action, string $detail = ''): vo
     }
 }
 
+// Writes an activity log entry for the current action.
 function log_activity_event(
     ?int $userId,
     string $category,
@@ -372,6 +391,8 @@ function log_activity_event(
     }
 }
 
+// Cleans up user references before the target account is removed.
+// Cleans up user references before the target account is removed.
 function detach_user_references(PDO $pdo, int $userId): void
 {
     if ($userId <= 0) {
@@ -405,6 +426,7 @@ function detach_user_references(PDO $pdo, int $userId): void
 }
 
 // ── Auth guard ────────────────────────────────────────────────────────────────
+// Enforces an authenticated session before continuing the request.
 function require_auth(): void
 {
     if (empty($_SESSION['user_id'])) {
@@ -422,6 +444,7 @@ function require_auth(): void
     }
 }
 
+// Enforces the allowed user roles before continuing the request.
 function require_role(string ...$roles): void
 {
     require_auth();
@@ -433,22 +456,27 @@ function require_role(string ...$roles): void
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 if (!function_exists('e')) {
+    // Escapes a string for safe HTML output.
     function e(string $s): string
     {
         return htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
 }
 
+// Hashes password before storage.
 function hash_password(string $plain): string
 {
     return password_hash($plain, PASSWORD_BCRYPT, ['cost' => BCRYPT_COST]);
 }
 
+// Verifies password for the current request.
+// Verifies password for the current request.
 function verify_password(string $plain, string $hash): bool
 {
     return password_verify($plain, $hash);
 }
 
+// Checks whether the stored password hash should be rehashed.
 function needs_rehash(string $hash): bool
 {
     return password_needs_rehash($hash, PASSWORD_BCRYPT, ['cost' => BCRYPT_COST]);

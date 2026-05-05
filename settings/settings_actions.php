@@ -19,18 +19,23 @@ $user   = [
 $db     = db();
 
 // ── Helper ───────────────────────────────────────────────────────────────────
+// Sends a JSON success response and stops the current request.
 function jsonSuccess(array $data = []): never {
     echo json_encode(['success' => true] + $data);
     exit;
 }
+// Sends a JSON error response and stops the current request.
+// Sends a JSON error response and stops the current request.
 function jsonError(string $msg, int $code = 400): never {
     http_response_code($code);
     echo json_encode(['success' => false, 'error' => $msg]);
     exit;
 }
+// Stops the request unless the current user has admin access.
 function adminOnly(): void {
     if (($_SESSION['user_role'] ?? '') !== 'admin') jsonError('Admin privileges required.', 403);
 }
+// Ensures user preferences table exists before it is used.
 function ensureUserPreferencesTable(PDO $db): void {
     $db->exec(
         "CREATE TABLE IF NOT EXISTS user_preferences (
@@ -46,6 +51,7 @@ function ensureUserPreferencesTable(PDO $db): void {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
     );
 }
+// Ensures user profile details table exists before it is used.
 function ensureUserProfileDetailsTable(PDO $db): void {
     $db->exec(
         "CREATE TABLE IF NOT EXISTS user_profile_details (
@@ -67,6 +73,8 @@ function ensureUserProfileDetailsTable(PDO $db): void {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
     );
 }
+// Saves avatar upload changes for the current request.
+// Saves avatar upload changes for the current request.
 function saveAvatarUpload(int $userId, array $file): string {
     if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
         jsonError('Avatar upload failed.');

@@ -205,6 +205,7 @@ try {
 }
 
 // ── PHP helpers ───────────────────────────────────────────────────────────
+// Returns the label text used for the current report type.
 function stLabel(string $t): string {
     return match($t) {
         'DHT22'       => 'DHT22 (Temperature & Humidity)',
@@ -217,21 +218,25 @@ function stLabel(string $t): string {
     };
 }
 
+// Returns the icon output for severity display.
 function sevIcon(string $s): string {
     $map = ['critical'=>'🔴','warning'=>'⚠️','success'=>'✓','info'=>'ℹ️'];
     $cls = $map[$s] ?? 'ℹ️';
     return "<span class=\"event-icon $s\">$cls</span>";
 }
 
+// Returns the row class used for report severity display.
 function rowCls(string $s): string {
     return match($s) { 'critical'=>'row-critical','warning'=>'row-warning', default=>'' };
 }
 
+// Builds the badge output for greenhouse display.
 function ghBadge(?string $c): string {
     if (!$c) return '<span class="text-muted">—</span>';
     return "<span class=\"badge badge-greenhouse-".strtolower($c)."\">Greenhouse $c</span>";
 }
 
+// Builds the live issue event list used by the reporting views.
 function buildLiveIssueEvents(PDO $pdo, string $ghFilter = 'all', string $severity = 'all'): array {
     if (!in_array($severity, ['all', 'critical', 'warning'], true)) {
         return [];
@@ -310,6 +315,7 @@ function buildLiveIssueEvents(PDO $pdo, string $ghFilter = 'all', string $severi
     return $events;
 }
 
+// Renders the pagination buttons for the current report list.
 function paginationBtns(int $cur, int $total): void {
     if ($total <= 1) return;
     echo "<button class='page-btn' ".($cur<=1?'disabled':'')." onclick='loadAlerts(".($cur-1).")'>‹</button>\n";
@@ -322,6 +328,7 @@ function paginationBtns(int $cur, int $total): void {
     echo "<button class='page-btn' ".($cur>=$total?'disabled':'')." onclick='loadAlerts(".($cur+1).")'>›</button>\n";
 }
 
+// Builds range data or markup for the current flow.
 function buildRange(int $cur, int $total): array {
     $pages = [1];
     if ($cur > 3) $pages[] = '…';
@@ -729,6 +736,7 @@ const API = 'reports/api/reports_api.php';
 let currentAlertPage = 1;
 let exportFeedbackTimer = null;
 
+// Shows a toast message so action results are easier to notice while debugging.
 function showToast(msg, type = 'success') {
     const t = document.getElementById('toast');
     t.textContent = msg;
@@ -764,6 +772,7 @@ async function loadAlerts(page = 1) {
     }
 }
 
+// Renders table in the current interface.
 function renderTable(rows) {
     const tbody = document.getElementById('alerts-tbody');
     if (!rows.length) {
@@ -786,6 +795,7 @@ function renderTable(rows) {
     }).join('');
 }
 
+// Renders pager in the current interface.
 function renderPager(page, totalPages, total) {
     const from = ((page-1)*10)+1, to = Math.min(page*10, total);
     document.getElementById('pagination-info').textContent =
@@ -802,6 +812,7 @@ function renderPager(page, totalPages, total) {
     ctrl.innerHTML = h;
 }
 
+// Builds the page range used by the report paginator.
 function pageRange(cur, tot) {
     if (tot <= 7) return Array.from({length:tot},(_,i)=>i+1);
     const p=[1]; if(cur>3) p.push('…');
@@ -812,6 +823,7 @@ function pageRange(cur, tot) {
 // ============================================================
 // ALERT DETAIL MODAL
 // ============================================================
+// Opens the alert detail modal for the selected report row.
 function viewDetail(id) {
     const a = alertStore.find(x => String(x.alert_id) === String(id));
     if (!a) { showModal('detail-modal'); return; }
@@ -850,11 +862,13 @@ const drLbl  = {'24h':'Last 24 Hours','7d':'Last 7 Days','30d':'Last 30 Days',
                 experiment:'Current Experiment',custom:'Custom Range'};
 const fmtLbl = {xls:'Excel Styled (.xls)',csv:'CSV (Excel)',json:'JSON'};
 
+// Toggles custom dates state in the interface.
 function toggleCustomDates() {
     const show = document.getElementById('date-range-select').value === 'custom';
     document.getElementById('custom-date-row').style.display = show ? 'grid' : 'none';
 }
 
+// Shows confirm modal in the interface.
 function showConfirmModal() {
     const gh  = document.getElementById('greenhouse-select').value;
     const dr  = document.getElementById('date-range-select').value;
@@ -873,6 +887,7 @@ function showConfirmModal() {
     showModal('confirm-modal');
 }
 
+// Starts the report export flow using the current filters.
 function doExport() {
     hideModal('confirm-modal');
 
@@ -913,6 +928,7 @@ async function refreshStats() {
         document.getElementById('stat-up').textContent   = d.uptime + '%';
     } catch(_){}
 }
+// Refreshes the live report issues without reloading the page.
 function refreshReportsLive() {
     refreshStats();
     loadAlerts(currentAlertPage);
@@ -927,14 +943,21 @@ setInterval(refreshReportsLive, 15_000);
 // ============================================================
 // MODAL + PROFILE HELPERS
 // ============================================================
+// Shows modal in the interface.
 function showModal(id)  { document.getElementById(id).style.display='flex'; }
+// Hides modal in the interface.
+// Hides modal in the interface.
 function hideModal(id)  { document.getElementById(id).style.display='none'; }
+// Closes the on bg panel or modal.
 function closeOnBg(e,id){ if(e.target===document.getElementById(id)) hideModal(id); }
 
+// Toggles the profile dropdown menu in the page header.
 function toggleProfileDropdown(e) {
     e.stopPropagation();
     document.getElementById('profileDropdown').classList.toggle('active');
 }
+// Redirects the user out of the current session from this page.
+// Redirects the user out of the current session from this page.
 function logout() {
     fetch('auth_handler.php', {
         method: 'POST',
@@ -957,7 +980,9 @@ document.addEventListener('click', e => {
 });
 
 // Mini utils
+// Capitalizes the first character of a string for display.
 function cap(s){ return s ? s[0].toUpperCase()+s.slice(1) : ''; }
+// Escapes text before it is inserted into the page.
 function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
 </script>
 </body>

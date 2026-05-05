@@ -8,6 +8,7 @@ header('Content-Type: application/json');
 header('X-Content-Type-Options: nosniff');
 
 require_once __DIR__ . '/../admin/db.php';
+require_once __DIR__ . '/../config/security.php';
 
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
@@ -113,16 +114,20 @@ try {
 // FUNCTIONS
 // ============================================================================
 
+/**
+ * Builds the latest sensor snapshot for one greenhouse and tags each reading
+ * with a threshold-based status so UI issues are easier to trace.
+ */
 function getLatestReadings(string $gh_code): array {
     $db = getDB();
 
-    // Get greenhouse_id
+    // Resolve the greenhouse first because every follow-up query depends on its id.
     $stmt = $db->prepare("SELECT greenhouse_id, name, role, assigned_plant_id FROM greenhouses WHERE code = ?");
     $stmt->execute([$gh_code]);
     $gh = $stmt->fetch();
     if (!$gh) return ['error' => 'Greenhouse not found'];
 
-    // Latest reading per parameter from v_latest_readings view
+    // Pull the newest reading per parameter from the reporting view used by the dashboard.
     $stmt = $db->prepare("
         SELECT parameter, value, unit, quality, recorded_at, sensor_label, sensor_status
         FROM v_latest_readings
@@ -132,7 +137,7 @@ function getLatestReadings(string $gh_code): array {
     $stmt->execute([$gh['greenhouse_id']]);
     $rows = $stmt->fetchAll();
 
-    // Also get plant thresholds for status evaluation
+    // Index thresholds by parameter so status checks are easy to follow in the loop below.
     $thresholds = [];
     if ($gh['assigned_plant_id']) {
         $stmt = $db->prepare("
@@ -146,7 +151,7 @@ function getLatestReadings(string $gh_code): array {
         }
     }
 
-    // Get plant name
+    // Load the assigned plant name separately because the response shows it beside the readings.
     $plant_name = null;
     if ($gh['assigned_plant_id']) {
         $stmt = $db->prepare("SELECT name FROM plants WHERE plant_id = ?");
@@ -155,13 +160,14 @@ function getLatestReadings(string $gh_code): array {
         $plant_name = $p ? $p['name'] : null;
     }
 
-    // Evaluate status for each reading
+    // Convert the raw rows into the keyed payload expected by the frontend cards.
     $readings = [];
     foreach ($rows as $row) {
         $status = 'unknown';
         $range_label = '';
         $p = $row['parameter'];
 
+        // Compare each value against the plant profile so debugging can distinguish caution vs critical.
         if (isset($thresholds[$p])) {
             $t = $thresholds[$p];
             $v = (float)$row['value'];
@@ -199,12 +205,18 @@ function getLatestReadings(string $gh_code): array {
     ];
 }
 
+/**
+ * Returns the combined greenhouse status view used by the overview widgets.
+ */
 function getGreenhouseOverview(): array {
     $db = getDB();
     $stmt = $db->query("SELECT * FROM v_greenhouse_status ORDER BY code");
     return $stmt->fetchAll();
 }
 
+/**
+ * Lists manual-control actuators for one greenhouse and hides system-only devices.
+ */
 function getActuators(string $gh_code): array {
     $db = getDB();
     $stmt = $db->prepare("
@@ -219,6 +231,9 @@ function getActuators(string $gh_code): array {
     return $stmt->fetchAll();
 }
 
+/**
+ * Returns sensor hardware details so the UI can show health and firmware status.
+ */
 function getSensorStatuses(string $gh_code): array {
     $db = getDB();
     $stmt = $db->prepare("
@@ -233,12 +248,17 @@ function getSensorStatuses(string $gh_code): array {
     return $stmt->fetchAll();
 }
 
+/**
+ * Fetches unresolved alerts either globally or for a single greenhouse filter.
+ */
 function getOpenAlerts(string $gh_code): array {
     $db = getDB();
 
+    // An empty greenhouse code means the dashboard wants a short global alert feed.
     if ($gh_code === '') {
         $stmt = $db->query("SELECT * FROM v_open_alerts LIMIT 20");
     } else {
+        // Otherwise return only the latest open alerts for the requested greenhouse.
         $stmt = $db->prepare("
             SELECT a.alert_id, a.severity, a.category, a.message, a.sensor_value, a.created_at,
                    g.code AS greenhouse_code
@@ -254,6 +274,9 @@ function getOpenAlerts(string $gh_code): array {
     return $stmt->fetchAll();
 }
 
+/**
+ * Loads automation thresholds and the linked actuator details for one greenhouse.
+ */
 function getAutomationRules(string $gh_code): array {
     $db = getDB();
     $stmt = $db->prepare("
@@ -271,6 +294,9 @@ function getAutomationRules(string $gh_code): array {
     return $stmt->fetchAll();
 }
 
+/**
+ * Persists rule threshold edits coming from the automation settings form.
+ */
 function saveAutomationRules(array $input): array {
     $db = getDB();
 
@@ -285,6 +311,7 @@ function saveAutomationRules(array $input): array {
     $gh = $stmt->fetch();
     if (!$gh) return ['success' => false, 'message' => 'Greenhouse not found'];
 
+    // Only update existing rules; this endpoint does not create new automation rules.
     $rules = $input['rules'] ?? [];
     $updated = 0;
 
@@ -293,6 +320,7 @@ function saveAutomationRules(array $input): array {
         $trigger_value = (float)($rule['trigger_value'] ?? 0);
         $is_enabled    = isset($rule['is_enabled']) ? (int)(bool)$rule['is_enabled'] : 1;
 
+        // Scope the update by greenhouse_id as a safety check for mismatched rule ids.
         if ($rule_id > 0) {
             $stmt = $db->prepare("
                 UPDATE automation_rules
@@ -307,6 +335,9 @@ function saveAutomationRules(array $input): array {
     return ['success' => true, 'message' => "Saved $updated rule(s) for Greenhouse $gh_code"];
 }
 
+/**
+ * Flips the selected manual control group on or off and records every change in actuator_logs.
+ */
 function toggleActuatorState(array $input): array {
     $db = getDB();
 
@@ -325,15 +356,17 @@ function toggleActuatorState(array $input): array {
         return ['success' => false, 'message' => 'Invalid actuator target'];
     }
 
+    // Block manual overrides while an experiment is running to avoid conflicting automation.
     $activeExperiment = $db->query("SELECT 1 FROM experiments WHERE status = 'active' LIMIT 1")->fetchColumn();
     if ($activeExperiment) {
         return ['success' => false, 'message' => 'Manual controls are locked while an experiment is active'];
     }
 
+    // Load every actuator tied to the requested control so grouped toggles stay in sync.
     $placeholders = implode(',', array_fill(0, count($targetMap[$target]), '?'));
     $params = array_merge([$gh_code], $targetMap[$target]);
     $stmt = $db->prepare("
-        SELECT a.actuator_id, a.status
+        SELECT a.actuator_id, a.greenhouse_id, a.actuator_type, a.label, a.status
         FROM actuators a
         JOIN greenhouses g ON g.greenhouse_id = a.greenhouse_id
         WHERE g.code = ?
@@ -346,6 +379,7 @@ function toggleActuatorState(array $input): array {
         return ['success' => false, 'message' => 'No actuator found for this control'];
     }
 
+    // If any member of the group is already on, switch the whole group off; otherwise turn it on.
     $nextStatus = 'on';
     foreach ($rows as $row) {
         if (($row['status'] ?? 'off') === 'on') {
@@ -354,18 +388,71 @@ function toggleActuatorState(array $input): array {
         }
     }
 
-    $update = $db->prepare("UPDATE actuators SET status = ?, last_changed_at = NOW() WHERE actuator_id = ?");
-    foreach ($rows as $row) {
-        $update->execute([$nextStatus, $row['actuator_id']]);
+    $userId = currentSessionUserId();
+    $updated = 0;
+
+    // Update actuator states and log entries together so the audit trail matches the final state.
+    $db->beginTransaction();
+    try {
+        $update = $db->prepare("UPDATE actuators SET status = ?, last_changed_at = NOW() WHERE actuator_id = ?");
+        $insertLog = $db->prepare("
+            INSERT INTO actuator_logs (
+                actuator_id, greenhouse_id, experiment_id, old_status, new_status,
+                trigger_type, triggered_by, rule_id, reading_value, notes, logged_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        ");
+
+        foreach ($rows as $row) {
+            $oldStatus = normalizeActuatorStatus($row['status'] ?? null);
+            if ($oldStatus === $nextStatus) {
+                continue;
+            }
+
+            // Skip already-correct rows so repeated clicks do not create noisy duplicate logs.
+            $update->execute([$nextStatus, $row['actuator_id']]);
+            $insertLog->execute([
+                (int)$row['actuator_id'],
+                (int)$row['greenhouse_id'],
+                null,
+                $oldStatus,
+                $nextStatus,
+                'manual',
+                $userId,
+                null,
+                null,
+                buildActuatorLogNote($gh_code, $target, $row),
+            ]);
+            $updated++;
+        }
+
+        $db->commit();
+    } catch (Throwable $e) {
+        if ($db->inTransaction()) {
+            $db->rollBack();
+        }
+        throw $e;
+    }
+
+    // Mirror the manual toggle in the activity log when the optional helper is available.
+    if ($updated > 0 && function_exists('log_activity_event')) {
+        $detail = 'Greenhouse ' . $gh_code . ' ' . ucfirst($target) . ' set to ' . strtoupper($nextStatus);
+        if ($updated > 1) {
+            $detail .= ' (' . $updated . ' actuators updated)';
+        }
+        log_activity_event($userId, 'actuators', 'manual_toggle', $detail, 'greenhouse', (int)$rows[0]['greenhouse_id']);
     }
 
     return [
         'success' => true,
         'message' => 'Greenhouse ' . $gh_code . ' ' . ucfirst($target) . ' set to ' . strtoupper($nextStatus),
         'status' => $nextStatus,
+        'updated' => $updated,
     ];
 }
 
+/**
+ * Returns recent good-quality readings grouped by parameter for chart rendering.
+ */
 function getTrendData(string $gh_code, int $hours): array {
     $db = getDB();
     $stmt = $db->prepare("
@@ -381,7 +468,7 @@ function getTrendData(string $gh_code, int $hours): array {
     $stmt->execute([$gh_code, $hours]);
     $rows = $stmt->fetchAll();
 
-    // Group by parameter
+    // Keep the response grouped so the frontend can bind each series directly to one chart line.
     $grouped = [];
     foreach ($rows as $row) {
         $grouped[$row['parameter']][] = [
@@ -397,6 +484,9 @@ function getTrendData(string $gh_code, int $hours): array {
     ];
 }
 
+/**
+ * Returns the plant profile assigned to a greenhouse together with its threshold ranges.
+ */
 function getPlantThresholds(string $gh_code): array {
     $db = getDB();
     $stmt = $db->prepare("
@@ -411,8 +501,10 @@ function getPlantThresholds(string $gh_code): array {
     $stmt->execute([$gh_code]);
     $rows = $stmt->fetchAll();
 
+    // No rows usually means the greenhouse has no assigned plant profile yet.
     if (!$rows) return [];
 
+    // Build the plant metadata once, then attach threshold entries by parameter.
     $plant = [
         'plant_id'        => $rows[0]['plant_id'],
         'name'            => $rows[0]['name'],
@@ -434,6 +526,39 @@ function getPlantThresholds(string $gh_code): array {
     return $plant;
 }
 
+/**
+ * Returns the logged-in user id when the session is valid, otherwise null.
+ */
+function currentSessionUserId(): ?int {
+    $userId = $_SESSION['user_id'] ?? null;
+    return is_numeric($userId) && (int)$userId > 0 ? (int)$userId : null;
+}
+
+/**
+ * Normalizes actuator status values before they are written to the audit log.
+ */
+function normalizeActuatorStatus($status): ?string {
+    $allowed = ['on', 'off', 'auto', 'fault', 'maintenance'];
+    return is_string($status) && in_array($status, $allowed, true) ? $status : null;
+}
+
+/**
+ * Builds a short actuator log note that still fits inside the database column.
+ */
+function buildActuatorLogNote(string $gh_code, string $target, array $row): string {
+    $label = trim((string)($row['label'] ?? ''));
+    $type = trim((string)($row['actuator_type'] ?? 'actuator'));
+    $detail = $label !== '' ? $label : $type;
+    return substr(
+        'Manual toggle via greenhouse controls for GH-' . $gh_code . ' ' . $target . ' (' . $detail . ')',
+        0,
+        255
+    );
+}
+
+/**
+ * Sends a JSON error response and stops execution so no extra output corrupts the payload.
+ */
 function jsonError(string $msg, int $code = 400): void {
     http_response_code($code);
     echo json_encode(['error' => $msg]);

@@ -275,6 +275,7 @@ $hwLabels = implode(', ', array_map(fn($h) => e($h['label']), $hwList));
 // HELPERS
 // ============================================================================
 
+// Builds the badge output for status display.
 function status_badge(string $status): string {
     return match ($status) {
         'active'     => '<span class="badge badge-success">Active</span>',
@@ -285,6 +286,7 @@ function status_badge(string $status): string {
     };
 }
 
+// Returns the label text for duration.
 function duration_label(array $exp): string {
     $elapsed = max(0, (int)$exp['days_elapsed']);
     $total   = max(0, (int)$exp['total_days']);
@@ -890,6 +892,7 @@ $csrfToken = csrf_token();
 <script>
 'use strict';
 
+// Shows a toast message so action results are easier to notice while debugging.
 function showToast(msg, type = 'success') {
     const t = document.getElementById('toast');
     t.textContent = msg;
@@ -898,6 +901,7 @@ function showToast(msg, type = 'success') {
 }
 
 // Profile dropdown
+// Toggles the profile dropdown menu in the page header.
 function toggleProfileDropdown(e) {
     e.stopPropagation();
     document.getElementById('profileDropdown').classList.toggle('active');
@@ -909,9 +913,11 @@ document.addEventListener('click', function (e) {
 });
 
 // Create modal
+// Opens the create modal panel or modal.
 function openCreateModal() {
     document.getElementById('createModal').classList.add('active');
 }
+// Closes the create modal panel or modal.
 function closeCreateModal() {
     document.getElementById('createModal').classList.remove('active');
 }
@@ -920,12 +926,14 @@ document.getElementById('createModal').addEventListener('click', function(e) {
 });
 
 // End experiment modal
+// Opens the end modal panel or modal.
 function openEndModal(id, title) {
     document.getElementById('endExpId').value = id;
     document.getElementById('endModalMsg').textContent =
         'You are about to end "' + title + '". Both greenhouses will be released. This cannot be undone.';
     document.getElementById('endModal').classList.add('active');
 }
+// Closes the end modal panel or modal.
 function closeEndModal() {
     document.getElementById('endModal').classList.remove('active');
 }

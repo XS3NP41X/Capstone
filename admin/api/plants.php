@@ -198,6 +198,7 @@ try {
 // ============================================================================
 // HELPER: Insert threshold rows for all parameters
 // ============================================================================
+// Saves thresholds changes for the current request.
 function _saveThresholds(PDO $pdo, int $plantId, array $body): void {
     $params = [
         ['temperature', '°C',     'temp'],

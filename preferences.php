@@ -1,5 +1,6 @@
 <?php
 
+// Ensures the user preferences table exists before preferences are loaded or saved.
 function ecotwinEnsureUserPreferencesTable(PDO $db): void
 {
     static $ensured = false;
@@ -25,6 +26,7 @@ function ecotwinEnsureUserPreferencesTable(PDO $db): void
     $ensured = true;
 }
 
+// Ensures the user profile details table exists before profile data is loaded or saved.
 function ecotwinEnsureUserProfileDetailsTable(PDO $db): void
 {
     static $ensured = false;
@@ -56,11 +58,13 @@ function ecotwinEnsureUserProfileDetailsTable(PDO $db): void
     $ensured = true;
 }
 
+// Normalizes a preference value against the allowed options.
 function ecotwinPreferenceOption(string $value, array $allowed, string $fallback): string
 {
     return in_array($value, $allowed, true) ? $value : $fallback;
 }
 
+// Returns the default preference values for a new user.
 function ecotwinDefaultPreferences(): array
 {
     return [
@@ -77,11 +81,13 @@ function ecotwinDefaultPreferences(): array
     ];
 }
 
+// Returns the list of supported language options.
 function ecotwinAllowedLanguages(): array
 {
     return ['en-US', 'en-GB', 'fil-PH', 'es-ES', 'fr-FR', 'zh-TW', 'ja-JP'];
 }
 
+// Loads the saved preferences for the requested user.
 function ecotwinLoadUserPreferences(PDO $db, int $userId): array
 {
     $preferences = ecotwinDefaultPreferences();
@@ -115,6 +121,7 @@ function ecotwinLoadUserPreferences(PDO $db, int $userId): array
     return $preferences;
 }
 
+// Builds the body class string for the active preference theme.
 function ecotwinPreferenceBodyClass(array $preferences): string
 {
     return trim(sprintf(
@@ -126,6 +133,7 @@ function ecotwinPreferenceBodyClass(array $preferences): string
     ));
 }
 
+// Loads the extended profile details for the requested user.
 function ecotwinLoadUserProfileDetails(PDO $db, int $userId): array
 {
     $defaults = [
@@ -160,6 +168,7 @@ function ecotwinLoadUserProfileDetails(PDO $db, int $userId): array
     return $defaults;
 }
 
+// Returns the translation map used by the preference screens.
 function ecotwinTranslations(): array
 {
     return [
@@ -399,6 +408,7 @@ function ecotwinTranslations(): array
     ];
 }
 
+// Returns the translated string for the requested locale key.
 function ecotwinT(string $locale, string $key, array $replacements = []): string
 {
     $translations = ecotwinTranslations();

@@ -9,6 +9,7 @@ require_once __DIR__ . '/../../admin/db.php';
 require_once __DIR__ . '/../../config/security.php';
 require_auth();
 
+// Ensures data exports table exists before it is used.
 function ensureDataExportsTable(PDO $pdo): void
 {
     $pdo->exec(
@@ -33,6 +34,7 @@ function ensureDataExportsTable(PDO $pdo): void
     );
 }
 
+// Builds export query data or markup for the current flow.
 function buildExportQuery(string $ghFilter): string
 {
     return "
@@ -55,6 +57,7 @@ function buildExportQuery(string $ghFilter): string
     ";
 }
 
+// Builds export analytics data or markup for the current flow.
 function buildExportAnalytics(array $rows, string $from, string $to, string $ghCode): array
 {
     $parameterStats = [];
@@ -166,21 +169,25 @@ function buildExportAnalytics(array $rows, string $from, string $to, string $ghC
     ];
 }
 
+// Writes a section title row into the CSV export stream.
 function writeCsvSectionTitle($out, string $title): void
 {
     fputcsv($out, [$title]);
 }
 
+// Writes a spacer row into the CSV export stream.
 function writeCsvSpacer($out): void
 {
     fputcsv($out, []);
 }
 
+// Escapes export values before they are rendered in HTML output.
 function exportHtml(string $value): string
 {
     return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 }
 
+// Builds sparkline data or markup for the current flow.
 function buildSparkline(array $values): string
 {
     if (!$values) {

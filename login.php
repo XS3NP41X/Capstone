@@ -266,6 +266,7 @@ const step1   = document.getElementById('fpStep1');
 const step2   = document.getElementById('fpStep2');
 const fpError = document.getElementById('fpError');
 
+// Opens the modal dialog for the current page.
 function openModal() {
     fpError.style.display = 'none';
     step1.style.display   = 'block';
@@ -274,6 +275,7 @@ function openModal() {
     document.getElementById('fpPhone').focus();
 }
 
+// Closes the modal dialog for the current page.
 function closeModal() {
     modal.classList.remove('active');
     setTimeout(() => {

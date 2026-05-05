@@ -272,6 +272,7 @@ try {
 // HELPERS
 // ============================================================================
 
+// Returns the icon output for severity display.
 function severity_icon(string $sev): string {
     return match($sev) {
         'critical' => '<span class="event-icon critical">🔴</span>',
@@ -281,15 +282,18 @@ function severity_icon(string $sev): string {
     };
 }
 
+// Formats ts for display.
 function format_ts(string $ts): string {
     return date('M j, g:i A', strtotime($ts));
 }
 
+// Builds the badge output for greenhouse display.
 function gh_badge(string $code): string {
     $cls = strtolower($code) === 'a' ? 'badge-greenhouse-a' : 'badge-greenhouse-b';
     return '<span class="badge ' . $cls . '">Greenhouse ' . htmlspecialchars($code, ENT_QUOTES, 'UTF-8') . '</span>';
 }
 
+// Returns the icon output for hardware display.
 function hw_icon(string $type): string {
     return match($type) {
         'arduino'      => '📟',
@@ -302,6 +306,7 @@ function hw_icon(string $type): string {
     };
 }
 
+// Returns the indicator styling for status display.
 function status_dot_cls(string $status): string {
     return match($status) {
         'online'   => 'status-online',
@@ -663,6 +668,7 @@ $userInitials = strtoupper(implode('', array_map(
 
 <script>
 'use strict';
+// Shows a toast message so action results are easier to notice while debugging.
 function showToast(msg, type = 'success') {
     const t = document.getElementById('toast');
     t.textContent = msg;
@@ -670,6 +676,7 @@ function showToast(msg, type = 'success') {
     setTimeout(() => t.className = 'toast', 5000);
 }
 
+// Toggles the profile dropdown menu in the page header.
 function toggleProfileDropdown(event) {
     event.stopPropagation();
     document.getElementById('profileDropdown').classList.toggle('active');

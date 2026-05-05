@@ -50,6 +50,7 @@ try {
     jsonResponse(['success' => false, 'error' => $e->getMessage()], 500);
 }
 
+// Builds the live issue event list used by the reporting views.
 function buildLiveIssueEvents(PDO $pdo, string $ghFilter = 'all', string $severity = 'all'): array {
     if (!in_array($severity, ['all', 'critical', 'warning'], true)) {
         return [];

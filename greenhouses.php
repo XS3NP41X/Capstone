@@ -38,6 +38,7 @@ foreach ($greenhouses as $gh) {
 }
 
 // ── Load latest readings per greenhouse ───────────────────────────────────────
+// Loads readings data used by the current request.
 function loadReadings(PDO $db, int $gh_id): array {
     $stmt = $db->prepare("
         SELECT parameter, value, unit, quality, recorded_at, sensor_label, sensor_status
@@ -54,6 +55,7 @@ function loadReadings(PDO $db, int $gh_id): array {
 }
 
 // ── Load plant thresholds for a greenhouse ────────────────────────────────────
+// Loads thresholds data used by the current request.
 function loadThresholds(PDO $db, int $gh_id): array {
     $stmt = $db->prepare("
         SELECT pt.parameter, pt.val_min, pt.val_opt_low, pt.val_opt_high, pt.val_max, pt.unit
@@ -72,6 +74,7 @@ function loadThresholds(PDO $db, int $gh_id): array {
 }
 
 // ── Load automation rules ─────────────────────────────────────────────────────
+// Loads rules data used by the current request.
 function loadRules(PDO $db, int $gh_id): array {
     $stmt = $db->prepare("
         SELECT r.rule_id, r.parameter, r.trigger_when, r.trigger_value, r.action,
@@ -87,6 +90,7 @@ function loadRules(PDO $db, int $gh_id): array {
 }
 
 // ── Load sensors ──────────────────────────────────────────────────────────────
+// Loads sensors data used by the current request.
 function loadSensors(PDO $db, int $gh_id): array {
     $stmt = $db->prepare("
         SELECT sensor_id, sensor_type, label, parameter, status, last_seen_at
@@ -97,6 +101,7 @@ function loadSensors(PDO $db, int $gh_id): array {
 }
 
 // ── Load actuators ────────────────────────────────────────────────────────────
+// Loads actuators data used by the current request.
 function loadActuators(PDO $db, int $gh_id): array {
     $stmt = $db->prepare("
         SELECT actuator_id, actuator_type, label, status, last_changed_at
@@ -110,6 +115,7 @@ function loadActuators(PDO $db, int $gh_id): array {
 }
 
 // ── Load open alerts ──────────────────────────────────────────────────────────
+// Loads alerts data used by the current request.
 function loadAlerts(PDO $db, int $gh_id): array {
     $stmt = $db->prepare("
         SELECT alert_id, severity, category, message, sensor_value, created_at
@@ -123,12 +129,14 @@ function loadAlerts(PDO $db, int $gh_id): array {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+// Evaluates status against the current rules.
 function evalStatus(float $value, array $threshold): string {
     if ($value >= $threshold['val_opt_low'] && $value <= $threshold['val_opt_high']) return 'optimal';
     if ($value < $threshold['val_min'] || $value > $threshold['val_max']) return 'critical';
     return 'caution';
 }
 
+// Builds the badge output for from actual readings display.
 function badgeFromActualReadings(array $readings, array $thresholds): string {
     $hasCritical = false;
     $hasCaution = false;
@@ -145,6 +153,7 @@ function badgeFromActualReadings(array $readings, array $thresholds): string {
     return '<span class="badge badge-success">All Systems Optimal</span>';
 }
 
+// Builds the badge output for status display.
 function statusBadge(string $status): string {
     return match($status) {
         'optimal'  => '<div class="param-status status-optimal">✓ Optimal</div>',
@@ -154,14 +163,17 @@ function statusBadge(string $status): string {
     };
 }
 
+// Formats value for display.
 function fmtValue(array $readings, string $param, string $default = '—'): string {
     return isset($readings[$param]) ? number_format((float)$readings[$param]['value'], 1) : $default;
 }
 
+// Formats unit for display.
 function fmtUnit(array $readings, string $param): string {
     return $readings[$param]['unit'] ?? '';
 }
 
+// Pairs the low and high automation rules for the requested parameter.
 function rulePairs(array $rules, string $param): array {
     $out = ['above' => null, 'below' => null];
     foreach ($rules as $r) {
@@ -172,6 +184,7 @@ function rulePairs(array $rules, string $param): array {
     return $out;
 }
 
+// Builds the badge output for actuator display.
 function actuatorBadge(string $status): string {
     return match($status) {
         'on'    => '<span class="badge badge-success">ON</span>',
@@ -182,6 +195,7 @@ function actuatorBadge(string $status): string {
     };
 }
 
+// Returns the indicator styling for sensor status.
 function sensorStatusDot(string $status): string {
     $dot   = match($status) { 'online' => 'status-online', 'offline' => 'status-offline', default => 'status-warning' };
     $label = ucfirst(htmlspecialchars($status));
@@ -189,6 +203,7 @@ function sensorStatusDot(string $status): string {
 }
 
 // ── Actuator type → icon map ──────────────────────────────────────────────────
+// Returns the icon output for actuator display.
 function actuatorIcon(string $type): string {
     return match($type) {
         'nutrient_pump' => '💧',
@@ -199,6 +214,7 @@ function actuatorIcon(string $type): string {
     };
 }
 
+// Returns the label text for actuator.
 function actuatorLabel(string $type): string {
     return match($type) {
         'nutrient_pump'     => 'Pump',
@@ -211,6 +227,7 @@ function actuatorLabel(string $type): string {
 }
 
 // ── Sensor type → description ─────────────────────────────────────────────────
+// Returns the short sensor description shown in the greenhouse UI.
 function sensorDesc(string $type): string {
     return match($type) {
         'DHT22'       => 'Temperature & Humidity',
@@ -252,6 +269,7 @@ $current_user = [
 $userRole = strtolower($_SESSION['user_role'] ?? 'researcher');
 
 // ── Helper: render one greenhouse panel ───────────────────────────────────────
+// Renders greenhouse panel in the current interface.
 function renderGreenhousePanel(string $code, array $d, array $exp, bool $hasActiveExperiment): string {
     $info       = $d['info'];
     $readings   = $d['readings'];
@@ -749,6 +767,7 @@ const dbRules = {
 };
 
 // ── Tab switching (client-side, no reload) ─────────────────────────────────
+// Switches the active tab and refreshes the matching page state.
 function switchTab(e, code) {
     e.preventDefault();
     document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
@@ -765,10 +784,13 @@ function switchTab(e, code) {
 }
 
 // ── Profile dropdown ───────────────────────────────────────────────────────
+// Toggles the profile dropdown menu in the page header.
 function toggleProfileDropdown(event) {
     event.stopPropagation();
     document.getElementById('profileDropdown').classList.toggle('active');
 }
+// Redirects the user out of the current session from this page.
+// Redirects the user out of the current session from this page.
 function logout() { window.location.href = 'login.php'; }
 document.addEventListener('click', function(e) {
     if (!e.target.closest('.profile-icon') && !e.target.closest('.profile-dropdown')) {
@@ -777,6 +799,7 @@ document.addEventListener('click', function(e) {
 });
 
 // ── Toast ──────────────────────────────────────────────────────────────────
+// Shows a toast message so action results are easier to notice while debugging.
 function showToast(msg, type = 'success') {
     const t = document.getElementById('toast');
     t.textContent = msg;
@@ -1070,9 +1093,12 @@ async function loadTrend(ghCode, hours) {
 }
 
 // ── Utility ────────────────────────────────────────────────────────────────
+// Escapes text before it is inserted into the page.
 function escHtml(str) {
     return str?.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') ?? '';
 }
+// Capitalizes the first character of a string for display.
+// Capitalizes the first character of a string for display.
 function ucFirst(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
 
 // ── Auto-refresh readings every 60 seconds ─────────────────────────────────

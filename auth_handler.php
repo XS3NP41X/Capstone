@@ -28,6 +28,7 @@ switch ($action) {
 // ─────────────────────────────────────────────────────────────────────────────
 // LOGIN
 // ─────────────────────────────────────────────────────────────────────────────
+// Processes the login request and updates the user session.
 function handle_login(): void
 {
     // 1. CSRF check
@@ -144,6 +145,7 @@ function handle_login(): void
 // ─────────────────────────────────────────────────────────────────────────────
 // LOGOUT
 // ─────────────────────────────────────────────────────────────────────────────
+// Processes the logout request and clears the current session.
 function handle_logout(): void
 {
     if (!empty($_SESSION['user_id'])) {
@@ -166,6 +168,7 @@ function handle_logout(): void
 // ─────────────────────────────────────────────────────────────────────────────
 // FORGOT PASSWORD — check email and create token
 // ─────────────────────────────────────────────────────────────────────────────
+// Processes forgot-password email verification for the current request.
 function handle_forgot_email(): void
 {
     if (!csrf_verify($_POST['csrf_token'] ?? '')) {
