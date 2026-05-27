@@ -1,0 +1,1223 @@
+/* ============================================================================
+   ECOTWIN - GLOBAL STYLES
+   ============================================================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  --font-scale: 1;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  background-color: #f8f9fa;
+  color: #1a1a1a;
+  line-height: 1.5;
+}
+
+body.font-size-small {
+  --font-scale: 0.92;
+  zoom: 0.92;
+}
+
+body.font-size-medium {
+  --font-scale: 1;
+  zoom: 1;
+}
+
+body.font-size-large {
+  --font-scale: 1.1;
+  zoom: 1.1;
+}
+
+body.font-style-serif {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+body.font-style-monospace {
+  font-family: Consolas, "Courier New", monospace;
+}
+
+/* ============================================================================
+   NAVIGATION BAR
+   ============================================================================ */
+
+.navbar {
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navbar-container {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  height: 64px;
+  padding: 0 32px;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+  min-width: 0;
+  justify-self: start;
+}
+
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  display: block;
+  flex-shrink: 0;
+}
+
+.logo-text {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.navbar-menu {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  min-width: 0;
+  justify-self: center;
+}
+
+.nav-item {
+  padding: 12px 16px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #5a5a5a;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.2s;
+  display: inline-block;
+}
+
+.nav-item:hover {
+  background: #f3f4f6;
+  color: #1a1a1a;
+}
+
+.nav-item.active {
+  background: #e0f2f1;
+  color: #0d9488;
+  border-bottom: 3px solid #0d9488;
+}
+
+.navbar-user {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px;
+  border-radius: 8px;
+  position: relative;
+  min-width: 0;
+  justify-self: end;
+}
+
+.profile-icon {
+  width: 36px;
+  height: 36px;
+  background: #0d9488;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.profile-icon.has-avatar {
+  background: transparent;
+  overflow: hidden;
+  padding: 0;
+}
+
+.profile-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.profile-icon:hover {
+  background: #0f766e;
+}
+
+.profile-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 280px;
+  margin-top: 8px;
+  z-index: 1000;
+}
+
+.profile-dropdown.active {
+  display: block;
+}
+
+.profile-dropdown-header {
+  padding: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.profile-user-info {
+  margin-bottom: 4px;
+}
+
+.profile-user-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 2px;
+}
+
+.profile-user-email {
+  font-size: 12px;
+  color: #5a5a5a;
+}
+
+.profile-user-role {
+  font-size: 12px;
+  color: #0d9488;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.profile-dropdown-body {
+  padding: 12px 8px;
+}
+
+.profile-menu-item {
+  padding: 10px 16px;
+  font-size: 14px;
+  color: #1a1a1a;
+  text-decoration: none;
+  display: block;
+  border-radius: 6px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.profile-menu-item:hover {
+  background: #f3f4f6;
+  color: #0d9488;
+}
+
+.profile-dropdown-footer {
+  padding: 12px 8px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.logout-btn {
+  width: 100%;
+  padding: 10px 16px;
+  background: #fee2e2;
+  color: #991b1b;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.logout-btn:hover {
+  background: #fecaca;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  background: #0d9488;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.user-role {
+  font-size: 12px;
+  color: #5a5a5a;
+  background: #f3f4f6;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* ============================================================================
+   MAIN CONTENT AREA
+   ============================================================================ */
+
+.main-content {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px 32px;
+}
+
+.page-header {
+  margin-bottom: 24px;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+
+.page-subtitle {
+  font-size: 16px;
+  color: #5a5a5a;
+}
+
+/* ============================================================================
+   CARDS & PANELS
+   ============================================================================ */
+
+.card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* ============================================================================
+   BUTTONS
+   ============================================================================ */
+
+.btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+  border: none;
+}
+
+.btn-primary {
+  background: #0d9488;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #0f766e;
+}
+
+.btn-secondary {
+  background: white;
+  color: #1a1a1a;
+  border: 1px solid #d1d5db;
+}
+
+.btn-secondary:hover {
+  background: #f9fafb;
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+}
+
+.btn:hover:not(:disabled):not(.disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+}
+
+.btn:disabled,
+.btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ============================================================================
+   BADGES & STATUS INDICATORS
+   ============================================================================ */
+
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-success {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.badge-warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge-danger {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.badge-info {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.badge-neutral {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.status-online {
+  background: #10b981;
+}
+
+.status-offline {
+  background: #ef4444;
+}
+
+.status-warning {
+  background: #f59e0b;
+}
+
+/* ============================================================================
+   ALERTS & BANNERS
+   ============================================================================ */
+
+.alert {
+  padding: 16px 20px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.alert-warning {
+  background: #fef3c7;
+  border-left: 4px solid #f59e0b;
+  color: #92400e;
+}
+
+.alert-danger {
+  background: #fee2e2;
+  border-left: 4px solid #ef4444;
+  color: #991b1b;
+}
+
+.alert-info {
+  background: #dbeafe;
+  border-left: 4px solid #3b82f6;
+  color: #1e40af;
+}
+
+.alert-success {
+  background: #d1fae5;
+  border-left: 4px solid #10b981;
+  color: #065f46;
+}
+
+.alert-icon {
+  font-size: 24px;
+}
+
+.toast {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  background: #1a1a1a;
+  color: white;
+  padding: 14px 22px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 99999;
+  max-width: 360px;
+}
+
+.toast.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.toast.toast-error {
+  background: #991b1b;
+}
+
+.toast.toast-warning {
+  background: #92400e;
+}
+
+/* ============================================================================
+   TABLES
+   ============================================================================ */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  background: #f9fafb;
+  padding: 12px 20px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #5a5a5a;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 14px;
+}
+
+.table tr:hover {
+  background: #f9fafb;
+}
+
+/* ============================================================================
+   GRID LAYOUTS
+   ============================================================================ */
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+body.layout-list .greenhouse-status-grid,
+body.layout-list .stats-grid,
+body.layout-list .greenhouse-grid,
+body.layout-list .tab-layout,
+body.layout-list .greenhouse-assign-grid,
+body.layout-list .users-layout,
+body.layout-list .settings-grid,
+body.layout-list .profile-summary-grid,
+body.layout-list .preferences-grid,
+body.layout-list .notification-channel-grid,
+body.layout-list .threshold-cards-grid,
+body.layout-list .exp-greenhouse-assignment,
+body.layout-list .form-row-2,
+body.layout-list .grid-2,
+body.layout-list .grid-3,
+body.layout-list .grid-4 {
+  grid-template-columns: 1fr !important;
+}
+
+body.theme-dark {
+  background: #111827;
+  color: #f9fafb;
+}
+
+body.theme-dark .navbar,
+body.theme-dark .card,
+body.theme-dark .profile-dropdown,
+body.theme-dark .modal-box,
+body.theme-dark .alert,
+body.theme-dark .summary-card,
+body.theme-dark .stat-card,
+body.theme-dark .hardware-card,
+body.theme-dark .greenhouse-status-card,
+body.theme-dark .experiment-detail-card,
+body.theme-dark .gh-form-card {
+  background: #1f2937;
+  border-color: #374151;
+  color: #f9fafb;
+}
+
+body.theme-dark .nav-item,
+body.theme-dark .profile-menu-item,
+body.theme-dark .page-subtitle,
+body.theme-dark .profile-user-email,
+body.theme-dark .profile-user-role,
+body.theme-dark .text-muted,
+body.theme-dark .table th,
+body.theme-dark .table td {
+  color: #d1d5db;
+}
+
+body.theme-dark .nav-item:hover,
+body.theme-dark .profile-menu-item:hover,
+body.theme-dark .table tr:hover {
+  background: #111827;
+}
+
+body.theme-dark .nav-item.active {
+  background: #0f766e;
+  color: #ecfeff;
+  border-bottom-color: #5eead4;
+}
+
+body.theme-dark .page-title,
+body.theme-dark .card-title,
+body.theme-dark .profile-user-name,
+body.theme-dark .setting-value,
+body.theme-dark .threshold-value,
+body.theme-dark .hw-name,
+body.theme-dark .logo-text {
+  color: #f9fafb;
+}
+
+body.theme-dark .btn-secondary,
+body.theme-dark input,
+body.theme-dark select,
+body.theme-dark textarea,
+body.theme-dark .table th {
+  background: #111827;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+body.theme-dark .summary-card,
+body.theme-dark .greenhouse-status-card,
+body.theme-dark .hardware-section,
+body.theme-dark .hardware-card,
+body.theme-dark .experiment-detail-card,
+body.theme-dark .gh-assignment,
+body.theme-dark .stat-card,
+body.theme-dark .hardware-notice,
+body.theme-dark .parameter-tile,
+body.theme-dark .threshold-group,
+body.theme-dark .control-panel,
+body.theme-dark .chart-placeholder,
+body.theme-dark .performance-item,
+body.theme-dark .export-summary,
+body.theme-dark .export-details,
+body.theme-dark .plant-selector-panel,
+body.theme-dark .plant-detail-panel,
+body.theme-dark .th-card,
+body.theme-dark .gh-assign-card,
+body.theme-dark .gh-plant-preview,
+body.theme-dark .mini-thresh,
+body.theme-dark .simulator-panel,
+body.theme-dark .simulator-intro,
+body.theme-dark .sim-field,
+body.theme-dark .plant-list-item.selected,
+body.theme-dark .admin-tabs {
+  background: #111827 !important;
+  border-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+body.theme-dark .param-item,
+body.theme-dark .exp-meta,
+body.theme-dark .gh-assignment,
+body.theme-dark .stat-card,
+body.theme-dark .hardware-card,
+body.theme-dark .parameter-tile,
+body.theme-dark .performance-item,
+body.theme-dark .export-summary,
+body.theme-dark .export-details,
+body.theme-dark .th-card,
+body.theme-dark .mini-thresh,
+body.theme-dark .sim-field,
+body.theme-dark .plant-search,
+body.theme-dark .form-select-admin,
+body.theme-dark .form-input-modal,
+body.theme-dark .form-select-modal,
+body.theme-dark .form-textarea-modal,
+body.theme-dark .input-group input[type="number"],
+body.theme-dark .page-btn,
+body.theme-dark .tab-button:hover,
+body.theme-dark .admin-tab:hover,
+body.theme-dark .plant-list-item:hover {
+  background: #1f2937 !important;
+  border-color: #4b5563 !important;
+  color: #f9fafb !important;
+}
+
+body.theme-dark .page-title,
+body.theme-dark .card-title,
+body.theme-dark .summary-value,
+body.theme-dark .summary-label,
+body.theme-dark .summary-meta,
+body.theme-dark .summary-warning,
+body.theme-dark .gh-title,
+body.theme-dark .gh-subtitle,
+body.theme-dark .param-label,
+body.theme-dark .param-value,
+body.theme-dark .section-title,
+body.theme-dark .hw-name,
+body.theme-dark .hw-status,
+body.theme-dark .exp-title,
+body.theme-dark .meta-item,
+body.theme-dark .meta-item strong,
+body.theme-dark .gh-assignment-title,
+body.theme-dark .gh-assignment-role,
+body.theme-dark .gh-assignment-desc,
+body.theme-dark .stat-label,
+body.theme-dark .notice-title,
+body.theme-dark .notice-text,
+body.theme-dark .update-time,
+body.theme-dark .param-unit,
+body.theme-dark .param-range,
+body.theme-dark .threshold-header strong,
+body.theme-dark .input-group label,
+body.theme-dark .actuator-name,
+body.theme-dark .actuator-desc,
+body.theme-dark .legend-item,
+body.theme-dark .placeholder-text,
+body.theme-dark .placeholder-subtext,
+body.theme-dark .sensor-name,
+body.theme-dark .sensor-desc,
+body.theme-dark .sensor-status,
+body.theme-dark .pagination-info,
+body.theme-dark .sensor-name-perf,
+body.theme-dark .sensor-location,
+body.theme-dark .performance-stats,
+body.theme-dark .modal-title,
+body.theme-dark .modal-body p,
+body.theme-dark .modal-note,
+body.theme-dark .summary-label,
+body.theme-dark .summary-value,
+body.theme-dark .success-message,
+body.theme-dark .detail-filename,
+body.theme-dark .detail-meta,
+body.theme-dark .panel-title,
+body.theme-dark .plant-item-name,
+body.theme-dark .plant-item-sci,
+body.theme-dark .detail-plant-name,
+body.theme-dark .detail-plant-sci,
+body.theme-dark .th-card-header,
+body.theme-dark .th-label,
+body.theme-dark .th-val,
+body.theme-dark .gh-assign-title,
+body.theme-dark .gh-assign-role,
+body.theme-dark .form-label-admin,
+body.theme-dark .preview-name,
+body.theme-dark .preview-sci,
+body.theme-dark .mini-thresh-label,
+body.theme-dark .mini-thresh-val,
+body.theme-dark .simulator-panel-title,
+body.theme-dark .simulator-panel-subtitle,
+body.theme-dark .simulator-hint,
+body.theme-dark .admin-tab,
+body.theme-dark .plant-list-item,
+body.theme-dark .cat-btn,
+body.theme-dark .table td,
+body.theme-dark .table th {
+  color: #f9fafb !important;
+}
+
+body.theme-dark .profile-user-email,
+body.theme-dark .profile-user-role,
+body.theme-dark .page-subtitle,
+body.theme-dark .text-muted,
+body.theme-dark .gh-subtitle,
+body.theme-dark .param-label,
+body.theme-dark .summary-label,
+body.theme-dark .summary-meta,
+body.theme-dark .summary-warning,
+body.theme-dark .update-time,
+body.theme-dark .sensor-location,
+body.theme-dark .detail-meta,
+body.theme-dark .detail-plant-sci,
+body.theme-dark .preview-sci,
+body.theme-dark .mini-thresh-label,
+body.theme-dark .plant-item-sci {
+  color: #d1d5db !important;
+}
+
+body.theme-high-contrast {
+  background: #000000;
+  color: #ffffff;
+}
+
+body.theme-high-contrast .navbar,
+body.theme-high-contrast .card,
+body.theme-high-contrast .profile-dropdown,
+body.theme-high-contrast .modal-box,
+body.theme-high-contrast .alert,
+body.theme-high-contrast .summary-card,
+body.theme-high-contrast .stat-card,
+body.theme-high-contrast .hardware-card,
+body.theme-high-contrast .greenhouse-status-card,
+body.theme-high-contrast .experiment-detail-card,
+body.theme-high-contrast .gh-form-card {
+  background: #000000;
+  border: 2px solid #ffffff;
+  color: #ffffff;
+  box-shadow: none;
+}
+
+body.theme-high-contrast .nav-item,
+body.theme-high-contrast .profile-menu-item,
+body.theme-high-contrast .page-subtitle,
+body.theme-high-contrast .profile-user-email,
+body.theme-high-contrast .profile-user-role,
+body.theme-high-contrast .text-muted,
+body.theme-high-contrast .table th,
+body.theme-high-contrast .table td,
+body.theme-high-contrast .logo-text {
+  color: #ffffff;
+}
+
+body.theme-high-contrast .nav-item.active,
+body.theme-high-contrast .btn-primary,
+body.theme-high-contrast .badge-info,
+body.theme-high-contrast .badge-success,
+body.theme-high-contrast .badge-warning,
+body.theme-high-contrast .badge-danger,
+body.theme-high-contrast .badge-neutral {
+  background: #ffff00;
+  color: #000000;
+  border-color: #ffff00;
+}
+
+body.theme-high-contrast .btn-secondary,
+body.theme-high-contrast input,
+body.theme-high-contrast select,
+body.theme-high-contrast textarea,
+body.theme-high-contrast .table th,
+body.theme-high-contrast .table td {
+  background: #000000;
+  border: 2px solid #ffffff;
+  color: #ffffff;
+}
+
+body.theme-high-contrast .summary-card,
+body.theme-high-contrast .greenhouse-status-card,
+body.theme-high-contrast .hardware-section,
+body.theme-high-contrast .hardware-card,
+body.theme-high-contrast .experiment-detail-card,
+body.theme-high-contrast .gh-assignment,
+body.theme-high-contrast .stat-card,
+body.theme-high-contrast .hardware-notice,
+body.theme-high-contrast .parameter-tile,
+body.theme-high-contrast .threshold-group,
+body.theme-high-contrast .control-panel,
+body.theme-high-contrast .chart-placeholder,
+body.theme-high-contrast .performance-item,
+body.theme-high-contrast .export-summary,
+body.theme-high-contrast .export-details,
+body.theme-high-contrast .plant-selector-panel,
+body.theme-high-contrast .plant-detail-panel,
+body.theme-high-contrast .th-card,
+body.theme-high-contrast .gh-assign-card,
+body.theme-high-contrast .gh-plant-preview,
+body.theme-high-contrast .mini-thresh,
+body.theme-high-contrast .simulator-panel,
+body.theme-high-contrast .simulator-intro,
+body.theme-high-contrast .sim-field,
+body.theme-high-contrast .admin-tabs {
+  background: #000000 !important;
+  border: 2px solid #ffffff !important;
+  color: #ffffff !important;
+}
+
+body.theme-high-contrast .page-title,
+body.theme-high-contrast .card-title,
+body.theme-high-contrast .summary-value,
+body.theme-high-contrast .summary-label,
+body.theme-high-contrast .gh-title,
+body.theme-high-contrast .gh-subtitle,
+body.theme-high-contrast .param-label,
+body.theme-high-contrast .param-value,
+body.theme-high-contrast .section-title,
+body.theme-high-contrast .hw-name,
+body.theme-high-contrast .hw-status,
+body.theme-high-contrast .exp-title,
+body.theme-high-contrast .meta-item,
+body.theme-high-contrast .meta-item strong,
+body.theme-high-contrast .gh-assignment-title,
+body.theme-high-contrast .gh-assignment-role,
+body.theme-high-contrast .gh-assignment-desc,
+body.theme-high-contrast .stat-label,
+body.theme-high-contrast .notice-title,
+body.theme-high-contrast .notice-text,
+body.theme-high-contrast .update-time,
+body.theme-high-contrast .param-unit,
+body.theme-high-contrast .param-range,
+body.theme-high-contrast .threshold-header strong,
+body.theme-high-contrast .input-group label,
+body.theme-high-contrast .actuator-name,
+body.theme-high-contrast .actuator-desc,
+body.theme-high-contrast .legend-item,
+body.theme-high-contrast .placeholder-text,
+body.theme-high-contrast .placeholder-subtext,
+body.theme-high-contrast .sensor-name,
+body.theme-high-contrast .sensor-desc,
+body.theme-high-contrast .sensor-status,
+body.theme-high-contrast .pagination-info,
+body.theme-high-contrast .sensor-name-perf,
+body.theme-high-contrast .sensor-location,
+body.theme-high-contrast .performance-stats,
+body.theme-high-contrast .modal-title,
+body.theme-high-contrast .modal-body p,
+body.theme-high-contrast .modal-note,
+body.theme-high-contrast .success-message,
+body.theme-high-contrast .detail-filename,
+body.theme-high-contrast .detail-meta,
+body.theme-high-contrast .panel-title,
+body.theme-high-contrast .plant-item-name,
+body.theme-high-contrast .plant-item-sci,
+body.theme-high-contrast .detail-plant-name,
+body.theme-high-contrast .detail-plant-sci,
+body.theme-high-contrast .th-card-header,
+body.theme-high-contrast .th-label,
+body.theme-high-contrast .th-val,
+body.theme-high-contrast .gh-assign-title,
+body.theme-high-contrast .gh-assign-role,
+body.theme-high-contrast .form-label-admin,
+body.theme-high-contrast .preview-name,
+body.theme-high-contrast .preview-sci,
+body.theme-high-contrast .mini-thresh-label,
+body.theme-high-contrast .mini-thresh-val,
+body.theme-high-contrast .simulator-panel-title,
+body.theme-high-contrast .simulator-panel-subtitle,
+body.theme-high-contrast .simulator-hint,
+body.theme-high-contrast .admin-tab,
+body.theme-high-contrast .plant-list-item,
+body.theme-high-contrast .cat-btn {
+  color: #ffffff !important;
+}
+
+body.font-size-small .nav-item,
+body.font-size-medium .nav-item,
+body.font-size-large .nav-item,
+body.font-size-small .profile-menu-item,
+body.font-size-medium .profile-menu-item,
+body.font-size-large .profile-menu-item,
+body.font-size-small .page-title,
+body.font-size-medium .page-title,
+body.font-size-large .page-title,
+body.font-size-small .page-subtitle,
+body.font-size-medium .page-subtitle,
+body.font-size-large .page-subtitle,
+body.font-size-small .card-title,
+body.font-size-medium .card-title,
+body.font-size-large .card-title,
+body.font-size-small .btn,
+body.font-size-medium .btn,
+body.font-size-large .btn,
+body.font-size-small label,
+body.font-size-medium label,
+body.font-size-large label,
+body.font-size-small input,
+body.font-size-medium input,
+body.font-size-large input,
+body.font-size-small select,
+body.font-size-medium select,
+body.font-size-large select,
+body.font-size-small textarea,
+body.font-size-medium textarea,
+body.font-size-large textarea,
+body.font-size-small .table th,
+body.font-size-medium .table th,
+body.font-size-large .table th,
+body.font-size-small .table td,
+body.font-size-medium .table td,
+body.font-size-large .table td,
+body.font-size-small .summary-label,
+body.font-size-medium .summary-label,
+body.font-size-large .summary-label,
+body.font-size-small .summary-value,
+body.font-size-medium .summary-value,
+body.font-size-large .summary-value,
+body.font-size-small .stat-label,
+body.font-size-medium .stat-label,
+body.font-size-large .stat-label,
+body.font-size-small .stat-value,
+body.font-size-medium .stat-value,
+body.font-size-large .stat-value,
+body.font-size-small .param-label,
+body.font-size-medium .param-label,
+body.font-size-large .param-label,
+body.font-size-small .param-value,
+body.font-size-medium .param-value,
+body.font-size-large .param-value,
+body.font-size-small .profile-user-name,
+body.font-size-medium .profile-user-name,
+body.font-size-large .profile-user-name,
+body.font-size-small .profile-user-email,
+body.font-size-medium .profile-user-email,
+body.font-size-large .profile-user-email,
+body.font-size-small .profile-user-role,
+body.font-size-medium .profile-user-role,
+body.font-size-large .profile-user-role {
+  font-size: calc(1em * var(--font-scale)) !important;
+}
+
+/* ============================================================================
+   UTILITY CLASSES
+   ============================================================================ */
+
+.text-center {
+  text-align: center;
+}
+
+.text-muted {
+  color: #5a5a5a;
+}
+
+.text-small {
+  font-size: 12px;
+}
+
+.mb-0 {
+  margin-bottom: 0;
+}
+.mb-1 {
+  margin-bottom: 8px;
+}
+.mb-2 {
+  margin-bottom: 16px;
+}
+.mb-3 {
+  margin-bottom: 24px;
+}
+.mb-4 {
+  margin-bottom: 32px;
+}
+
+.mt-0 {
+  margin-top: 0;
+}
+.mt-1 {
+  margin-top: 8px;
+}
+.mt-2 {
+  margin-top: 16px;
+}
+.mt-3 {
+  margin-top: 24px;
+}
+.mt-4 {
+  margin-top: 32px;
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+
+@media (max-width: 1280px) {
+  .navbar-container {
+    display: flex;
+    height: auto;
+    min-height: 64px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  .navbar-menu {
+    gap: 4px;
+    justify-content: center;
+    order: 3;
+    flex-basis: 100%;
+    width: 100%;
+  }
+
+  .nav-item {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .navbar-user {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 1024px) {
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar-container {
+    padding: 0 16px;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .main-content {
+    padding: 16px;
+  }
+
+  .navbar-logo {
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+
+  .logo-text {
+    font-size: 18px;
+  }
+
+  .navbar-menu {
+    display: flex;
+    width: 100%;
+    gap: 6px;
+    order: 4;
+    padding-top: 4px;
+    position: static;
+    transform: none;
+    max-width: none;
+  }
+
+  .nav-item {
+    flex: 1 1 calc(50% - 6px);
+    text-align: center;
+    padding: 10px 8px;
+  }
+
+  .navbar-user {
+    padding: 0;
+  }
+
+  .profile-dropdown {
+    right: 0;
+    width: min(280px, calc(100vw - 32px));
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+
+  .page-subtitle {
+    font-size: 15px;
+  }
+
+  .grid-2,
+  .grid-3,
+  .grid-4 {
+    grid-template-columns: 1fr;
+  }
+
+  .user-name {
+    display: none;
+  }
+
+  .toast {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    max-width: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar-container {
+    padding: 12px;
+  }
+
+  .navbar-logo {
+    min-width: 0;
+  }
+
+  .logo-text {
+    font-size: 17px;
+  }
+
+  .navbar-user {
+    justify-content: center;
+  }
+
+  .nav-item {
+    flex-basis: 100%;
+  }
+
+  .profile-dropdown {
+    left: 0;
+    right: auto;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .page-title {
+    font-size: 22px;
+  }
+}
