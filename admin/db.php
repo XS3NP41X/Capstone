@@ -3,10 +3,6 @@
 // ECOTWIN DATABASE CONNECTION
 // ============================================================================
 
-if (is_file(__DIR__ . '/../config/cloud_database.php')) {
-    require_once __DIR__ . '/../config/cloud_database.php';
-}
-
 defined('DB_HOST') || define('DB_HOST', 'localhost');
 defined('DB_NAME') || define('DB_NAME', 'ecotwin_db');
 defined('DB_USER') || define('DB_USER', 'root');        // Change to your MySQL username

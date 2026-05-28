@@ -5,6 +5,7 @@
 
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/security.php';
+require_once __DIR__ . '/config/query_helpers.php';
 require_once __DIR__ . '/preferences.php';
 
 // ── Auth guard ────────────────────────────────────────────────────────────────
@@ -122,19 +123,11 @@ $ghReadings = [];
 foreach ($greenhouses as $gh) {
     $ghId = $gh['greenhouse_id'];
     try {
-        $stmt = $pdo->prepare(
-            "SELECT parameter, value, unit, quality, recorded_at, sensor_label, sensor_status
-               FROM v_latest_readings
-              WHERE greenhouse_id = ?
-                AND parameter IN ('temperature','humidity','light')
-              ORDER BY parameter"
+        $ghReadings[$ghId] = ecotwinFetchLatestReadingsMap(
+            $pdo,
+            (int)$ghId,
+            ['temperature', 'humidity', 'light']
         );
-        $stmt->execute([$ghId]);
-        $readings = [];
-        foreach ($stmt->fetchAll() as $row) {
-            $readings[$row['parameter']] = $row;
-        }
-        $ghReadings[$ghId] = $readings;
     } catch (PDOException $e) {
         error_log("Dashboard ghReadings gh{$ghId}: " . $e->getMessage());
         $ghReadings[$ghId] = [];

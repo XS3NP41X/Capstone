@@ -3,10 +3,6 @@
 // ECOTWIN — DATABASE CONFIGURATION
 // ============================================================================
 
-if (is_file(__DIR__ . '/cloud_database.php')) {
-    require_once __DIR__ . '/cloud_database.php';
-}
-
 defined('DB_HOST') || define('DB_HOST',    'localhost');
 defined('DB_PORT') || define('DB_PORT',    3306);
 defined('DB_NAME') || define('DB_NAME',    'ecotwin_db');

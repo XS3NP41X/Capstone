@@ -8,6 +8,7 @@
 require_once __DIR__ . '/auth_guard.php';
 require_once __DIR__ . '/admin/db.php';
 require_once __DIR__ . '/preferences.php';
+require_once __DIR__ . '/config/query_helpers.php';
 
 // ── Auth guard ────────────────────────────────────────────────────────────────
 // ── Load greenhouse overview from DB ─────────────────────────────────────────
@@ -18,12 +19,10 @@ $preferenceBodyClass = ecotwinPreferenceBodyClass($preferences);
 $t = fn(string $key, array $replacements = []) => ecotwinT($preferences['language'], $key, $replacements);
 
 // Both greenhouses with plant and alert summary
-$stmt = $db->query("SELECT * FROM v_greenhouse_status ORDER BY code");
-$greenhouses = $stmt->fetchAll();
+$greenhouses = ecotwinFetchGreenhouseOverview($db);
 
 // Active experiment info
-$stmt = $db->query("SELECT * FROM v_active_experiment LIMIT 1");
-$active_exp = $stmt->fetch();
+$active_exp = ecotwinFetchActiveExperiment($db);
 
 // Build a keyed map: 'A' => [...], 'B' => [...]
 $gh_map = [];
@@ -34,13 +33,7 @@ foreach ($greenhouses as $gh) {
 // ── Load latest readings per greenhouse ───────────────────────────────────────
 // Loads readings data used by the current request.
 function loadReadings(PDO $db, int $gh_id): array {
-    $stmt = $db->prepare("
-        SELECT parameter, value, unit, quality, recorded_at, sensor_label, sensor_status
-        FROM v_latest_readings
-        WHERE greenhouse_id = ?
-    ");
-    $stmt->execute([$gh_id]);
-    $rows = $stmt->fetchAll();
+    $rows = ecotwinFetchLatestReadings($db, $gh_id);
     $out  = [];
     foreach ($rows as $r) {
         $out[$r['parameter']] = $r;
@@ -569,8 +562,8 @@ function renderGreenhousePanel(string $code, array $d, array $exp, bool $hasActi
                         <canvas id="chart-{$lc_code}" width="100%" height="280"></canvas>
                         <div class="chart-placeholder" id="chart-placeholder-{$lc_code}">
                             <div class="placeholder-icon">📊</div>
-                            <div class="placeholder-text">Loading trend data…</div>
-                            <div class="placeholder-subtext">Fetching from ecotwin_db</div>
+                            <div class="placeholder-text">Loading trend data...</div>
+                            <div class="placeholder-subtext">Fetching from the local database</div>
                         </div>
                     </div>
                 </div>
@@ -1019,7 +1012,7 @@ async function refreshReadings(ghCode) {
     } catch (e) { /* silent fail on auto-refresh */ }
 }
 
-// ── Trend chart (uses Chart.js CDN) ───────────────────────────────────────
+// Trend summary for LAN mode. No online chart library is required.
 const _charts = {};
 async function loadTrend(ghCode, hours) {
     // Update active time button
@@ -1030,11 +1023,6 @@ async function loadTrend(ghCode, hours) {
     const placeholder = document.getElementById(`chart-placeholder-${lc}`);
     const canvas      = document.getElementById(`chart-${lc}`);
 
-    if (!window.Chart) {
-        if (placeholder) placeholder.querySelector('.placeholder-text').textContent = 'Chart.js not loaded';
-        return;
-    }
-
     try {
         const res  = await fetch(`greenhouses/greenhouses_api.php?action=get_trend&gh=${ghCode}&hours=${hours}`);
         const data = await res.json();
@@ -1042,43 +1030,23 @@ async function loadTrend(ghCode, hours) {
         if (!data.series || Object.keys(data.series).length === 0) {
             if (placeholder) {
                 placeholder.querySelector('.placeholder-text').textContent = 'No trend data available';
-                placeholder.querySelector('.placeholder-subtext').textContent = 'Add sensor readings to ecotwin_db to see charts';
+                placeholder.querySelector('.placeholder-subtext').textContent = 'Add sensor readings to the local database to see trends';
             }
             return;
         }
 
-        // Hide placeholder, show canvas
-        if (placeholder) placeholder.style.display = 'none';
-        if (canvas)      canvas.style.display       = 'block';
-
-        // Destroy previous chart instance
-        if (_charts[ghCode]) _charts[ghCode].destroy();
-
-        const colours = { temperature:'#EF4444', humidity:'#3B82F6', ec:'#8B5CF6', ph:'#10B981', light:'#F59E0B', water_level:'#06B6D4' };
-        const datasets = Object.entries(data.series).map(([param, points]) => ({
-            label:           param.replace('_', ' '),
-            data:            points.map(p => ({ x: p.ts, y: p.value })),
-            borderColor:     colours[param] ?? '#9CA3AF',
-            backgroundColor: (colours[param] ?? '#9CA3AF') + '22',
-            borderWidth:     2,
-            pointRadius:     2,
-            tension:         0.4,
-            fill:            false,
-        }));
-
-        _charts[ghCode] = new window.Chart(canvas, {
-            type: 'line',
-            data: { datasets },
-            options: {
-                responsive: true,
-                interaction: { mode: 'index', intersect: false },
-                scales: {
-                    x: { type: 'category', ticks: { maxTicksLimit: 8, font:{ size:11 } } },
-                    y: { ticks: { font:{ size:11 } } },
-                },
-                plugins: { legend: { labels: { font:{ size:12 } } } },
-            }
-        });
+        if (canvas) canvas.style.display = 'none';
+        if (placeholder) {
+            const rows = Object.entries(data.series).map(([param, points]) => {
+                const last = points[points.length - 1];
+                const first = points[0];
+                const delta = last && first ? (Number(last.value) - Number(first.value)).toFixed(2) : '0.00';
+                return `${escHtml(param.replace('_', ' '))}: ${escHtml(String(last?.value ?? 'n/a'))} (${delta >= 0 ? '+' : ''}${delta})`;
+            });
+            placeholder.style.display = 'grid';
+            placeholder.querySelector('.placeholder-text').textContent = `${hours}H local trend summary`;
+            placeholder.querySelector('.placeholder-subtext').innerHTML = rows.map(row => `<div>${row}</div>`).join('');
+        }
     } catch (err) {
         if (placeholder) placeholder.querySelector('.placeholder-text').textContent = 'Failed to load trend data';
     }
@@ -1112,9 +1080,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 </script>
-
-<!-- Chart.js for trend visualization -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
 
 </body>
 </html>

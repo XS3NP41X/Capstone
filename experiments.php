@@ -130,11 +130,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($expId > 0) {
                 try {
+                    $stmt = $pdo->prepare(
+                        "SELECT principal_user_id, status
+                         FROM experiments
+                         WHERE experiment_id = ?
+                         LIMIT 1"
+                    );
+                    $stmt->execute([$expId]);
+                    $experimentToEnd = $stmt->fetch();
+
+                    if (!$experimentToEnd || $experimentToEnd['status'] !== 'active') {
+                        $flashMsg = 'No active experiment was found to end.';
+                        $flashType = 'error';
+                        $expId = 0;
+                    }
+
+                    if ($expId > 0 && $userRole !== 'admin' && (int)$experimentToEnd['principal_user_id'] !== $userId) {
+                        $flashMsg = 'Only the researcher who started this experiment can end it.';
+                        $flashType = 'error';
+                        $expId = 0;
+                    }
+
+                    if ($expId > 0) {
                     $pdo->prepare(
                         "UPDATE experiments SET status = ?, ended_at = NOW() WHERE experiment_id = ? AND status = 'active'"
                     )->execute([$newSt, $expId]);
                     $flashMsg  = '✅ Experiment marked as ' . $newSt . '.';
                     $flashType = 'success';
+                    }
                 } catch (PDOException $ex) {
                     error_log('End experiment error: ' . $ex->getMessage());
                     $flashMsg  = 'Failed to end the experiment. Please try again.';
@@ -164,6 +187,7 @@ if (empty($flashMsg) && isset($_GET['msg'])) {
 try {
     $activeExp = $pdo->query(
         "SELECT e.experiment_id, e.exp_code, e.title, e.objective,
+                e.principal_user_id,
                 e.started_at, e.expected_end_at,
                 u.full_name  AS researcher_name,
                 TIMESTAMPDIFF(HOUR, e.started_at, NOW())  AS hours_running,
@@ -186,17 +210,13 @@ if ($activeExp) {
     $expId = $activeExp['experiment_id'];
 
     try {
-        $expStats['data_points'] = (int)$pdo->prepare(
-            "SELECT COUNT(*) FROM sensor_readings WHERE experiment_id = ?"
-        )->execute([$expId]) ? $pdo->query(
-            "SELECT COUNT(*) FROM sensor_readings WHERE experiment_id = {$expId}"
-        )->fetchColumn() : 0;
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM sensor_readings WHERE experiment_id = ?");
+        $stmt->execute([$expId]);
+        $expStats['data_points'] = (int)$stmt->fetchColumn();
 
-        $expStats['critical_alerts'] = (int)$pdo->prepare(
-            "SELECT COUNT(*) FROM alerts WHERE experiment_id = ? AND severity = 'critical'"
-        )->execute([$expId]) ? $pdo->query(
-            "SELECT COUNT(*) FROM alerts WHERE experiment_id = {$expId} AND severity = 'critical'"
-        )->fetchColumn() : 0;
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM alerts WHERE experiment_id = ? AND severity = 'critical'");
+        $stmt->execute([$expId]);
+        $expStats['critical_alerts'] = (int)$stmt->fetchColumn();
 
         // Uptime: (total sensors online) / total sensors × 100
         $sensTotal  = (int)$pdo->query("SELECT COUNT(*) FROM sensors")->fetchColumn();
@@ -307,7 +327,9 @@ $userInitials = strtoupper(implode('', array_map(
     array_slice(explode(' ', trim($_SESSION['user_name'] ?? 'U')), 0, 2)
 )));
 
-$canManage = in_array($userRole, ['admin', 'researcher']);
+$canCreateExperiment = in_array($userRole, ['admin', 'researcher'], true);
+$canEndActiveExperiment = $activeExp
+    && ($userRole === 'admin' || (int)($activeExp['principal_user_id'] ?? 0) === $userId);
 $csrfToken = csrf_token();
 ?>
 <!DOCTYPE html>
@@ -534,13 +556,13 @@ $csrfToken = csrf_token();
             </div>
             <div class="exp-actions">
                 <button class="btn btn-secondary" disabled>View Data</button>
-                <?php if ($canManage): ?>
+                <?php if ($canEndActiveExperiment): ?>
                 <button class="btn btn-danger"
                         onclick="openEndModal(<?= $activeExp['experiment_id'] ?>, '<?= e(addslashes($activeExp['title'])) ?>')">
                     End Experiment
                 </button>
                 <?php else: ?>
-                <button class="btn btn-danger" disabled>End Experiment</button>
+                <button class="btn btn-danger" disabled title="Only the researcher who started this experiment can end it.">End Experiment</button>
                 <?php endif; ?>
             </div>
         </div>
@@ -665,7 +687,7 @@ $csrfToken = csrf_token();
         </div>
         <button class="btn btn-primary btn-lg" disabled>Create New Experiment</button>
 
-        <?php elseif (!$canManage): ?>
+        <?php elseif (!$canCreateExperiment): ?>
         <!-- Not enough privileges -->
         <div class="lock-notice">
             <div class="lock-icon">🔒</div>

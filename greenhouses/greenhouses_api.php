@@ -9,6 +9,7 @@ header('X-Content-Type-Options: nosniff');
 
 require_once __DIR__ . '/../admin/db.php';
 require_once __DIR__ . '/../config/security.php';
+require_once __DIR__ . '/../config/query_helpers.php';
 
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
@@ -128,14 +129,7 @@ function getLatestReadings(string $gh_code): array {
     if (!$gh) return ['error' => 'Greenhouse not found'];
 
     // Pull the newest reading per parameter from the reporting view used by the dashboard.
-    $stmt = $db->prepare("
-        SELECT parameter, value, unit, quality, recorded_at, sensor_label, sensor_status
-        FROM v_latest_readings
-        WHERE greenhouse_id = ?
-        ORDER BY parameter
-    ");
-    $stmt->execute([$gh['greenhouse_id']]);
-    $rows = $stmt->fetchAll();
+    $rows = ecotwinFetchLatestReadings($db, (int)$gh['greenhouse_id']);
 
     // Index thresholds by parameter so status checks are easy to follow in the loop below.
     $thresholds = [];
@@ -210,8 +204,7 @@ function getLatestReadings(string $gh_code): array {
  */
 function getGreenhouseOverview(): array {
     $db = getDB();
-    $stmt = $db->query("SELECT * FROM v_greenhouse_status ORDER BY code");
-    return $stmt->fetchAll();
+    return ecotwinFetchGreenhouseOverview($db);
 }
 
 /**
@@ -256,7 +249,7 @@ function getOpenAlerts(string $gh_code): array {
 
     // An empty greenhouse code means the dashboard wants a short global alert feed.
     if ($gh_code === '') {
-        $stmt = $db->query("SELECT * FROM v_open_alerts LIMIT 20");
+        return ecotwinFetchOpenAlerts($db, '', 20);
     } else {
         // Otherwise return only the latest open alerts for the requested greenhouse.
         $stmt = $db->prepare("

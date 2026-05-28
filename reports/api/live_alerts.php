@@ -6,6 +6,7 @@
 
 require_once __DIR__ . '/../../admin/db.php';
 require_once __DIR__ . '/../../config/security.php';
+require_once __DIR__ . '/../../config/query_helpers.php';
 
 header('Content-Type: application/json; charset=utf-8');
 require_auth();
@@ -85,14 +86,7 @@ function buildLiveIssueEvents(PDO $pdo, string $ghFilter = 'all', string $severi
             $thresholds[$row['parameter']] = $row;
         }
 
-        $readingStmt = $pdo->prepare("
-            SELECT parameter, value, recorded_at
-            FROM v_latest_readings
-            WHERE greenhouse_id = ?
-        ");
-        $readingStmt->execute([(int)$gh['greenhouse_id']]);
-
-        foreach ($readingStmt->fetchAll() as $reading) {
+        foreach (ecotwinFetchLatestReadings($pdo, (int)$gh['greenhouse_id']) as $reading) {
             $parameter = $reading['parameter'];
             if (!isset($thresholds[$parameter])) {
                 continue;

@@ -5,6 +5,7 @@
 // ============================================================================
 
 require_once __DIR__ . '/../../admin/db.php';
+require_once __DIR__ . '/../../config/query_helpers.php';
 
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
@@ -70,14 +71,8 @@ try {
             continue;
         }
 
-        $readingStmt = $pdo->prepare("
-            SELECT parameter, value
-            FROM v_latest_readings
-            WHERE greenhouse_id = ?
-        ");
-        $readingStmt->execute([(int)$gh['greenhouse_id']]);
         $readings = [];
-        foreach ($readingStmt->fetchAll() as $row) {
+        foreach (ecotwinFetchLatestReadings($pdo, (int)$gh['greenhouse_id']) as $row) {
             $readings[$row['parameter']] = (float)$row['value'];
         }
 
