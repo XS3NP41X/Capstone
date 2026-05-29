@@ -8,7 +8,7 @@
     align-items: center;
     justify-content: center;
     padding: 16px;
-    background: #F8F9FA;
+    background: #F0FFF0;
 }
 
 .login-card {
@@ -75,7 +75,7 @@
 .form-input:focus,
 .form-select:focus {
     outline: none;
-    border-color: #0D9488;
+    border-color: #2E8B57;
     box-shadow: 0 0 0 3px rgba(13,148,136,0.1);
 }
 
@@ -110,12 +110,12 @@
 }
 
 .password-toggle:hover {
-    color: #0D9488;
+    color: #2E8B57;
 }
 
 .password-toggle:focus-visible {
     outline: none;
-    color: #0D9488;
+    color: #2E8B57;
 }
 
 .password-toggle .bi {
@@ -143,12 +143,12 @@
     width: 16px;
     height: 16px;
     cursor: pointer;
-    accent-color: #0D9488;
+    accent-color: #2E8B57;
 }
 
 .forgot-link {
     font-size: 14px;
-    color: #0D9488;
+    color: #2E8B57;
     text-decoration: none;
     font-weight: 500;
 }
@@ -175,7 +175,7 @@
 .btn-login {
     width: 100%;
     height: 48px;
-    background: #0D9488;
+    background: #2E8B57;
     color: white;
     border: none;
     border-radius: 8px;
@@ -187,7 +187,7 @@
 }
 
 .btn-login:hover {
-    background: #0F766E;
+    background: #2E8B57;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(13,148,136,0.3);
 }
@@ -308,7 +308,7 @@
 .btn-fp-primary {
     flex: 1;
     height: 44px;
-    background: #0D9488;
+    background: #2E8B57;
     color: white;
     border: none;
     border-radius: 8px;
@@ -320,7 +320,7 @@
 }
 
 .btn-fp-primary:hover {
-    background: #0F766E;
+    background: #2E8B57;
 }
 
 .btn-fp-secondary {
@@ -338,14 +338,14 @@
 }
 
 .btn-fp-secondary:hover {
-    background: #F9FAFB;
+    background: #F8FFF8;
 }
 
 /* Email highlight box in Step 2 */
 .fp-email-highlight {
-    background: #E0F2F1;
+    background: #F0FFF0;
     border: 1px solid #99F6E4;
-    color: #0F766E;
+    color: #2E8B57;
     font-size: 15px;
     font-weight: 600;
     padding: 10px 16px;
@@ -362,7 +362,7 @@
 }
 
 .fp-resend-link {
-    color: #0D9488;
+    color: #2E8B57;
     font-weight: 500;
     text-decoration: none;
 }
@@ -387,4 +387,96 @@
     .fp-actions {
         flex-direction: column;
     }
+}
+
+/* ============================================================================
+   ECOTWIN BRAND REFRESH
+   ============================================================================ */
+
+.login-container {
+    background:
+        radial-gradient(circle at 18% 18%, rgba(60, 179, 113, 0.18), transparent 24rem),
+        linear-gradient(135deg, #F0FFF0 0%, #FFFFFF 58%, rgba(191, 188, 143, 0.2) 100%);
+}
+
+.login-card,
+.fp-card {
+    background: #FFFFFF;
+    border: 1px solid #dce9df;
+    border-radius: 8px;
+    box-shadow: 0 18px 44px rgba(46, 139, 87, 0.14);
+}
+
+.login-logo {
+    width: 76px;
+    height: 76px;
+    padding: 8px;
+    border-radius: 8px;
+    background: #F0FFF0;
+    border: 1px solid rgba(191, 188, 143, 0.45);
+}
+
+.login-title,
+.form-label,
+.fp-title {
+    color: #173326;
+}
+
+.login-subtitle,
+.login-footer,
+.fp-subtitle,
+.fp-note {
+    color: #5f6f66;
+}
+
+.form-input,
+.form-select {
+    border-color: #dce9df;
+    background: #FFFFFF;
+    color: #173326;
+}
+
+.form-input:focus,
+.form-select:focus {
+    border-color: #3CB371;
+    box-shadow: 0 0 0 3px rgba(60, 179, 113, 0.14);
+}
+
+.checkbox-label input {
+    accent-color: #2E8B57;
+}
+
+.forgot-link,
+.fp-resend-link,
+.password-toggle:hover,
+.password-toggle:focus-visible {
+    color: #2E8B57;
+}
+
+.btn-login,
+.btn-fp-primary {
+    background: #2E8B57;
+    color: #FFFFFF;
+}
+
+.btn-login:hover,
+.btn-fp-primary:hover {
+    background: #3CB371;
+    box-shadow: 0 10px 24px rgba(46, 139, 87, 0.22);
+}
+
+.btn-fp-secondary {
+    background: #FFFFFF;
+    color: #173326;
+    border-color: #dce9df;
+}
+
+.btn-fp-secondary:hover {
+    background: #F0FFF0;
+}
+
+.fp-email-highlight {
+    background: #F0FFF0;
+    border-color: rgba(60, 179, 113, 0.35);
+    color: #2E8B57;
 }

@@ -973,5 +973,6 @@ function cap(s){ return s ? s[0].toUpperCase()+s.slice(1) : ''; }
 // Escapes text before it is inserted into the page.
 function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
 </script>
+  <script src="js.navbar.js?v=<?= urlencode((string) @filemtime(__DIR__ . '/js.navbar.js')) ?>"></script>
 </body>
 </html>

@@ -432,7 +432,7 @@ function adminReportStatusClass(string $status): string {
   <style>
     .admin-report-grid { display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap:16px; margin-bottom:24px; }
     .admin-report-card { background:#fff; border:1px solid #dbe7e4; border-radius:16px; padding:18px 20px; box-shadow:0 10px 24px rgba(15,23,42,.05); }
-    .admin-report-label { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#0f766e; margin-bottom:8px; }
+    .admin-report-label { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#2E8B57; margin-bottom:8px; }
     .admin-report-value { font-size:30px; font-weight:800; color:#0f172a; }
     .admin-report-meta { font-size:13px; color:#64748b; margin-top:6px; }
     .admin-report-stack { display:grid; gap:24px; }
@@ -903,5 +903,6 @@ function logout() {
     });
 }
 </script>
+  <script src="js.navbar.js?v=<?= urlencode((string) @filemtime(__DIR__ . '/js.navbar.js')) ?>"></script>
 </body>
 </html>

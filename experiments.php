@@ -398,14 +398,14 @@ $csrfToken = csrf_token();
             border-radius: 8px;
             font-size: 14px;
             font-family: inherit;
-            background: #F9FAFB;
+            background: #F8FFF8;
             outline: none;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
         .form-field input:focus,
         .form-field select:focus,
         .form-field textarea:focus {
-            border-color: #0D9488;
+            border-color: #2E8B57;
             background: white;
             box-shadow: 0 0 0 3px rgba(13,148,136,0.1);
         }
@@ -413,15 +413,15 @@ $csrfToken = csrf_token();
         .section-divider {
             font-size: 12px;
             font-weight: 700;
-            color: #0D9488;
+            color: #2E8B57;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            border-bottom: 2px solid #E0F2F1;
+            border-bottom: 2px solid #F0FFF0;
             padding-bottom: 6px;
             margin: 20px 0 14px;
         }
         .gh-form-card {
-            background: #F9FAFB;
+            background: #F8FFF8;
             border: 1px solid #E5E7EB;
             border-radius: 10px;
             padding: 14px 16px;
@@ -438,7 +438,7 @@ $csrfToken = csrf_token();
         /* flash */
         .flash { display:flex; align-items:center; gap:12px; padding:14px 20px;
                  border-radius:8px; margin-bottom:20px; font-size:14px; font-weight:500; }
-        .flash-success { background:#D1FAE5; border-left:4px solid #10B981; color:#065F46; }
+        .flash-success { background:#F0FFF0; border-left:4px solid #3CB371; color:#2E8B57; }
         .flash-error   { background:#FEE2E2; border-left:4px solid #EF4444; color:#991B1B; }
         /* end experiment modal */
         .confirm-overlay {
@@ -610,7 +610,7 @@ $csrfToken = csrf_token();
                             <div class="gh-assignment-desc"><?= e($gh['light_setup']) ?></div>
                             <?php endif; ?>
                             <?php if ($gh['plant_name']): ?>
-                            <div class="gh-assignment-desc" style="color:#0D9488;">
+                            <div class="gh-assignment-desc" style="color:#2E8B57;">
                                 <?= e($gh['plant_emoji'] ?? '🌱') ?> <?= e($gh['plant_name']) ?>
                             </div>
                             <?php endif; ?>
@@ -820,7 +820,7 @@ $csrfToken = csrf_token();
                     <!-- Greenhouse A -->
                     <div class="gh-form-card">
                         <div class="gh-form-label">
-                            <span style="background:#E0F2F1;border-radius:6px;padding:4px 8px;">🏠 A</span>
+                            <span style="background:#F0FFF0;border-radius:6px;padding:4px 8px;">🏠 A</span>
                             Greenhouse A — Treatment
                         </div>
                         <div class="form-field" style="margin-bottom:10px;">
@@ -845,7 +845,7 @@ $csrfToken = csrf_token();
                     <!-- Greenhouse B -->
                     <div class="gh-form-card">
                         <div class="gh-form-label">
-                            <span style="background:#D1FAE5;border-radius:6px;padding:4px 8px;">🏠 B</span>
+                            <span style="background:#F0FFF0;border-radius:6px;padding:4px 8px;">🏠 B</span>
                             Greenhouse B — Control
                         </div>
                         <div class="form-field" style="margin-bottom:10px;">
@@ -991,5 +991,6 @@ document.getElementById('logoutForm').addEventListener('submit', function(e) {
     .catch(() => showToast('Logout failed.', 'error'));
 });
 </script>
+  <script src="js.navbar.js?v=<?= urlencode((string) @filemtime(__DIR__ . '/js.navbar.js')) ?>"></script>
 </body>
 </html>

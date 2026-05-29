@@ -322,7 +322,7 @@ foreach ($sensors as $s) {
       padding: 3px 10px;
       font-size: 12px;
       cursor: pointer;
-      color: #0d9488;
+      color: #2E8B57;
       transition: all 0.2s;
     }
 
@@ -344,7 +344,7 @@ foreach ($sensors as $s) {
     .inline-edit-form input,
     .inline-edit-form select {
       padding: 6px 10px;
-      border: 1.5px solid #0d9488;
+      border: 1.5px solid #2E8B57;
       border-radius: 6px;
       font-size: 14px;
       outline: none;
@@ -357,7 +357,7 @@ foreach ($sensors as $s) {
 
     .btn-save-config {
       padding: 5px 14px;
-      background: #0d9488;
+      background: #2E8B57;
       color: white;
       border: none;
       border-radius: 6px;
@@ -381,7 +381,7 @@ foreach ($sensors as $s) {
       border: none;
       font-size: 13px;
       cursor: pointer;
-      color: #0d9488;
+      color: #2E8B57;
       padding: 4px 8px;
       border-radius: 4px;
       transition: all 0.2s;
@@ -455,7 +455,7 @@ foreach ($sensors as $s) {
 
     .modal-form-group input:focus,
     .modal-form-group select:focus {
-      border-color: #0d9488;
+      border-color: #2E8B57;
     }
 
     .modal-actions {
@@ -1264,7 +1264,7 @@ foreach ($sensors as $s) {
                       <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
                         <input type="checkbox" <?= $checked ?>
                           onchange="saveConfigToggle('<?= $key ?>', this)"
-                          style="width:16px;height:16px;accent-color:#0d9488;" />
+                          style="width:16px;height:16px;accent-color:#2E8B57;" />
                         <span id="toggle-lbl-<?= $key ?>" style="font-size:12px;color:#5a5a5a;">
                           <?= $val === 'true' ? 'Enabled' : 'Disabled' ?>
                         </span>
@@ -1902,6 +1902,7 @@ foreach ($sensors as $s) {
     applyPreferencesPreview();
   </script>
 
+  <script src="js.navbar.js?v=<?= urlencode((string) @filemtime(__DIR__ . '/js.navbar.js')) ?>"></script>
 </body>
 
 </html>

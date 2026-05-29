@@ -6,11 +6,26 @@
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/security.php';
 
+function ecotwin_login_destination(PDO $pdo, string $role): string
+{
+    if ($role === 'admin') {
+        return 'admin.php';
+    }
+
+    try {
+        $activeCount = (int)$pdo->query("SELECT COUNT(*) FROM experiments WHERE status = 'active'")->fetchColumn();
+        return $activeCount > 0 ? 'dashboard.php' : 'experiments.php';
+    } catch (PDOException $e) {
+        error_log('Login destination error: ' . $e->getMessage());
+        return 'experiments.php';
+    }
+}
+
 restore_remembered_login();
 
 // Already logged in → go straight to the right page
 if (!empty($_SESSION['user_id'])) {
-    $dest = ($_SESSION['user_role'] === 'admin') ? 'admin.php' : 'dashboard.php';
+    $dest = ecotwin_login_destination(db(), $_SESSION['user_role'] ?? 'researcher');
     header("Location: {$dest}");
     exit;
 }
@@ -104,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     clear_failed_attempts($email);
 
                     // 9. Redirect — admin goes to admin.php, everyone else to dashboard.php
-                    $dest = ($user['role'] === 'admin') ? 'admin.php' : 'dashboard.php';
+                    $dest = ecotwin_login_destination(db(), $user['role']);
                     header("Location: {$dest}");
                     exit;
                 }

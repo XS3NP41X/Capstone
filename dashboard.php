@@ -33,6 +33,7 @@ $t = fn(string $key, array $replacements = []) => ecotwinT($preferences['languag
 try {
     $activeExp = $pdo->query(
         "SELECT e.experiment_id, e.exp_code, e.title, e.started_at, e.expected_end_at,
+                e.principal_user_id,
                 u.full_name AS researcher_name,
                 TIMESTAMPDIFF(DAY, e.started_at, NOW())  AS days_running,
                 TIMESTAMPDIFF(HOUR, e.started_at, NOW()) AS hours_running
@@ -44,6 +45,16 @@ try {
 } catch (PDOException $e) {
     error_log('Dashboard activeExp: ' . $e->getMessage());
     $activeExp = null;
+}
+
+$currentUserId = (int)($_SESSION['user_id'] ?? 0);
+$dashboardOwnsActiveExperiment = $activeExp
+    && (int)($activeExp['principal_user_id'] ?? 0) === $currentUserId;
+$dashboardLockedByOtherExperiment = $activeExp && !$dashboardOwnsActiveExperiment;
+
+if (!$activeExp && ($_SESSION['user_role'] ?? 'researcher') !== 'admin') {
+    header('Location: experiments.php');
+    exit;
 }
 
 // ── 2. Sensor counts ──────────────────────────────────────────────────────────
@@ -126,7 +137,7 @@ foreach ($greenhouses as $gh) {
         $ghReadings[$ghId] = ecotwinFetchLatestReadingsMap(
             $pdo,
             (int)$ghId,
-            ['temperature', 'humidity', 'light']
+            ['temperature', 'humidity', 'light', 'ph', 'ec', 'water_level', 'water_temp']
         );
     } catch (PDOException $e) {
         error_log("Dashboard ghReadings gh{$ghId}: " . $e->getMessage());
@@ -261,6 +272,28 @@ try {
     $topGreenhouse = null;
 }
 
+if ($dashboardLockedByOtherExperiment) {
+    $sensorsTotal = 0;
+    $sensorsOnline = 0;
+    $sensorsOffline = 0;
+    $lastSyncLabel = 'No values';
+    $systemStatus = 'Restricted';
+    $systemClass = '';
+    $criticalAlerts = [];
+    $recentAlerts = [];
+    $hardware = [];
+    $analyticsRow = [
+        'readings_count' => 0,
+        'avg_temperature' => null,
+        'avg_humidity' => null,
+        'avg_light' => null,
+    ];
+    $topGreenhouse = null;
+}
+
+$greenhousePhotoWebPath = 'assets/Greenhouse_Model.png';
+$greenhousePhotoExists = is_file(__DIR__ . '/' . $greenhousePhotoWebPath);
+
 // ============================================================================
 // HELPERS
 // ============================================================================
@@ -388,14 +421,32 @@ $userInitials = strtoupper(implode('', array_map(
 <!-- ================================================================ -->
 <main class="main-content">
 
+    <section class="dashboard-guide card mb-3">
+        <div>
+            <span class="guide-kicker">Dashboard guide</span>
+            <h1 class="guide-title">Live view of both greenhouse chambers</h1>
+            <p class="guide-copy">
+                This page summarizes the current experiment, sensor health, latest readings, and alerts.
+                Hover the sensor points on each greenhouse model to see what every reading means and when it was last recorded.
+            </p>
+        </div>
+        <div class="guide-legend" aria-label="Status legend">
+            <span><i class="legend-dot optimal"></i> Optimal</span>
+            <span><i class="legend-dot caution"></i> Caution</span>
+            <span><i class="legend-dot critical"></i> Critical</span>
+        </div>
+    </section>
+
     <!-- ── Summary Cards ─────────────────────────────────────────────── -->
     <section class="summary-grid mb-3">
 
         <div class="summary-card">
-            <div class="summary-icon" style="color:#0d9488">🧪</div>
-            <div class="summary-value"><?= $activeExp ? 1 : 0 ?></div>
+            <div class="summary-icon" style="color:#2E8B57">🧪</div>
+            <div class="summary-value"><?= $dashboardLockedByOtherExperiment ? 'No values' : ($activeExp ? 1 : 0) ?></div>
             <div class="summary-label"><?= htmlspecialchars($t('dashboard.summary.active_experiment')) ?></div>
-            <?php if ($activeExp): ?>
+            <?php if ($dashboardLockedByOtherExperiment): ?>
+                <div class="summary-meta">There is a ongoing experiment</div>
+            <?php elseif ($activeExp): ?>
                 <div class="summary-meta"><?= e($activeExp['exp_code']) ?> Running</div>
             <?php else: ?>
                 <div class="summary-meta" style="color:#9CA3AF;">None running</div>
@@ -404,9 +455,11 @@ $userInitials = strtoupper(implode('', array_map(
 
         <div class="summary-card">
             <div class="summary-icon" style="color:#10b981">📡</div>
-            <div class="summary-value"><?= $sensorsOnline ?>/<?= $sensorsTotal ?></div>
+            <div class="summary-value"><?= $dashboardLockedByOtherExperiment ? 'No values' : ($sensorsOnline . '/' . $sensorsTotal) ?></div>
             <div class="summary-label"><?= htmlspecialchars($t('dashboard.summary.sensors_online')) ?></div>
-            <?php if ($sensorsOffline > 0): ?>
+            <?php if ($dashboardLockedByOtherExperiment): ?>
+                <div class="summary-meta">Readings are hidden for this user</div>
+            <?php elseif ($sensorsOffline > 0): ?>
                 <div class="summary-warning">⚠️ <?= $sensorsOffline ?> offline</div>
             <?php else: ?>
                 <div class="summary-meta">All sensors online</div>
@@ -417,23 +470,42 @@ $userInitials = strtoupper(implode('', array_map(
             <div class="summary-icon" style="color:#3b82f6">🔄</div>
             <div class="summary-value"><?= e($lastSyncLabel) ?></div>
             <div class="summary-label"><?= htmlspecialchars($t('dashboard.summary.last_data_sync')) ?></div>
+            <?php if (!$dashboardLockedByOtherExperiment): ?>
             <div class="pulse-indicator">
                 <span class="pulse-dot"></span>
                 <span class="pulse-text">Live</span>
             </div>
+            <?php else: ?>
+                <div class="summary-meta">Waiting for your own experiment</div>
+            <?php endif; ?>
         </div>
 
         <div class="summary-card">
             <div class="summary-icon" style="color:#10b981">🖥️</div>
             <div class="summary-value <?= e($systemClass) ?>"><?= e($systemStatus) ?></div>
             <div class="summary-label"><?= htmlspecialchars($t('dashboard.summary.system_status')) ?></div>
-            <?php if ($hwOffline > 0): ?>
+            <?php if ($dashboardLockedByOtherExperiment): ?>
+                <div class="summary-meta">Restricted while another experiment is running</div>
+            <?php elseif ($hwOffline > 0): ?>
                 <div class="summary-warning">⚠️ <?= $hwOffline ?> component(s) down</div>
             <?php endif; ?>
         </div>
 
     </section>
 
+    <?php if ($dashboardLockedByOtherExperiment): ?>
+    <section class="card dashboard-locked-state mb-3">
+        <div class="locked-state-icon">🔒</div>
+        <div>
+            <h2>There is a ongoing experiment</h2>
+            <p>
+                Another researcher started the current greenhouse experiment, so the live dashboard readings are hidden.
+                Start your own experiment when the active one is completed, or ask the principal researcher for the report.
+            </p>
+            <a href="experiments.php" class="btn btn-primary">Go to Experiments</a>
+        </div>
+    </section>
+    <?php else: ?>
     <section class="card analytics-overview-card mb-3">
         <div class="card-header">
             <div>
@@ -465,6 +537,7 @@ $userInitials = strtoupper(implode('', array_map(
             <?= $topGreenhouse ? 'Greenhouse ' . e($topGreenhouse['code']) . ' • ' . number_format((int)$topGreenhouse['reading_count']) . ' readings' : htmlspecialchars($t('dashboard.analytics.no_data')) ?>
         </div>
     </section>
+    <?php endif; ?>
 
     <!-- ── Active Experiment Banner ──────────────────────────────────── -->
     <?php if ($activeExp): ?>
@@ -504,6 +577,14 @@ $userInitials = strtoupper(implode('', array_map(
     </div>
     <?php endforeach; ?>
 
+    <?php if (!$dashboardLockedByOtherExperiment): ?>
+    <div class="section-explainer mb-2">
+        <div>
+            <h2>Greenhouse sensor map</h2>
+            <p>Each chamber below is shown as a greenhouse model. The colored points are live sensor locations: green is normal, gold needs watching, red needs action, and gray means no latest reading.</p>
+        </div>
+    </div>
+
     <!-- ── Greenhouse Quick Status ───────────────────────────────────── -->
     <section class="greenhouse-status-grid mb-3">
         <?php foreach ($greenhouses as $gh):
@@ -535,6 +616,178 @@ $userInitials = strtoupper(implode('', array_map(
                 <?php else: ?>
                     <span class="badge badge-success">Optimal</span>
                 <?php endif; ?>
+            </div>
+
+            <?php
+                $sensorPoints = [
+                    ['key' => 'temperature', 'label' => 'Temperature', 'mark' => 'T', 'unit' => 'C', 'precision' => 1, 'x' => 24, 'y' => 28, 'anchorX' => 44, 'anchorY' => 42, 'line' => 'line-temp', 'note' => 'Air temperature near the plant canopy. High values can trigger cooling or ventilation.'],
+                    ['key' => 'humidity', 'label' => 'Humidity', 'mark' => 'H', 'unit' => '%', 'precision' => 0, 'x' => 76, 'y' => 28, 'anchorX' => 56, 'anchorY' => 42, 'line' => 'line-humidity', 'note' => 'Air moisture level. Low humidity can stress seedlings; high humidity can invite disease.'],
+                    ['key' => 'light', 'label' => 'Light', 'mark' => 'L', 'unit' => 'lux', 'precision' => 0, 'x' => 50, 'y' => 12, 'anchorX' => 50, 'anchorY' => 24, 'line' => 'line-light', 'note' => 'Light intensity reaching the chamber. This helps compare treatment and control conditions.'],
+                    ['key' => 'ph', 'label' => 'pH', 'mark' => 'pH', 'unit' => 'pH', 'precision' => 1, 'x' => 28, 'y' => 76, 'anchorX' => 44, 'anchorY' => 66, 'line' => 'line-ph', 'note' => 'Nutrient solution acidity. Keep this inside the crop range for good nutrient uptake.'],
+                    ['key' => 'ec', 'label' => 'EC', 'mark' => 'EC', 'unit' => 'mS/cm', 'precision' => 2, 'x' => 72, 'y' => 76, 'anchorX' => 56, 'anchorY' => 66, 'line' => 'line-ec', 'note' => 'Electrical conductivity of nutrients. It shows how concentrated the solution is.'],
+                    ['key' => 'water_level', 'label' => 'Water level', 'mark' => 'W', 'unit' => '%', 'precision' => 0, 'x' => 50, 'y' => 90, 'anchorX' => 50, 'anchorY' => 84, 'line' => 'line-water', 'note' => 'Reservoir level. Low readings mean the system may need refilling soon.'],
+                ];
+            ?>
+            <div class="greenhouse-visual-wrap">
+                <div class="greenhouse-model" aria-label="Interactive greenhouse sensor map">
+                    <?php if (!$greenhousePhotoExists): ?>
+                    <div class="greenhouse-photo-missing">
+                        <strong>Greenhouse photo missing</strong>
+                        <span>Add the reference photo as assets/Greenhouse_Model.png to show it here.</span>
+                    </div>
+                    <?php endif; ?>
+                    <svg class="sensor-link-layer" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                        <?php foreach ($sensorPoints as $point):
+                            $linkStatus = $readings[$point['key']] ?? null;
+                            $threshold = $ghThresholds[$ghId][$point['key']] ?? null;
+                            $strokeClass = 'optimal';
+                            if (!$linkStatus) {
+                                $strokeClass = 'missing';
+                            } elseif ($threshold) {
+                                $value = (float)$linkStatus['value'];
+                                if ($value < (float)$threshold['val_min'] || $value > (float)$threshold['val_max']) {
+                                    $strokeClass = 'critical';
+                                } elseif ($value < (float)$threshold['val_opt_low'] || $value > (float)$threshold['val_opt_high']) {
+                                    $strokeClass = 'caution';
+                                }
+                            }
+                        ?>
+                        <line class="sensor-link <?= e($strokeClass) ?>"
+                              x1="<?= (int)$point['anchorX'] ?>"
+                              y1="<?= (int)$point['anchorY'] ?>"
+                              x2="<?= (int)$point['x'] ?>"
+                              y2="<?= (int)$point['y'] ?>" />
+                    <?php endforeach; ?>
+                    </svg>
+                    <?php if ($greenhousePhotoExists): ?>
+                    <img class="greenhouse-photo"
+                         src="<?= e($greenhousePhotoWebPath) ?>"
+                         alt="Small greenhouse with vertical hydroponics system" />
+                    <?php else: ?>
+                    <svg class="greenhouse-art" viewBox="0 0 420 340" aria-hidden="true">
+                        <defs>
+                            <linearGradient id="ghGlass" x1="0" x2="1" y1="0" y2="1">
+                                <stop offset="0%" stop-color="#dff1d8" stop-opacity="0.95" />
+                                <stop offset="58%" stop-color="#c6e1bb" stop-opacity="0.72" />
+                                <stop offset="100%" stop-color="#8ab18a" stop-opacity="0.55" />
+                            </linearGradient>
+                            <linearGradient id="ghFrame" x1="0" x2="0" y1="0" y2="1">
+                                <stop offset="0%" stop-color="#a7d0a6" />
+                                <stop offset="100%" stop-color="#5c8f5c" />
+                            </linearGradient>
+                            <linearGradient id="ghFloor" x1="0" x2="1" y1="0" y2="1">
+                                <stop offset="0%" stop-color="#d8d1c5" />
+                                <stop offset="100%" stop-color="#b9b09f" />
+                            </linearGradient>
+                            <pattern id="ghMesh" width="10" height="10" patternUnits="userSpaceOnUse">
+                                <path d="M0 0H10M0 0V10" stroke="rgba(46,139,87,.18)" stroke-width="0.7" />
+                            </pattern>
+                        </defs>
+                        <ellipse cx="210" cy="316" rx="154" ry="16" fill="rgba(46,139,87,.14)" />
+                        <path d="M58 300H362l18 16H40z" fill="url(#ghFloor)" stroke="#8d8d80" stroke-width="1.2" />
+                        <path d="M74 76L158 20h130l84 56v182H74z" fill="url(#ghGlass)" stroke="#6d996c" stroke-width="5" />
+                        <path d="M58 92l100-68h104l100 68" fill="none" stroke="url(#ghFrame)" stroke-width="7" stroke-linecap="round" />
+                        <path d="M74 76l136 94 146-94" fill="none" stroke="#6d996c" stroke-width="4" stroke-linecap="round" opacity=".8" />
+                        <path d="M80 94h260v180H80z" fill="url(#ghMesh)" opacity=".9" />
+                        <path d="M80 94h260v180H80z" fill="none" stroke="#6d996c" stroke-width="2.5" />
+                        <path d="M73 300V92M347 300V92" fill="none" stroke="#6d996c" stroke-width="5" stroke-linecap="round" />
+                        <path d="M210 38v92" fill="none" stroke="#6d996c" stroke-width="4" stroke-linecap="round" />
+                        <rect x="292" y="110" width="58" height="46" rx="4" fill="#8f918d" stroke="#5f615c" stroke-width="2" />
+                        <circle cx="321" cy="133" r="18" fill="#c6c7c2" />
+                        <path d="M321 115l-6 18h12zM303 133l18-6v12zM321 151l6-18h-12zM339 133l-18 6v-12z" fill="#71736f" opacity=".9" />
+                        <circle cx="321" cy="133" r="9" fill="#4d4f4b" />
+                        <rect x="178" y="112" width="70" height="44" rx="5" fill="#bdb7b0" stroke="#80807a" stroke-width="2" />
+                        <path d="M192 112c0 0-3 16-3 21s6 19 6 19" fill="none" stroke="#6f766d" stroke-width="4" />
+                        <path d="M244 112c0 0 3 16 3 21s-6 19-6 19" fill="none" stroke="#6f766d" stroke-width="4" />
+                        <rect x="166" y="74" width="112" height="20" rx="8" fill="#a6d2a0" stroke="#6d996c" stroke-width="2" />
+                        <path d="M160 70c4-6 14-12 22-12h78c8 0 18 6 22 12" fill="none" stroke="#6d996c" stroke-width="5" stroke-linecap="round" />
+                        <rect x="121" y="171" width="78" height="74" rx="8" fill="#7f8784" stroke="#5c615f" stroke-width="2" />
+                        <rect x="131" y="161" width="58" height="18" rx="8" fill="#a0a7a5" stroke="#636866" stroke-width="1.5" />
+                        <circle cx="158" cy="192" r="11" fill="#5e6461" />
+                        <path d="M145 200l-18 24" stroke="#4d7d4d" stroke-width="4" fill="none" />
+                        <path d="M155 200l-10 64" stroke="#2e8b57" stroke-width="5" fill="none" />
+                        <path d="M170 200l12 72" stroke="#bfbc8f" stroke-width="5" fill="none" />
+                        <path d="M184 200l24 74" stroke="#2f5f7d" stroke-width="5" fill="none" />
+                        <path d="M198 182h66v96h-66z" fill="#ece7dd" stroke="#b9b2a3" stroke-width="2" />
+                        <path d="M206 194h50v13h-50zM206 214h50v13h-50zM206 234h50v13h-50zM206 254h50v13h-50z" fill="#f8f6f0" stroke="#c7c1b3" stroke-width="1.4" />
+                        <rect x="250" y="92" width="24" height="24" rx="4" fill="#67b1dd" stroke="#4d8fb8" stroke-width="1.5" />
+                        <path d="M262 116v34" stroke="#8b6d44" stroke-width="2.2" />
+                        <circle cx="262" cy="154" r="4" fill="#8b6d44" />
+                        <circle cx="271" cy="154" r="4" fill="#8b6d44" />
+                        <circle cx="253" cy="154" r="4" fill="#8b6d44" />
+                        <path d="M223 146l0 58" stroke="#5a5a5a" stroke-width="1.6" />
+                        <path d="M223 204l8 12" stroke="#5a5a5a" stroke-width="1.4" />
+                        <path d="M223 204l-8 12" stroke="#5a5a5a" stroke-width="1.4" />
+                    </svg>
+                    <?php endif; ?>
+                    <div class="greenhouse-roof"></div>
+                    <div class="greenhouse-glass">
+                        <div class="greenhouse-ridge"></div>
+                        <div class="mesh-panel mesh-left"></div>
+                        <div class="mesh-panel mesh-right"></div>
+                        <div class="roll-curtain"></div>
+                        <div class="control-box"></div>
+                        <div class="side-fan side-fan-right"></div>
+                        <div class="hydroponic-tower">
+                            <div class="tower-pipe"></div>
+                            <div class="grow-cup cup-1"></div>
+                            <div class="grow-cup cup-2"></div>
+                            <div class="grow-cup cup-3"></div>
+                            <div class="grow-cup cup-4"></div>
+                            <div class="grow-cup cup-5"></div>
+                            <div class="grow-cup cup-6"></div>
+                        </div>
+                        <div class="hose-line hose-a"></div>
+                        <div class="hose-line hose-b"></div>
+                        <div class="nutrient-pump"></div>
+                        <div class="water-reservoir"></div>
+                    </div>
+                    <?php foreach ($sensorPoints as $point):
+                        $reading = $readings[$point['key']] ?? null;
+                        $threshold = $ghThresholds[$ghId][$point['key']] ?? null;
+                        $pointStatus = 'optimal';
+                        if (!$reading) {
+                            $pointStatus = 'missing';
+                        } elseif ($threshold) {
+                            $value = (float)$reading['value'];
+                            if ($value < (float)$threshold['val_min'] || $value > (float)$threshold['val_max']) {
+                                $pointStatus = 'critical';
+                            } elseif ($value < (float)$threshold['val_opt_low'] || $value > (float)$threshold['val_opt_high']) {
+                                $pointStatus = 'caution';
+                            }
+                        }
+                        $valueLabel = $reading
+                            ? number_format((float)$reading['value'], (int)$point['precision']) . ' ' . $point['unit']
+                            : 'No reading yet';
+                        $rangeLabel = $threshold
+                            ? 'Optimal: ' . number_format((float)$threshold['val_opt_low'], 1) . '-' . number_format((float)$threshold['val_opt_high'], 1) . ' ' . ($threshold['unit'] ?? $point['unit'])
+                            : 'No crop threshold set';
+                        $recordedLabel = !empty($reading['recorded_at']) ? format_ts($reading['recorded_at']) : 'Waiting for data';
+                    ?>
+                    <div class="sensor-line <?= e($point['line']) ?>"></div>
+                    <button class="sensor-hotspot <?= e($pointStatus) ?>"
+                            type="button"
+                            style="left:<?= (int)$point['x'] ?>%;top:<?= (int)$point['y'] ?>%;"
+                            aria-label="<?= e($point['label'] . ': ' . $valueLabel) ?>">
+                        <span class="hotspot-dot"><?= e($point['mark']) ?></span>
+                        <span class="sensor-tooltip">
+                            <strong><?= e($point['label']) ?></strong>
+                            <em><?= e($valueLabel) ?></em>
+                            <small><?= e($rangeLabel) ?></small>
+                            <small><?= e($recordedLabel) ?></small>
+                            <span><?= e($point['note']) ?></span>
+                        </span>
+                    </button>
+                    <?php endforeach; ?>
+                </div>
+                <div class="greenhouse-readable-summary">
+                    <p>
+                        <strong>What is happening:</strong>
+                        <?= $hasCrit
+                            ? 'One or more readings need immediate attention.'
+                            : ($hasCaution ? 'The chamber is running, but at least one reading is outside its ideal range.' : 'All available readings are inside the expected range.') ?>
+                    </p>
+                </div>
             </div>
 
             <div class="gh-parameters">
@@ -588,6 +841,7 @@ $userInitials = strtoupper(implode('', array_map(
         </div>
         <?php endforeach; ?>
     </section>
+    <?php endif; ?>
 
     <!-- ── Recent Events & Alerts ────────────────────────────────────── -->
     <section class="card mb-4">
@@ -699,5 +953,6 @@ document.getElementById('logoutForm').addEventListener('submit', function(e) {
     .catch(() => showToast('Logout failed.', 'error'));
 });
 </script>
+  <script src="js.navbar.js?v=<?= urlencode((string) @filemtime(__DIR__ . '/js.navbar.js')) ?>"></script>
 </body>
 </html>

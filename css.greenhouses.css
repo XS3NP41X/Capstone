@@ -23,14 +23,14 @@
 
 .tab-button:hover {
     color: #1A1A1A;
-    background: #F9FAFB;
+    background: #F8FFF8;
     transform: translateY(-2px);
     box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
 }
 
 .tab-button.active {
-    color: #0D9488;
-    border-bottom-color: #0D9488;
+    color: #2E8B57;
+    border-bottom-color: #2E8B57;
 }
 
 /* Greenhouse Content */
@@ -53,11 +53,11 @@
 }
 
 .greenhouse-banner.gh-a {
-    background: linear-gradient(135deg, #0D9488 0%, #0F766E 100%);
+    background: linear-gradient(135deg, #2E8B57 0%, #2E8B57 100%);
 }
 
 .greenhouse-banner.gh-b {
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    background: linear-gradient(135deg, #3CB371 0%, #2E8B57 100%);
 }
 
 .banner-info {
@@ -104,7 +104,7 @@
 
 .parameter-tile {
     padding: 16px;
-    background: #F9FAFB;
+    background: #F8FFF8;
     border: 1px solid #E5E7EB;
     border-radius: 8px;
     transition: all 0.2s;
@@ -131,11 +131,11 @@
 }
 
 .param-icon.teal {
-    color: #0D9488;
+    color: #2E8B57;
 }
 
 .param-icon.green {
-    color: #059669;
+    color: #3CB371;
 }
 
 .param-label {
@@ -174,8 +174,8 @@
 }
 
 .status-optimal {
-    background: #D1FAE5;
-    color: #065F46;
+    background: #F0FFF0;
+    color: #2E8B57;
 }
 
 .status-caution {
@@ -200,7 +200,7 @@
 
 .threshold-group {
     padding: 20px;
-    background: #F9FAFB;
+    background: #F8FFF8;
     border: 1px solid #E5E7EB;
     border-radius: 8px;
     margin-bottom: 16px;
@@ -257,19 +257,19 @@
 }
 
 .input-group input[type="number"]:focus {
-    border-color: #0D9488;
+    border-color: #2E8B57;
     box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
 }
 
 .input-group input[type="number"]:hover {
-    border-color: #0D9488;
+    border-color: #2E8B57;
 }
 
 .input-unit {
     position: relative;
     font-size: 12px;
     font-weight: 600;
-    color: #0D9488;
+    color: #2E8B57;
     margin-top: -4px;
     padding-left: 2px;
 }
@@ -377,7 +377,7 @@
 }
 
 .time-btn.active {
-    background: #0D9488;
+    background: #2E8B57;
     color: white;
 }
 
@@ -422,7 +422,7 @@
 
 .chart-placeholder {
     height: 280px;
-    background: #F9FAFB;
+    background: #F8FFF8;
     border: 1px solid #E5E7EB;
     border-radius: 8px;
     display: flex;
@@ -534,4 +534,106 @@
     .threshold-actions .btn {
         width: 100%;
     }
+}
+
+/* ============================================================================
+   ECOTWIN BRAND REFRESH
+   ============================================================================ */
+
+.tab-navigation {
+    border-bottom-color: #dce9df;
+}
+
+.tab-button {
+    color: #5f6f66;
+}
+
+.tab-button:hover {
+    color: #2E8B57;
+    background: #F0FFF0;
+}
+
+.tab-button.active {
+    color: #2E8B57;
+    border-bottom-color: #3CB371;
+}
+
+.greenhouse-banner {
+    border-radius: 8px;
+    box-shadow: 0 16px 36px rgba(46, 139, 87, 0.18);
+}
+
+.greenhouse-banner.gh-a {
+    background: linear-gradient(135deg, #2E8B57 0%, #3CB371 100%);
+}
+
+.greenhouse-banner.gh-b {
+    background: linear-gradient(135deg, #3CB371 0%, #BFBC8F 100%);
+}
+
+.parameter-tile,
+.threshold-group,
+.chart-placeholder {
+    background: #FFFFFF;
+    border-color: #dce9df;
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(46, 139, 87, 0.07);
+}
+
+.parameter-tile:hover,
+.threshold-group:hover {
+    box-shadow: 0 14px 30px rgba(46, 139, 87, 0.12);
+}
+
+.param-icon.teal,
+.param-icon.green,
+.input-unit,
+.sensor-name {
+    color: #2E8B57;
+}
+
+.param-label,
+.param-unit,
+.param-range,
+.update-time,
+.input-group label,
+.actuator-icon,
+.sensor-desc,
+.sensor-status,
+.placeholder-text,
+.placeholder-subtext {
+    color: #5f6f66;
+}
+
+.param-value,
+.threshold-header strong,
+.actuator-name {
+    color: #173326;
+}
+
+.status-optimal {
+    background: #F0FFF0;
+    color: #2E8B57;
+}
+
+.status-caution {
+    background: rgba(191, 188, 143, 0.22);
+    color: #6f6a2f;
+}
+
+.threshold-header,
+.threshold-actions,
+.actuator-item,
+.sensor-item {
+    border-color: #dce9df;
+}
+
+.input-group input[type="number"] {
+    border-color: #dce9df;
+}
+
+.input-group input[type="number"]:focus,
+.input-group input[type="number"]:hover {
+    border-color: #3CB371;
+    box-shadow: 0 0 0 3px rgba(60, 179, 113, 0.12);
 }

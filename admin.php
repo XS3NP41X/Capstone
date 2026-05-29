@@ -1790,6 +1790,7 @@ function initials(string $name): string
       onSimulatorGreenhouseChange();
     });
   </script>
+  <script src="js.navbar.js?v=<?= urlencode((string) @filemtime(__DIR__ . '/js.navbar.js')) ?>"></script>
 </body>
 
 </html>

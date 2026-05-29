@@ -33,8 +33,10 @@ try {
     <style>
         body {
             margin: 0;
-            background: #f6f8f7;
-            color: #17211d;
+            background:
+                radial-gradient(circle at 18% 18%, rgba(60, 179, 113, 0.18), transparent 26rem),
+                linear-gradient(135deg, var(--brand-mint) 0%, var(--brand-white) 56%, rgba(191, 188, 143, 0.18) 100%);
+            color: var(--brand-ink);
             font-family: Inter, "Segoe UI", Arial, sans-serif;
         }
         .landing-shell {
@@ -49,8 +51,10 @@ try {
             justify-content: space-between;
             gap: 16px;
             padding: 0 24px;
-            background: #fff;
-            border-bottom: 1px solid #e3e8e5;
+            background: rgba(255, 255, 255, 0.96);
+            border-bottom: 1px solid var(--brand-line);
+            box-shadow: 0 8px 26px rgba(46, 139, 87, 0.08);
+            backdrop-filter: blur(12px);
         }
         .landing-brand {
             display: flex;
@@ -63,6 +67,10 @@ try {
             width: 42px;
             height: 42px;
             object-fit: contain;
+            padding: 4px;
+            border-radius: 8px;
+            background: var(--brand-mint);
+            border: 1px solid rgba(191, 188, 143, 0.42);
         }
         .landing-nav-actions {
             display: flex;
@@ -79,10 +87,11 @@ try {
             align-items: stretch;
         }
         .hero-panel, .status-panel {
-            background: #fff;
-            border: 1px solid #e3e8e5;
-            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid var(--brand-line);
+            border-radius: 8px;
             padding: 28px;
+            box-shadow: var(--brand-shadow);
         }
         .hero-panel {
             display: grid;
@@ -90,7 +99,7 @@ try {
             min-height: 520px;
         }
         .eyebrow {
-            color: #0d9488;
+            color: var(--brand-deep);
             font-size: 13px;
             font-weight: 800;
             text-transform: uppercase;
@@ -104,7 +113,7 @@ try {
         }
         .hero-copy {
             max-width: 640px;
-            color: #526058;
+            color: var(--brand-muted);
             font-size: 17px;
             line-height: 1.7;
             margin: 0 0 24px;
@@ -123,14 +132,26 @@ try {
             border-radius: 8px;
             font-weight: 800;
             text-decoration: none;
-            border: 1px solid #d8e1dc;
-            color: #24312b;
-            background: #fff;
+            border: 1px solid var(--brand-line);
+            color: var(--brand-ink);
+            background: var(--brand-white);
+            transition: all 0.2s ease;
+        }
+        .landing-btn:hover {
+            background: var(--brand-mint);
+            color: var(--brand-deep);
+            transform: translateY(-2px);
+            box-shadow: var(--brand-shadow-sm);
         }
         .landing-btn.primary {
-            background: #0d9488;
-            color: #fff;
-            border-color: #0d9488;
+            background: var(--brand-deep);
+            color: var(--brand-white);
+            border-color: var(--brand-deep);
+        }
+        .landing-btn.primary:hover {
+            background: var(--brand-green);
+            border-color: var(--brand-green);
+            color: var(--brand-white);
         }
         .status-panel {
             display: grid;
@@ -138,13 +159,13 @@ try {
             align-content: start;
         }
         .status-card {
-            border: 1px solid #e3e8e5;
+            border: 1px solid var(--brand-line);
             border-radius: 8px;
             padding: 16px;
-            background: #f9fbfa;
+            background: var(--brand-mint);
         }
         .status-label {
-            color: #64736b;
+            color: var(--brand-muted);
             font-size: 12px;
             font-weight: 800;
             text-transform: uppercase;
@@ -157,15 +178,16 @@ try {
         .flow {
             display: grid;
             gap: 10px;
-            color: #526058;
+            color: var(--brand-muted);
             line-height: 1.5;
         }
         .flow div {
             padding: 12px;
             border-radius: 8px;
-            background: #eef7f4;
-            color: #17564d;
+            background: rgba(191, 188, 143, 0.18);
+            color: var(--brand-ink);
             font-weight: 700;
+            border-left: 4px solid var(--brand-gold);
         }
         @media (max-width: 880px) {
             .landing-main {

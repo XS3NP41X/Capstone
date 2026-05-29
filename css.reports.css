@@ -33,10 +33,10 @@
     display: flex;
     gap: 12px;
     padding: 16px;
-    background: #E0F2F1;
+    background: #F0FFF0;
     border-radius: 8px;
     font-size: 14px;
-    color: #0F766E;
+    color: #2E8B57;
 }
 
 .export-notice .notice-icon {
@@ -77,18 +77,18 @@
 }
 
 .event-icon.success {
-    color: #10B981;
+    color: #3CB371;
 }
 
 /* Badge Variants */
 .badge-greenhouse-a {
-    background: #E0F2F1;
-    color: #0F766E;
+    background: #F0FFF0;
+    color: #2E8B57;
 }
 
 .badge-greenhouse-b {
-    background: #D1FAE5;
-    color: #065F46;
+    background: #F0FFF0;
+    color: #2E8B57;
 }
 
 /* Pagination */
@@ -131,9 +131,9 @@
 }
 
 .page-btn.active {
-    background: #0D9488;
+    background: #2E8B57;
     color: white;
-    border-color: #0D9488;
+    border-color: #2E8B57;
 }
 
 .page-btn:disabled {
@@ -160,7 +160,7 @@
 }
 
 .analytics-stat {
-    background: #F9FAFB;
+    background: #F8FFF8;
     border: 1px solid #E5E7EB;
     border-radius: 12px;
     padding: 18px;
@@ -238,7 +238,7 @@
 
 .performance-item {
     padding: 20px;
-    background: #F9FAFB;
+    background: #F8FFF8;
     border-radius: 8px;
     margin-bottom: 16px;
     border: 1px solid #E5E7EB;
@@ -274,8 +274,8 @@
 }
 
 .performance-status.excellent {
-    background: #D1FAE5;
-    color: #065F46;
+    background: #F0FFF0;
+    color: #2E8B57;
 }
 
 .performance-status.good {
@@ -298,7 +298,7 @@
 
 .bar-fill {
     height: 100%;
-    background: #10B981;
+    background: #3CB371;
     border-radius: 4px;
     transition: width 0.3s;
 }
@@ -378,13 +378,13 @@
 }
 
 .modal-icon.confirm {
-    background: #E0F2F1;
-    color: #0D9488;
+    background: #F0FFF0;
+    color: #2E8B57;
 }
 
 .modal-icon.success {
-    background: #D1FAE5;
-    color: #10B981;
+    background: #F0FFF0;
+    color: #3CB371;
 }
 
 .modal-title {
@@ -410,12 +410,12 @@
     color: #9CA3AF;
     margin-top: 16px;
     padding: 12px;
-    background: #F9FAFB;
+    background: #F8FFF8;
     border-radius: 6px;
 }
 
 .export-summary {
-    background: #F9FAFB;
+    background: #F8FFF8;
     border: 1px solid #E5E7EB;
     border-radius: 8px;
     padding: 16px;
@@ -452,7 +452,7 @@
 }
 
 .export-details {
-    background: #F9FAFB;
+    background: #F8FFF8;
     border: 1px solid #E5E7EB;
     border-radius: 8px;
     padding: 16px;
@@ -559,4 +559,99 @@
     .modal-actions .btn {
         width: 100%;
     }
+}
+
+/* ============================================================================
+   ECOTWIN BRAND REFRESH
+   ============================================================================ */
+
+.export-notice {
+    background: #F0FFF0;
+    color: #2E8B57;
+    border: 1px solid rgba(60, 179, 113, 0.28);
+}
+
+.badge-greenhouse-a {
+    background: #F0FFF0;
+    color: #2E8B57;
+}
+
+.badge-greenhouse-b {
+    background: rgba(191, 188, 143, 0.22);
+    color: #173326;
+}
+
+.pagination {
+    border-top-color: #dce9df;
+}
+
+.pagination-info,
+.analytics-subtitle,
+.analytics-label,
+.analytics-footnote,
+.stat-label,
+.stat-meta,
+.sensor-location,
+.performance-stats,
+.detail-meta {
+    color: #5f6f66;
+}
+
+.page-btn {
+    border-color: #dce9df;
+    color: #173326;
+}
+
+.page-btn:hover:not(:disabled) {
+    background: #F0FFF0;
+}
+
+.page-btn.active {
+    background: #2E8B57;
+    border-color: #2E8B57;
+}
+
+.analytics-stat,
+.stat-card,
+.performance-item,
+.modal-container {
+    background: #FFFFFF;
+    border-color: #dce9df;
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(46, 139, 87, 0.08);
+}
+
+.analytics-value,
+.stat-value,
+.detail-filename,
+.sensor-name-perf {
+    color: #173326;
+}
+
+.performance-status.excellent,
+.performance-status.good {
+    background: #F0FFF0;
+    color: #2E8B57;
+}
+
+.performance-status.degraded {
+    background: rgba(191, 188, 143, 0.22);
+    color: #6f6a2f;
+}
+
+.performance-bar {
+    background: #dce9df;
+}
+
+.bar-fill {
+    background: #3CB371;
+}
+
+.bar-fill.warning {
+    background: #BFBC8F;
+}
+
+.modal-header,
+.modal-actions {
+    border-color: #dce9df;
 }

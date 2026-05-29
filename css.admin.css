@@ -22,7 +22,7 @@
   gap: 20px;
   margin-bottom: 28px;
   padding: 24px 28px;
-  background: linear-gradient(135deg, #0d9488 0%, #059669 60%, #0f766e 100%);
+  background: linear-gradient(135deg, #2E8B57 0%, #3CB371 60%, #2E8B57 100%);
   border-radius: 16px;
   color: white;
   text-align: center;
@@ -111,7 +111,7 @@
 }
 
 .admin-tab.active {
-  background: #0d9488;
+  background: #2E8B57;
   color: white;
   font-weight: 600;
 }
@@ -177,7 +177,7 @@
 }
 
 .plant-search:focus {
-  border-color: #0d9488;
+  border-color: #2E8B57;
   background: white;
   box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
 }
@@ -203,15 +203,15 @@
 }
 
 .cat-btn:hover {
-  border-color: #0d9488;
-  color: #0d9488;
+  border-color: #2E8B57;
+  color: #2E8B57;
   transform: translateY(-2px);
   box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
 }
 
 .cat-btn.active {
-  background: #0d9488;
-  border-color: #0d9488;
+  background: #2E8B57;
+  border-color: #2E8B57;
   color: white;
 }
 
@@ -236,7 +236,7 @@
 
 .plant-list-item.selected {
   background: #e0f2f1;
-  border-left: 3px solid #0d9488;
+  border-left: 3px solid #2E8B57;
 }
 
 .plant-item-icon {
@@ -473,11 +473,11 @@
 }
 
 .gh-a-card {
-  border-top: 5px solid #0d9488;
+  border-top: 5px solid #2E8B57;
 }
 
 .gh-b-card {
-  border-top: 5px solid #059669;
+  border-top: 5px solid #3CB371;
 }
 
 .gh-assign-header {
@@ -531,7 +531,7 @@
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: #0d9488;
+  background: #2E8B57;
   color: white;
   display: inline-flex;
   align-items: center;
@@ -580,7 +580,7 @@
 }
 
 .form-select-admin:focus {
-  border-color: #0d9488;
+  border-color: #2E8B57;
   background: white;
   box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
 }
@@ -628,7 +628,7 @@
 .preview-name {
   font-size: 15px;
   font-weight: 600;
-  color: #0f766e;
+  color: #2E8B57;
 }
 
 .preview-sci {
@@ -711,7 +711,7 @@
 .mini-thresh-val {
   font-size: 12px;
   font-weight: 700;
-  color: #0d9488;
+  color: #2E8B57;
 }
 
 .gh-assign-footer {
@@ -993,7 +993,7 @@
 }
 
 .form-input-modal:focus {
-  border-color: #0d9488;
+  border-color: #2E8B57;
   background: white;
   box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
 }
@@ -1010,7 +1010,7 @@
 }
 
 .form-select-modal:focus {
-  border-color: #0d9488;
+  border-color: #2E8B57;
   background: white;
 }
 
@@ -1028,14 +1028,14 @@
 }
 
 .form-textarea-modal:focus {
-  border-color: #0d9488;
+  border-color: #2E8B57;
   background: white;
 }
 
 .threshold-section-label {
   font-size: 13px;
   font-weight: 700;
-  color: #0d9488;
+  color: #2E8B57;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 10px;
@@ -1108,7 +1108,7 @@
 }
 
 .toggle-switch input:checked + .toggle-slider {
-  background-color: #0d9488;
+  background-color: #2E8B57;
 }
 
 .toggle-switch input:checked + .toggle-slider:before {
@@ -1271,4 +1271,97 @@
   .gh-step-list {
     flex-direction: column;
   }
+}
+
+/* ============================================================================
+   ECOTWIN BRAND REFRESH
+   ============================================================================ */
+
+.admin-page-header {
+  background: linear-gradient(135deg, #2E8B57 0%, #3CB371 68%, #BFBC8F 100%);
+  border-radius: 8px;
+  box-shadow: 0 16px 36px rgba(46, 139, 87, 0.18);
+}
+
+.admin-crown,
+.admin-role-badge,
+.admin-tab.active,
+.admin-action-primary,
+.btn-admin-primary {
+  background: #2E8B57;
+  border-color: #2E8B57;
+  color: #FFFFFF;
+}
+
+.admin-crown {
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.32);
+}
+
+.admin-action-primary:hover,
+.btn-admin-primary:hover {
+  background: #3CB371;
+  border-color: #3CB371;
+}
+
+.admin-card,
+.admin-panel,
+.threshold-card,
+.gh-assign-card,
+.simulator-card,
+.modal-box,
+.user-card {
+  background: #FFFFFF;
+  border-color: #dce9df;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(46, 139, 87, 0.08);
+}
+
+.admin-tab {
+  color: #5f6f66;
+}
+
+.admin-tab:hover {
+  background: #F0FFF0;
+  color: #2E8B57;
+}
+
+.admin-title,
+.admin-section-title,
+.threshold-title,
+.gh-field-title,
+.simulator-title,
+.modal-title {
+  color: #173326;
+}
+
+.admin-muted,
+.threshold-subtitle,
+.gh-field-copy,
+.simulator-copy,
+.modal-copy {
+  color: #5f6f66;
+}
+
+.threshold-card,
+.simulator-value,
+.gh-step,
+.admin-stat {
+  background: #F0FFF0;
+  border-color: #dce9df;
+}
+
+.threshold-card.active,
+.gh-assign-card.active {
+  border-color: #3CB371;
+}
+
+.admin-link,
+.threshold-value,
+.gh-field-value {
+  color: #2E8B57;
+}
+
+.toast {
+  background: #173326;
+  border-radius: 8px;
 }

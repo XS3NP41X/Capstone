@@ -8,6 +8,21 @@ require_once __DIR__ . '/config/security.php';
 
 header('Content-Type: application/json');
 
+function ecotwin_login_destination(PDO $pdo, string $role): string
+{
+    if ($role === 'admin') {
+        return 'admin.php';
+    }
+
+    try {
+        $activeCount = (int)$pdo->query("SELECT COUNT(*) FROM experiments WHERE status = 'active'")->fetchColumn();
+        return $activeCount > 0 ? 'dashboard.php' : 'experiments.php';
+    } catch (PDOException $e) {
+        error_log('Login destination error: ' . $e->getMessage());
+        return 'experiments.php';
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['success' => false, 'message' => 'Method not allowed.']);
@@ -135,9 +150,8 @@ function handle_login(): void
     // 11. Clear failed attempts on success
     clear_failed_attempts($email);
 
-    // 12. Redirect based on role
-    // Admin goes to admin.html, everyone else to dashboard.html
-    $redirect = ($user['role'] === 'admin') ? 'admin.php' : 'dashboard.php';
+    // 12. Redirect based on current experiment state.
+    $redirect = ecotwin_login_destination($pdo, $user['role']);
 
     echo json_encode(['success' => true, 'redirect' => $redirect]);
 }

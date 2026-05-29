@@ -649,7 +649,7 @@ $rules_json = json_encode($rulesByCode, JSON_HEX_TAG);
             font-size: 14px;
             font-weight: 500;
         }
-        .save-message.success { background:#D1FAE5; color:#065F46; border:1px solid #A7F3D0; }
+        .save-message.success { background:#F0FFF0; color:#2E8B57; border:1px solid #A7F3D0; }
         .save-message.error   { background:#FEE2E2; color:#991B1B; border:1px solid #FECACA; }
         .refresh-btn-sm { padding:6px 12px; font-size:12px; }
         .btn-sm { padding:6px 14px; font-size:13px; }
@@ -658,17 +658,17 @@ $rules_json = json_encode($rulesByCode, JSON_HEX_TAG);
         .alert-critical { background:#FEE2E2; border-left:4px solid #EF4444; color:#991B1B; }
         .alert-warning  { background:#FEF3C7; border-left:4px solid #F59E0B; color:#92400E; }
         .alert-info     { background:#DBEAFE; border-left:4px solid #3B82F6; color:#1E40AF; }
-        .alert-success  { background:#D1FAE5; border-left:4px solid #10B981; color:#065F46; }
+        .alert-success  { background:#F0FFF0; border-left:4px solid #3CB371; color:#2E8B57; }
         .db-live-badge  {
             display:inline-flex; align-items:center; gap:6px;
-            background:#E0F2F1; color:#0F766E;
+            background:#F0FFF0; color:#2E8B57;
             font-size:11px; font-weight:600;
             padding:3px 10px; border-radius:12px;
             border:1px solid #99F6E4;
         }
         .db-live-badge::before {
             content:''; width:7px; height:7px;
-            background:#0D9488; border-radius:50%;
+            background:#2E8B57; border-radius:50%;
             animation:pulse 2s infinite;
         }
     </style>
@@ -1081,5 +1081,6 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
+  <script src="js.navbar.js?v=<?= urlencode((string) @filemtime(__DIR__ . '/js.navbar.js')) ?>"></script>
 </body>
 </html>

@@ -53,7 +53,7 @@
 
 .settings-form-tab:hover {
     background: #F3F4F6;
-    color: #0D9488;
+    color: #2E8B57;
 }
 
 body.settings-page .btn,
@@ -78,8 +78,8 @@ body.settings-page .btn-full:hover {
 }
 
 .settings-form-tab.active {
-    background: #E0F2F1;
-    color: #0F766E;
+    background: #F0FFF0;
+    color: #2E8B57;
 }
 
 .settings-form-panel {
@@ -103,7 +103,7 @@ body.settings-page .btn-full:hover {
     padding: 16px;
     border: 1px solid #E5E7EB;
     border-radius: 12px;
-    background: #F9FAFB;
+    background: #F8FFF8;
 }
 
 .profile-module {
@@ -147,7 +147,7 @@ body.settings-page .btn-full:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #0D9488;
+    background: #2E8B57;
     color: #FFFFFF;
     font-size: 24px;
     font-weight: 700;
@@ -257,7 +257,7 @@ body.settings-page .btn-full:hover {
     padding: 14px 16px;
     border: 1px solid #E5E7EB;
     border-radius: 10px;
-    background: #F9FAFB;
+    background: #F8FFF8;
     font-size: 14px;
     color: #1A1A1A;
 }
@@ -265,7 +265,7 @@ body.settings-page .btn-full:hover {
 .preference-check input {
     width: 16px;
     height: 16px;
-    accent-color: #0D9488;
+    accent-color: #2E8B57;
 }
 
 .preferences-preview {
@@ -274,7 +274,7 @@ body.settings-page .btn-full:hover {
     border-radius: 10px;
     background: #ECFDF5;
     border: 1px solid #A7F3D0;
-    color: #065F46;
+    color: #2E8B57;
     font-size: 13px;
 }
 
@@ -315,7 +315,7 @@ body.settings-page .btn-full:hover {
 /* Threshold Groups */
 .threshold-group {
     padding: 16px;
-    background: #F9FAFB;
+    background: #F8FFF8;
     border-radius: 8px;
     margin-bottom: 16px;
     border: 1px solid #E5E7EB;
@@ -368,7 +368,7 @@ body.settings-page .btn-full:hover {
     color: #1A1A1A;
     margin-bottom: 12px;
     padding-bottom: 8px;
-    border-bottom: 2px solid #0D9488;
+    border-bottom: 2px solid #2E8B57;
 }
 
 .hw-item {
@@ -406,7 +406,7 @@ body.settings-page .btn-full:hover {
     justify-content: space-between;
     align-items: center;
     padding: 12px;
-    background: #F9FAFB;
+    background: #F8FFF8;
     border-radius: 8px;
     margin-bottom: 12px;
     border: 1px solid #E5E7EB;
@@ -425,7 +425,7 @@ body.settings-page .btn-full:hover {
 .user-avatar-small {
     width: 40px;
     height: 40px;
-    background: #0D9488;
+    background: #2E8B57;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -456,7 +456,7 @@ body.settings-page .btn-full:hover {
     justify-content: space-between;
     align-items: center;
     padding: 16px;
-    background: #F9FAFB;
+    background: #F8FFF8;
     border-radius: 8px;
     margin-bottom: 12px;
     border: 1px solid #E5E7EB;
@@ -503,7 +503,7 @@ body.font-style-monospace {
 
 body.theme-dark {
     background: #111827;
-    color: #F9FAFB;
+    color: #F8FFF8;
 }
 
 body.theme-dark .navbar,
@@ -512,7 +512,7 @@ body.theme-dark .profile-dropdown,
 body.theme-dark .modal-box {
     background: #1F2937;
     border-color: #374151;
-    color: #F9FAFB;
+    color: #F8FFF8;
 }
 
 body.theme-dark .nav-item,
@@ -546,7 +546,7 @@ body.theme-dark .preference-field select,
 body.theme-dark .profile-summary-value,
 body.theme-dark .preference-field input,
 body.theme-dark .preference-field textarea {
-    color: #F9FAFB;
+    color: #F8FFF8;
 }
 
 body.theme-dark .preference-field select,
@@ -573,7 +573,7 @@ body.theme-dark .settings-form-tab {
 }
 
 body.theme-dark .settings-form-tab.active {
-    background: #0F766E;
+    background: #2E8B57;
     color: #ECFEFF;
 }
 
@@ -697,4 +697,65 @@ body.theme-high-contrast .settings-form-tab.active {
     .preferences-actions {
         flex-direction: column;
     }
+}
+
+/* ============================================================================
+   ECOTWIN BRAND REFRESH
+   ============================================================================ */
+
+body:not(.theme-dark):not(.theme-high-contrast) .settings-card,
+body:not(.theme-dark):not(.theme-high-contrast) .profile-module,
+body:not(.theme-dark):not(.theme-high-contrast) .preference-module,
+body:not(.theme-dark):not(.theme-high-contrast) .preferences-preview,
+body:not(.theme-dark):not(.theme-high-contrast) .settings-form-switcher,
+body:not(.theme-dark):not(.theme-high-contrast) .maintenance-item,
+body:not(.theme-dark):not(.theme-high-contrast) .threshold-group,
+body:not(.theme-dark):not(.theme-high-contrast) .user-item {
+    background: #FFFFFF;
+    border-color: #dce9df;
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(46, 139, 87, 0.08);
+}
+
+body:not(.theme-dark):not(.theme-high-contrast) .settings-section-title,
+body:not(.theme-dark):not(.theme-high-contrast) .profile-summary-value,
+body:not(.theme-dark):not(.theme-high-contrast) .preference-module-title {
+    color: #173326;
+}
+
+body:not(.theme-dark):not(.theme-high-contrast) .settings-icon,
+body:not(.theme-dark):not(.theme-high-contrast) .settings-form-tab.active,
+body:not(.theme-dark):not(.theme-high-contrast) .preference-link,
+body:not(.theme-dark):not(.theme-high-contrast) .threshold-value {
+    color: #2E8B57;
+}
+
+body:not(.theme-dark):not(.theme-high-contrast) .profile-summary-label,
+body:not(.theme-dark):not(.theme-high-contrast) .preference-module-copy,
+body:not(.theme-dark):not(.theme-high-contrast) .setting-label,
+body:not(.theme-dark):not(.theme-high-contrast) .maintenance-date,
+body:not(.theme-dark):not(.theme-high-contrast) .preferences-subtitle,
+body:not(.theme-dark):not(.theme-high-contrast) .hw-status,
+body:not(.theme-dark):not(.theme-high-contrast) .threshold-label {
+    color: #5f6f66;
+}
+
+body:not(.theme-dark):not(.theme-high-contrast) .settings-form-tab.active,
+body:not(.theme-dark):not(.theme-high-contrast) .preference-check,
+body:not(.theme-dark):not(.theme-high-contrast) .profile-summary-item {
+    background: #F0FFF0;
+    border-color: #dce9df;
+}
+
+body:not(.theme-dark):not(.theme-high-contrast) .preference-field input,
+body:not(.theme-dark):not(.theme-high-contrast) .preference-field textarea,
+body:not(.theme-dark):not(.theme-high-contrast) .preference-field select {
+    border-color: #dce9df;
+}
+
+body:not(.theme-dark):not(.theme-high-contrast) .preference-field input:focus,
+body:not(.theme-dark):not(.theme-high-contrast) .preference-field textarea:focus,
+body:not(.theme-dark):not(.theme-high-contrast) .preference-field select:focus {
+    border-color: #3CB371;
+    box-shadow: 0 0 0 3px rgba(60, 179, 113, 0.12);
 }

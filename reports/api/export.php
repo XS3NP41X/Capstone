@@ -404,18 +404,18 @@ try {
             .data-table th{background:#f7fbfa;color:#374151;font-size:12pt;font-weight:700;text-align:left}
             .data-table td{font-size:10pt}
             .metric{font-weight:700;width:42%}
-            .value{color:#0f766e;font-weight:700}
+            .value{color:#2E8B57;font-weight:700}
             .mini td,.mini th{border:1px solid #e5ecea;padding:6px 8px}
             .mini th{background:#f7fbfa;font-size:12pt;font-weight:700;text-align:left}
             .mini td{font-size:10pt}
-            .bars{font-family:Consolas,monospace;color:#0f766e;font-weight:700;letter-spacing:1px}
-            .spark{font-family:Consolas,monospace;color:#0f766e;font-size:16pt;font-weight:700}
+            .bars{font-family:Consolas,monospace;color:#2E8B57;font-weight:700;letter-spacing:1px}
+            .spark{font-family:Consolas,monospace;color:#2E8B57;font-size:16pt;font-weight:700}
             .muted{color:#6b7280}
             .spacer{height:12px}
             .trend-table{width:100%;table-layout:fixed;border-collapse:collapse}
             .trend-table td{border:1px solid #e5ecea;padding:6px 4px;text-align:center;vertical-align:middle}
             .trend-label{font-size:10pt;font-weight:700;color:#334155}
-            .trend-bar{font-family:Consolas,monospace;font-size:20pt;line-height:1;color:#0f766e;font-weight:700}
+            .trend-bar{font-family:Consolas,monospace;font-size:20pt;line-height:1;color:#2E8B57;font-weight:700}
             .trend-avg{font-size:9pt;color:#475569}
         </style></head><body><div class="sheet">';
         echo '<table class="hero"><tr><td>';
