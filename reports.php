@@ -349,6 +349,7 @@ function buildRange(int $cur, int $total): array {
       <span class="logo-text">EcoTwin</span>
     </a>
     <div class="navbar-menu" id="navbarMenu">
+      <a href="index.php"       class="nav-item"><?= htmlspecialchars($t('nav.index')) ?></a>
       <a href="dashboard.php"   class="nav-item"><?= htmlspecialchars($t('nav.dashboard')) ?></a>
       <a href="experiments.php" class="nav-item"><?= htmlspecialchars($t('nav.experiments')) ?></a>
       <a href="greenhouses.php" class="nav-item"><?= htmlspecialchars($t('nav.greenhouses')) ?></a>

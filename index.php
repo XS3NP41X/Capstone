@@ -2,6 +2,7 @@
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/security.php';
 
+restore_remembered_login();
 $isLoggedIn = !empty($_SESSION['user_id']);
 $dashboardUrl = ($_SESSION['user_role'] ?? '') === 'admin' ? 'admin.php' : 'dashboard.php';
 $primaryUrl = $isLoggedIn ? $dashboardUrl : 'login.php';
@@ -541,6 +542,31 @@ try {
         .module-card[hidden] {
             display: none;
         }
+        .landing-footer {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: 1.2fr repeat(3, minmax(0, 1fr));
+            gap: 18px;
+            padding: 22px 24px;
+            border: 1px solid var(--brand-line);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.94);
+            box-shadow: var(--brand-shadow-sm);
+            color: var(--brand-muted);
+            line-height: 1.55;
+        }
+        .landing-footer strong {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--brand-ink);
+        }
+        .landing-footer a {
+            display: block;
+            color: var(--brand-deep);
+            font-weight: 800;
+            text-decoration: none;
+            margin-top: 4px;
+        }
         @media (max-width: 880px) {
             .landing-main {
                 grid-template-columns: 1fr;
@@ -574,6 +600,9 @@ try {
                 padding: 0 16px;
             }
             .module-grid {
+                grid-template-columns: 1fr;
+            }
+            .landing-footer {
                 grid-template-columns: 1fr;
             }
         }
@@ -695,6 +724,27 @@ try {
                 </article>
             </div>
         </section>
+
+        <footer class="landing-footer">
+            <div>
+                <strong>ECOTwin Research Greenhouse</strong>
+                Local monitoring, experiment ownership, greenhouse automation thresholds, and reports for dual-chamber hydroponic studies.
+            </div>
+            <div>
+                <strong>Data Flow</strong>
+                Sensors write readings into ecotwin_db, then dashboards, alerts, and reports read from the same local database.
+            </div>
+            <div>
+                <strong>Access</strong>
+                Researchers manage experiments. Administrators manage users, plant profiles, system settings, and assignments.
+            </div>
+            <div>
+                <strong>Quick Links</strong>
+                <a href="dashboard.php">Dashboard</a>
+                <a href="reports.php">Reports</a>
+                <a href="greenhouses.php">Greenhouses</a>
+            </div>
+        </footer>
     </main>
 </div>
 <script src="js.navbar.js?v=<?= urlencode((string) @filemtime(__DIR__ . '/js.navbar.js')) ?>"></script>

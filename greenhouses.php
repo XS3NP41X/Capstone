@@ -23,6 +23,11 @@ $greenhouses = ecotwinFetchGreenhouseOverview($db);
 
 // Active experiment info
 $active_exp = ecotwinFetchActiveExperiment($db);
+$currentUserId = (int)($_SESSION['user_id'] ?? 0);
+$currentUserRole = (string)($_SESSION['user_role'] ?? 'researcher');
+$canEditGreenhouseSettings = !$active_exp
+    || $currentUserRole === 'admin'
+    || (int)($active_exp['principal_user_id'] ?? 0) === $currentUserId;
 
 // Build a keyed map: 'A' => [...], 'B' => [...]
 $gh_map = [];
@@ -256,7 +261,7 @@ $userRole = strtolower($_SESSION['user_role'] ?? 'researcher');
 
 // ── Helper: render one greenhouse panel ───────────────────────────────────────
 // Renders greenhouse panel in the current interface.
-function renderGreenhousePanel(string $code, array $d, array $exp, bool $hasActiveExperiment): string {
+function renderGreenhousePanel(string $code, array $d, array $exp, bool $hasActiveExperiment, bool $canEditSettings): string {
     $info       = $d['info'];
     $readings   = $d['readings'];
     $thresholds = $d['thresholds'];
@@ -351,6 +356,7 @@ function renderGreenhousePanel(string $code, array $d, array $exp, bool $hasActi
          'above_default' => 2.5, 'below_default' => 1.2, 'step' => '0.1', 'unit' => 'mS/cm'],
     ];
 
+    $settingsDisabled = $canEditSettings ? '' : 'disabled';
     $rules_html = '';
     foreach ($threshold_groups as $tg) {
         $pairs = rulePairs($rules, $tg['param']);
@@ -379,7 +385,7 @@ function renderGreenhousePanel(string $code, array $d, array $exp, bool $hasActi
                     <input type="number" id="rule-{$lc_code}-{$param}-above"
                            name="rule[{$above_id}][trigger_value]"
                            data-rule-id="{$above_id}" data-direction="above" data-param="{$param}"
-                           value="{$above_val}" step="{$step}" class="rule-input gh-{$lc_code}-rule" />
+                           value="{$above_val}" step="{$step}" class="rule-input gh-{$lc_code}-rule" {$settingsDisabled} />
                     <span class="input-unit">{$unit}</span>
                 </div>
                 <div class="input-group">
@@ -387,7 +393,7 @@ function renderGreenhousePanel(string $code, array $d, array $exp, bool $hasActi
                     <input type="number" id="rule-{$lc_code}-{$param}-below"
                            name="rule[{$below_id}][trigger_value]"
                            data-rule-id="{$below_id}" data-direction="below" data-param="{$param}"
-                           value="{$below_val}" step="{$step}" class="rule-input gh-{$lc_code}-rule" />
+                           value="{$below_val}" step="{$step}" class="rule-input gh-{$lc_code}-rule" {$settingsDisabled} />
                     <span class="input-unit">{$unit}</span>
                 </div>
             </div>
@@ -457,6 +463,14 @@ function renderGreenhousePanel(string $code, array $d, array $exp, bool $hasActi
         ? "<div class=\"gh-alerts mb-3\">{$alerts_html}</div>"
         : '';
 
+    $settingsNotice = $canEditSettings
+        ? '<span class="update-time">Configure automatic actuator triggers</span>'
+        : '<span class="update-time locked-copy">Locked during another user\'s active experiment</span>';
+    $settingsDisabled = $canEditSettings ? '' : 'disabled';
+    $settingsLockNotice = $canEditSettings
+        ? ''
+        : '<div class="control-notice settings-lock-notice"><div class="notice-icon">🔒</div><div><strong>Greenhouse settings locked:</strong> Another user is conducting an active experiment. Threshold edits are available again when it ends.</div></div>';
+
     $manualControlNotice = $hasActiveExperiment
         ? '<strong>Manual Control:</strong> Controls are locked during active experiments to maintain experimental integrity. Automatic control is managing all actuators.'
         : '<strong>Manual Control:</strong> No active experiment is running, so actuator controls are available for direct pump, fan, and shading toggles.';
@@ -498,17 +512,18 @@ function renderGreenhousePanel(string $code, array $d, array $exp, bool $hasActi
                 <div class="card mb-3">
                     <div class="card-header">
                         <h3 class="card-title">Automation Threshold Settings</h3>
-                        <span class="update-time">Configure automatic actuator triggers</span>
+                        {$settingsNotice}
                     </div>
                     <div class="threshold-form">
+                        {$settingsLockNotice}
                         {$rules_html}
                         <div class="threshold-actions">
                             <button type="button" class="btn btn-primary"
-                                    onclick="saveRules('{$code}')">
+                                    {$settingsDisabled} onclick="saveRules('{$code}')">
                                 Save Threshold Settings
                             </button>
                             <button type="button" class="btn btn-secondary"
-                                    onclick="reloadRules('{$code}')">
+                                    {$settingsDisabled} onclick="reloadRules('{$code}')">
                                 Reset to DB Values
                             </button>
                         </div>
@@ -547,10 +562,10 @@ function renderGreenhousePanel(string $code, array $d, array $exp, bool $hasActi
                     <div class="card-header">
                         <h3 class="card-title">Environmental Trends</h3>
                         <div class="time-selector">
-                            <button class="time-btn" onclick="loadTrend('{$code}',1)">1H</button>
-                            <button class="time-btn" onclick="loadTrend('{$code}',6)">6H</button>
-                            <button class="time-btn active" onclick="loadTrend('{$code}',24)">24H</button>
-                            <button class="time-btn" onclick="loadTrend('{$code}',168)">7D</button>
+                            <button class="time-btn" onclick="loadTrend('{$code}',1,event)">1H</button>
+                            <button class="time-btn" onclick="loadTrend('{$code}',6,event)">6H</button>
+                            <button class="time-btn" onclick="loadTrend('{$code}',24,event)">24H</button>
+                            <button class="time-btn active" onclick="loadTrend('{$code}',168,event)">7D</button>
                         </div>
                     </div>
                     <div class="chart-legend">
@@ -617,7 +632,7 @@ foreach ($data as $code => $greenhouseData) {
         : 'Greenhouse ' . $code;
     $tab_html .= '<a href="?tab=' . htmlspecialchars($lcCode) . '" class="' . $tabClass . '" data-tab="' . htmlspecialchars($lcCode) . '" onclick="switchTab(event,\'' . htmlspecialchars($lcCode) . '\')">' . htmlspecialchars($tabLabel) . '</a>';
 
-    $panelHtml = renderGreenhousePanel((string)$code, $greenhouseData, $active_exp ?: [], !empty($active_exp));
+    $panelHtml = renderGreenhousePanel((string)$code, $greenhouseData, $active_exp ?: [], !empty($active_exp), $canEditGreenhouseSettings);
     $panelClass = $isActive ? 'greenhouse-content active' : 'greenhouse-content';
     $panelHtml = preg_replace(
         '/<div id="greenhouse-' . preg_quote($lcCode, '/') . '" class="greenhouse-content">/',
@@ -654,7 +669,10 @@ $rules_json = json_encode($rulesByCode, JSON_HEX_TAG);
         .refresh-btn-sm { padding:6px 12px; font-size:12px; }
         .btn-sm { padding:6px 14px; font-size:13px; }
         canvas { display:none; }
+        canvas[id^="chart-"] { width:100%; border-radius:8px; border:1px solid #E5E7EB; background:#fff; }
         .chart-placeholder { min-height:280px; }
+        .settings-lock-notice { margin-bottom:14px; }
+        .locked-copy { color:#92400E; font-weight:700; }
         .alert-critical { background:#FEE2E2; border-left:4px solid #EF4444; color:#991B1B; }
         .alert-warning  { background:#FEF3C7; border-left:4px solid #F59E0B; color:#92400E; }
         .alert-info     { background:#DBEAFE; border-left:4px solid #3B82F6; color:#1E40AF; }
@@ -686,6 +704,7 @@ $rules_json = json_encode($rulesByCode, JSON_HEX_TAG);
             <span class="logo-text">EcoTwin</span>
         </a>
         <div class="navbar-menu" id="navbarMenu">
+            <a href="index.php"       class="nav-item"><?= htmlspecialchars($t('nav.index')) ?></a>
             <a href="dashboard.php"   class="nav-item"><?= htmlspecialchars($t('nav.dashboard')) ?></a>
             <a href="experiments.php" class="nav-item"><?= htmlspecialchars($t('nav.experiments')) ?></a>
             <a href="greenhouses.php" class="nav-item active"><?= htmlspecialchars($t('nav.greenhouses')) ?></a>
@@ -763,7 +782,7 @@ function switchTab(e, code) {
     // Load trend on first show
     if (!window._trendLoaded) window._trendLoaded = {};
     if (!window._trendLoaded[code]) {
-        loadTrend(code.toUpperCase(), 24);
+        loadTrend(code.toUpperCase(), 168);
         window._trendLoaded[code] = true;
     }
 }
@@ -1012,16 +1031,17 @@ async function refreshReadings(ghCode) {
     } catch (e) { /* silent fail on auto-refresh */ }
 }
 
-// Trend summary for LAN mode. No online chart library is required.
+// Canvas trend chart for LAN mode. No online chart library is required.
 const _charts = {};
-async function loadTrend(ghCode, hours) {
+async function loadTrend(ghCode, hours, clickEvent = null) {
     // Update active time button
     const lc = ghCode.toLowerCase();
     document.querySelectorAll(`#greenhouse-${lc} .time-btn`).forEach(b => b.classList.remove('active'));
-    event?.target?.classList.add('active');
+    clickEvent?.target?.classList.add('active');
 
     const placeholder = document.getElementById(`chart-placeholder-${lc}`);
     const canvas      = document.getElementById(`chart-${lc}`);
+    if (!canvas) return;
 
     try {
         const res  = await fetch(`greenhouses/greenhouses_api.php?action=get_trend&gh=${ghCode}&hours=${hours}`);
@@ -1029,27 +1049,151 @@ async function loadTrend(ghCode, hours) {
 
         if (!data.series || Object.keys(data.series).length === 0) {
             if (placeholder) {
+                placeholder.style.display = 'grid';
                 placeholder.querySelector('.placeholder-text').textContent = 'No trend data available';
                 placeholder.querySelector('.placeholder-subtext').textContent = 'Add sensor readings to the local database to see trends';
             }
+            canvas.style.display = 'none';
             return;
         }
 
-        if (canvas) canvas.style.display = 'none';
-        if (placeholder) {
-            const rows = Object.entries(data.series).map(([param, points]) => {
-                const last = points[points.length - 1];
-                const first = points[0];
-                const delta = last && first ? (Number(last.value) - Number(first.value)).toFixed(2) : '0.00';
-                return `${escHtml(param.replace('_', ' '))}: ${escHtml(String(last?.value ?? 'n/a'))} (${delta >= 0 ? '+' : ''}${delta})`;
-            });
-            placeholder.style.display = 'grid';
-            placeholder.querySelector('.placeholder-text').textContent = `${hours}H local trend summary`;
-            placeholder.querySelector('.placeholder-subtext').innerHTML = rows.map(row => `<div>${row}</div>`).join('');
-        }
+        if (placeholder) placeholder.style.display = 'none';
+        canvas.style.display = 'block';
+        drawTrendChart(canvas, data.series);
     } catch (err) {
-        if (placeholder) placeholder.querySelector('.placeholder-text').textContent = 'Failed to load trend data';
+        canvas.style.display = 'none';
+        if (placeholder) {
+            placeholder.style.display = 'grid';
+            placeholder.querySelector('.placeholder-text').textContent = 'Failed to load trend data';
+            placeholder.querySelector('.placeholder-subtext').textContent = 'Please check the greenhouse API response.';
+        }
     }
+}
+
+function drawTrendChart(canvas, series) {
+    const cssWidth = canvas.clientWidth || canvas.parentElement.clientWidth || 640;
+    const cssHeight = 280;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.floor(cssWidth * dpr);
+    canvas.height = Math.floor(cssHeight * dpr);
+    canvas.style.height = `${cssHeight}px`;
+
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+    const colors = {
+        temperature: '#EF4444',
+        humidity: '#3B82F6',
+        ec: '#8B5CF6',
+        ph: '#10B981',
+        light: '#F59E0B',
+        water_level: '#06B6D4'
+    };
+    const labels = {
+        temperature: 'Temperature',
+        humidity: 'Humidity',
+        ec: 'EC',
+        ph: 'pH',
+        light: 'Light',
+        water_level: 'Water'
+    };
+    const params = ['temperature', 'humidity', 'ec'].filter((param) => Array.isArray(series[param]) && series[param].length);
+    if (params.length === 0) {
+        params.push(...Object.keys(series).filter((param) => Array.isArray(series[param]) && series[param].length).slice(0, 3));
+    }
+
+    const allPoints = params.flatMap((param) => series[param].map((point) => ({
+        param,
+        value: Number(point.value),
+        time: new Date(point.ts).getTime()
+    }))).filter((point) => Number.isFinite(point.value) && Number.isFinite(point.time));
+
+    if (allPoints.length === 0) return;
+
+    const pad = { top: 24, right: 22, bottom: 38, left: 46 };
+    const plotW = cssWidth - pad.left - pad.right;
+    const plotH = cssHeight - pad.top - pad.bottom;
+    const minTime = Math.min(...allPoints.map((p) => p.time));
+    const maxTime = Math.max(...allPoints.map((p) => p.time));
+    const minVal = Math.min(...allPoints.map((p) => p.value));
+    const maxVal = Math.max(...allPoints.map((p) => p.value));
+    const valRange = maxVal === minVal ? 1 : maxVal - minVal;
+    const timeRange = maxTime === minTime ? 1 : maxTime - minTime;
+
+    ctx.fillStyle = document.body.classList.contains('theme-dark') ? '#111827' : '#ffffff';
+    ctx.fillRect(0, 0, cssWidth, cssHeight);
+
+    const axisColor = document.body.classList.contains('theme-dark') ? '#9CA3AF' : '#6B7280';
+    const gridColor = document.body.classList.contains('theme-dark') ? '#374151' : '#E5E7EB';
+    const textColor = document.body.classList.contains('theme-dark') ? '#F9FAFB' : '#1F2937';
+
+    ctx.strokeStyle = gridColor;
+    ctx.lineWidth = 1;
+    ctx.font = '12px Inter, Segoe UI, Arial, sans-serif';
+    ctx.fillStyle = axisColor;
+    for (let i = 0; i <= 4; i++) {
+        const y = pad.top + (plotH / 4) * i;
+        const value = maxVal - (valRange / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(cssWidth - pad.right, y);
+        ctx.stroke();
+        ctx.fillText(value.toFixed(value >= 100 ? 0 : 1), 8, y + 4);
+    }
+
+    ctx.strokeStyle = axisColor;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, pad.top);
+    ctx.lineTo(pad.left, cssHeight - pad.bottom);
+    ctx.lineTo(cssWidth - pad.right, cssHeight - pad.bottom);
+    ctx.stroke();
+
+    const xFor = (time) => pad.left + ((time - minTime) / timeRange) * plotW;
+    const yFor = (value) => pad.top + ((maxVal - value) / valRange) * plotH;
+
+    params.forEach((param) => {
+        const points = (series[param] || [])
+            .map((point) => ({ value: Number(point.value), time: new Date(point.ts).getTime() }))
+            .filter((point) => Number.isFinite(point.value) && Number.isFinite(point.time));
+        if (!points.length) return;
+
+        ctx.strokeStyle = colors[param] || '#2E8B57';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        points.forEach((point, index) => {
+            const x = xFor(point.time);
+            const y = yFor(point.value);
+            if (index === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+
+        ctx.fillStyle = colors[param] || '#2E8B57';
+        points.forEach((point) => {
+            ctx.beginPath();
+            ctx.arc(xFor(point.time), yFor(point.value), 3.2, 0, Math.PI * 2);
+            ctx.fill();
+        });
+    });
+
+    const startLabel = new Date(minTime).toLocaleDateString([], { month: 'short', day: 'numeric' });
+    const endLabel = new Date(maxTime).toLocaleDateString([], { month: 'short', day: 'numeric' });
+    ctx.fillStyle = axisColor;
+    ctx.fillText(startLabel, pad.left, cssHeight - 14);
+    ctx.textAlign = 'right';
+    ctx.fillText(endLabel, cssWidth - pad.right, cssHeight - 14);
+    ctx.textAlign = 'left';
+
+    let legendX = pad.left;
+    ctx.font = '12px Inter, Segoe UI, Arial, sans-serif';
+    params.forEach((param) => {
+        ctx.fillStyle = colors[param] || '#2E8B57';
+        ctx.fillRect(legendX, 8, 10, 10);
+        ctx.fillStyle = textColor;
+        ctx.fillText(labels[param] || ucFirst(param.replace('_', ' ')), legendX + 15, 18);
+        legendX += 112;
+    });
 }
 
 // ── Utility ────────────────────────────────────────────────────────────────
@@ -1076,7 +1220,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (activeTab) {
         const code = activeTab.id === 'greenhouse-a' ? 'A' : 'B';
         window._trendLoaded = { [code.toLowerCase()]: true };
-        loadTrend(code, 24);
+        loadTrend(code, 168);
     }
 });
 </script>

@@ -60,6 +60,8 @@ try {
 
     // ------------------------------------------------------------------ PUT (assign plant)
     if ($method === 'PUT') {
+        assertNoActiveExperimentForAssignment($pdo);
+
         if (!$code || !in_array($code, ['A','B'])) {
             jsonResponse(['success' => false, 'error' => 'Valid greenhouse code (A or B) required'], 400);
         }
@@ -86,6 +88,8 @@ try {
 
     // --------------------------------------------------------------- DELETE (clear assignment)
     if ($method === 'DELETE') {
+        assertNoActiveExperimentForAssignment($pdo);
+
         if (!$code || !in_array($code, ['A','B'])) {
             jsonResponse(['success' => false, 'error' => 'Valid greenhouse code required'], 400);
         }
@@ -99,4 +103,23 @@ try {
 
 } catch (PDOException $e) {
     jsonResponse(['success' => false, 'error' => $e->getMessage()], 500);
+}
+
+function assertNoActiveExperimentForAssignment(PDO $pdo): void
+{
+    $active = $pdo->query("
+        SELECT e.exp_code, u.full_name AS researcher_name
+        FROM experiments e
+        JOIN users u ON u.user_id = e.principal_user_id
+        WHERE e.status = 'active'
+        ORDER BY e.started_at DESC, e.experiment_id DESC
+        LIMIT 1
+    ")->fetch();
+
+    if ($active) {
+        jsonResponse([
+            'success' => false,
+            'error' => 'Greenhouse assignments are locked while ' . $active['researcher_name'] . ' is conducting ' . $active['exp_code'] . '.',
+        ], 409);
+    }
 }

@@ -101,6 +101,15 @@ try {
     $ghAssignments[$g['code']] = (int)($g['assigned_plant_id'] ?? 0);
   }
 
+  $activeExperiment = $pdo->query("
+        SELECT e.exp_code, e.title, u.full_name AS researcher_name
+        FROM experiments e
+        JOIN users u ON u.user_id = e.principal_user_id
+        WHERE e.status = 'active'
+        ORDER BY e.started_at DESC, e.experiment_id DESC
+        LIMIT 1
+    ")->fetch() ?: null;
+
   // ---- System settings -------------------------------------------------
   $settingsRows = $pdo->query("SELECT setting_key, setting_value FROM system_settings")->fetchAll();
   $settings = [];
@@ -124,6 +133,7 @@ try {
   $userRows     = [];
   $cats         = [];
   $ghAssignments = ['A' => 0, 'B' => 0];
+  $activeExperiment = null;
   $settings     = [];
   $maint        = [];
   $ghRows       = [];
@@ -176,6 +186,7 @@ function initials(string $name): string
         <span class="logo-text">EcoTwin</span>
       </a>
       <div class="navbar-menu" id="navbarMenu">
+        <a href="index.php" class="nav-item"><?= htmlspecialchars($t('nav.index')) ?></a>
         <a href="dashboard.php" class="nav-item"><?= htmlspecialchars($t('nav.dashboard')) ?></a>
         <a href="experiments.php" class="nav-item"><?= htmlspecialchars($t('nav.experiments')) ?></a>
         <a href="greenhouses.php" class="nav-item"><?= htmlspecialchars($t('nav.greenhouses')) ?></a>
@@ -286,7 +297,13 @@ function initials(string $name): string
     <div id="tab-greenhouse" class="tab-content">
       <div class="alert alert-info mb-3">
         <span class="alert-icon">ℹ️</span>
-        <div>Assign a plant profile to each greenhouse. Use the guided steps inside each card, then save the assignment to apply thresholds and automation rules.</div>
+        <div>
+          <?php if ($activeExperiment): ?>
+            Greenhouse assignments are locked while <?= htmlspecialchars($activeExperiment['researcher_name']) ?> is conducting <?= htmlspecialchars($activeExperiment['exp_code']) ?>.
+          <?php else: ?>
+            Assign a plant profile to each greenhouse. Use the guided steps inside each card, then save the assignment to apply thresholds and automation rules.
+          <?php endif; ?>
+        </div>
       </div>
 
       <div class="assign-guidance-panel mb-3">
@@ -299,6 +316,7 @@ function initials(string $name): string
         <?php foreach ($ghRows as $gh):
           $ghCode = $gh['code'];
           $isAssigned = !empty($gh['assigned_plant_id']);
+          $assignmentLocked = !empty($activeExperiment);
         ?>
           <div class="gh-assign-card gh-<?= strtolower($ghCode) ?>-card">
             <div class="gh-assign-header">
@@ -327,7 +345,7 @@ function initials(string $name): string
                   <label class="form-label-admin" for="gh<?= $ghCode ?>-plant">Assigned Plant</label>
                   <span class="badge badge-neutral gh-change-indicator" id="gh<?= $ghCode ?>-change-indicator">Saved</span>
                 </div>
-                <select class="form-select-admin" id="gh<?= $ghCode ?>-plant" onchange="onGhPlantChange('<?= $ghCode ?>')" aria-describedby="gh<?= $ghCode ?>-help gh<?= $ghCode ?>-feedback">
+                <select class="form-select-admin" id="gh<?= $ghCode ?>-plant" onchange="onGhPlantChange('<?= $ghCode ?>')" aria-describedby="gh<?= $ghCode ?>-help gh<?= $ghCode ?>-feedback" <?= $assignmentLocked ? 'disabled' : '' ?>>
                   <option value="">— Select a plant —</option>
                 </select>
                 <p class="gh-field-help" id="gh<?= $ghCode ?>-help">Choose the plant profile first. Your selection is only applied after you press <strong>Save Plant Assignment</strong>.</p>
@@ -339,8 +357,8 @@ function initials(string $name): string
               <div class="gh-inline-feedback" id="gh<?= $ghCode ?>-feedback" role="status" aria-live="polite">Current state: <?= $isAssigned ? 'assignment saved.' : 'no assignment saved yet.' ?></div>
             </div>
             <div class="gh-assign-footer">
-              <button class="btn btn-primary" id="gh<?= $ghCode ?>-save-btn" onclick="applyGhAssignment('<?= $ghCode ?>')" <?= $isAssigned ? 'disabled' : 'disabled' ?>>Save Plant Assignment</button>
-              <button class="btn btn-secondary" id="gh<?= $ghCode ?>-clear-btn" onclick="clearGhAssignment('<?= $ghCode ?>')" <?= $isAssigned ? '' : 'disabled' ?>>Clear Assignment</button>
+              <button class="btn btn-primary" id="gh<?= $ghCode ?>-save-btn" onclick="applyGhAssignment('<?= $ghCode ?>')" disabled>Save Plant Assignment</button>
+              <button class="btn btn-secondary" id="gh<?= $ghCode ?>-clear-btn" onclick="clearGhAssignment('<?= $ghCode ?>')" <?= $isAssigned && !$assignmentLocked ? '' : 'disabled' ?>>Clear Assignment</button>
             </div>
           </div>
         <?php endforeach; ?>
@@ -715,9 +733,9 @@ function initials(string $name): string
             <?php
             $automationRules = [
               'auto_cooling_fan'      => 'Auto-activate cooling fan on high temp',
+              'auto_humidity_fan'     => 'Auto fan ventilation on high humidity',
               'auto_ec_dosing'        => 'Auto pump control',
               'auto_shading_net'      => 'Auto shading net on excess light',
-              'auto_humidity_misting' => 'Auto humidity misting',
             ];
             foreach ($automationRules as $key => $label):
             ?>
@@ -936,6 +954,7 @@ function initials(string $name): string
       A: ghInit['A'] || null,
       B: ghInit['B'] || null
     };
+    const greenhouseAssignmentLocked = <?= $activeExperiment ? 'true' : 'false' ?>;
     const simulatorFieldMap = {
       temperature: 'sim-temperature',
       humidity: 'sim-humidity',
@@ -1334,6 +1353,17 @@ function initials(string $name): string
       const indicator = document.getElementById('gh' + gh + '-change-indicator');
       const select = document.getElementById('gh' + gh + '-plant');
 
+      if (greenhouseAssignmentLocked) {
+        saveBtn.disabled = true;
+        clearBtn.disabled = true;
+        select.disabled = true;
+        select.classList.remove('field-pending');
+        indicator.textContent = 'Locked';
+        indicator.className = 'badge badge-warning gh-change-indicator';
+        setGhFeedback(gh, 'Assignment locked while an experiment is active.', 'pending');
+        return;
+      }
+
       saveBtn.disabled = !hasSelection || !hasUnsavedChange;
       clearBtn.disabled = savedId === null;
       select.classList.toggle('field-pending', hasUnsavedChange);
@@ -1399,6 +1429,10 @@ function initials(string $name): string
     }
 
     async function applyGhAssignment(gh) {
+      if (greenhouseAssignmentLocked) {
+        showToast('Greenhouse assignments are locked while an experiment is active.', 'warning');
+        return;
+      }
       const saveBtn = document.getElementById('gh' + gh + '-save-btn');
       const val = document.getElementById('gh' + gh + '-plant').value;
       if (!val) {
@@ -1431,6 +1465,10 @@ function initials(string $name): string
     }
 
     async function clearGhAssignment(gh) {
+      if (greenhouseAssignmentLocked) {
+        showToast('Greenhouse assignments are locked while an experiment is active.', 'warning');
+        return;
+      }
       const clearBtn = document.getElementById('gh' + gh + '-clear-btn');
       try {
         clearBtn.disabled = true;
@@ -1762,7 +1800,8 @@ function initials(string $name): string
       try {
         await api('admin/api/system.php', 'POST', {
           settings: collectSettings([
-            'email_critical_alerts', 'email_warning_alerts', 'email_weekly_reports', 'admin_notify_email'
+            'sms_critical_alerts', 'sms_warning_alerts', 'sms_weekly_reports',
+            'gsm_admin_phone', 'gsm_module_port', 'gsm_baud_rate'
           ])
         });
         showToast('✅ Notification settings saved');
@@ -1775,7 +1814,7 @@ function initials(string $name): string
       try {
         await api('admin/api/system.php', 'POST', {
           settings: collectSettings([
-            'auto_cooling_fan', 'auto_ec_dosing', 'auto_shading_net', 'auto_humidity_misting'
+            'auto_cooling_fan', 'auto_humidity_fan', 'auto_ec_dosing', 'auto_shading_net'
           ])
         });
         showToast('✅ Automation rules saved');

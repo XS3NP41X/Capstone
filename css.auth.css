@@ -103,10 +103,13 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
+    width: auto;
+    min-width: 44px;
     height: 32px;
+    padding: 0 8px;
     z-index: 1;
-    font-size: 20px;
+    font-size: 12px;
+    font-weight: 700;
 }
 
 .password-toggle:hover {

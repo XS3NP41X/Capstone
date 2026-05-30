@@ -11,6 +11,7 @@ function ecotwinFetchActiveExperiment(PDO $db): ?array
                e.exp_code,
                e.title,
                e.status,
+               e.principal_user_id,
                e.started_at,
                e.expected_end_at,
                TIMESTAMPDIFF(HOUR, e.started_at, CURRENT_TIMESTAMP()) AS hours_running,

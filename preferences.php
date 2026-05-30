@@ -174,6 +174,7 @@ function ecotwinTranslations(): array
     return [
         'en-US' => [
             'nav.dashboard' => 'Dashboard',
+            'nav.index' => 'Index',
             'nav.experiments' => 'Experiments',
             'nav.greenhouses' => 'Greenhouses',
             'nav.reports' => 'Reports',
@@ -219,6 +220,7 @@ function ecotwinTranslations(): array
         ],
         'fil-PH' => [
             'nav.dashboard' => 'Dashboard',
+            'nav.index' => 'Index',
             'nav.experiments' => 'Mga Eksperimento',
             'nav.greenhouses' => 'Mga Greenhouse',
             'nav.reports' => 'Mga Ulat',
@@ -259,6 +261,7 @@ function ecotwinTranslations(): array
         ],
         'es-ES' => [
             'nav.dashboard' => 'Panel',
+            'nav.index' => 'Inicio',
             'nav.experiments' => 'Experimentos',
             'nav.greenhouses' => 'Invernaderos',
             'nav.reports' => 'Informes',
@@ -299,6 +302,7 @@ function ecotwinTranslations(): array
         ],
         'fr-FR' => [
             'nav.dashboard' => 'Tableau de bord',
+            'nav.index' => 'Accueil',
             'nav.experiments' => 'Expériences',
             'nav.greenhouses' => 'Serres',
             'nav.reports' => 'Rapports',
@@ -335,6 +339,7 @@ function ecotwinTranslations(): array
         ],
         'zh-TW' => [
             'nav.dashboard' => '儀表板',
+            'nav.index' => '首頁',
             'nav.experiments' => '實驗',
             'nav.greenhouses' => '溫室',
             'nav.reports' => '報表',
@@ -371,6 +376,7 @@ function ecotwinTranslations(): array
         ],
         'ja-JP' => [
             'nav.dashboard' => 'ダッシュボード',
+            'nav.index' => 'ホーム',
             'nav.experiments' => '実験',
             'nav.greenhouses' => '温室',
             'nav.reports' => 'レポート',

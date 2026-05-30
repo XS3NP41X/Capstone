@@ -624,6 +624,7 @@ foreach ($sensors as $s) {
       </a>
 
       <div class="navbar-menu" id="navbarMenu">
+        <a href="index.php" class="nav-item"><?= htmlspecialchars($t('nav.index')) ?></a>
         <a href="dashboard.php" class="nav-item"><?= htmlspecialchars($t('nav.dashboard')) ?></a>
         <a href="experiments.php" class="nav-item"><?= htmlspecialchars($t('nav.experiments')) ?></a>
         <a href="greenhouses.php" class="nav-item"><?= htmlspecialchars($t('nav.greenhouses')) ?></a>
@@ -1721,7 +1722,8 @@ foreach ($sensors as $s) {
         const data = await res.json();
         if (data.success) {
           applyPreferencesPreview();
-          showToast('Preferences saved.');
+          showToast('Preferences saved. Reloading interface...');
+          setTimeout(() => window.location.reload(), 650);
         } else {
           showToast(data.error || 'Unable to save preferences.', 'error');
         }

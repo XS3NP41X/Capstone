@@ -11,6 +11,8 @@ require_once __DIR__ . '/../admin/db.php';
 require_once __DIR__ . '/../config/security.php';
 require_once __DIR__ . '/../config/query_helpers.php';
 
+require_auth();
+
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
 try {
@@ -304,6 +306,13 @@ function saveAutomationRules(array $input): array {
     $gh = $stmt->fetch();
     if (!$gh) return ['success' => false, 'message' => 'Greenhouse not found'];
 
+    if (!canEditGreenhouseSettings($db)) {
+        return [
+            'success' => false,
+            'message' => 'Greenhouse settings are locked while another user is conducting an active experiment',
+        ];
+    }
+
     // Only update existing rules; this endpoint does not create new automation rules.
     $rules = $input['rules'] ?? [];
     $updated = 0;
@@ -441,6 +450,31 @@ function toggleActuatorState(array $input): array {
         'status' => $nextStatus,
         'updated' => $updated,
     ];
+}
+
+/**
+ * Allows greenhouse automation edits only when no experiment is active, or when
+ * the active experiment belongs to the current user/admin.
+ */
+function canEditGreenhouseSettings(PDO $db): bool {
+    $active = $db->query("
+        SELECT principal_user_id
+        FROM experiments
+        WHERE status = 'active'
+        ORDER BY started_at DESC, experiment_id DESC
+        LIMIT 1
+    ")->fetch();
+
+    if (!$active) {
+        return true;
+    }
+
+    if (($_SESSION['user_role'] ?? '') === 'admin') {
+        return true;
+    }
+
+    $userId = currentSessionUserId();
+    return $userId !== null && (int)$active['principal_user_id'] === $userId;
 }
 
 /**

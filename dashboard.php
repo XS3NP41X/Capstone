@@ -5,20 +5,11 @@
 
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/security.php';
+require_once __DIR__ . '/auth_guard.php';
 require_once __DIR__ . '/config/query_helpers.php';
 require_once __DIR__ . '/preferences.php';
 
 // ── Auth guard ────────────────────────────────────────────────────────────────
-if (empty($_SESSION['user_id'])) {
-    header('Location: login.php');
-    exit;
-}
-
-if (empty($_SESSION['last_regen']) || time() - $_SESSION['last_regen'] > 300) {
-    session_regenerate_id(true);
-    $_SESSION['last_regen'] = time();
-}
-
 $pdo = db();
 $preferences = ecotwinLoadUserPreferences($pdo, (int)($_SESSION['user_id'] ?? 0));
 $profileDetails = ecotwinLoadUserProfileDetails($pdo, (int)($_SESSION['user_id'] ?? 0));
@@ -217,11 +208,36 @@ foreach ($greenhouses as $gh) {
 // ── 8. Recent events & alerts (latest 5) ─────────────────────────────────────
 try {
     $recentAlerts = $pdo->query(
-        "SELECT a.severity, a.category, a.message, a.created_at,
-                g.code AS gh_code
-           FROM alerts a
-           LEFT JOIN greenhouses g ON a.greenhouse_id = g.greenhouse_id
-          ORDER BY a.created_at DESC
+        "SELECT severity, category, message, created_at, gh_code
+           FROM (
+                SELECT a.severity,
+                       a.category,
+                       a.message,
+                       a.created_at,
+                       g.code AS gh_code
+                  FROM alerts a
+                  LEFT JOIN greenhouses g ON a.greenhouse_id = g.greenhouse_id
+                UNION ALL
+                SELECT 'info' AS severity,
+                       al.category,
+                       CONCAT(
+                         UPPER(LEFT(REPLACE(al.action, '_', ' '), 1)),
+                         SUBSTRING(REPLACE(al.action, '_', ' '), 2),
+                         COALESCE(CONCAT(': ', al.detail), '')
+                       ) AS message,
+                       al.created_at,
+                       NULL AS gh_code
+                  FROM activity_log al
+                UNION ALL
+                SELECT CASE WHEN sl.action = 'logout' THEN 'success' ELSE 'info' END AS severity,
+                       'session' AS category,
+                       CONCAT(u.full_name, ' ', REPLACE(sl.action, '_', ' ')) AS message,
+                       sl.logged_at AS created_at,
+                       NULL AS gh_code
+                  FROM session_log sl
+                  JOIN users u ON u.user_id = sl.user_id
+           ) recent
+          ORDER BY created_at DESC
           LIMIT 5"
     )->fetchAll();
 } catch (PDOException $e) {
@@ -280,7 +296,6 @@ if ($dashboardLockedByOtherExperiment) {
     $systemStatus = 'Restricted';
     $systemClass = '';
     $criticalAlerts = [];
-    $recentAlerts = [];
     $hardware = [];
     $analyticsRow = [
         'readings_count' => 0,
@@ -376,6 +391,7 @@ $userInitials = strtoupper(implode('', array_map(
         </a>
 
         <div class="navbar-menu" id="navbarMenu">
+            <a href="index.php"        class="nav-item"><?= htmlspecialchars($t('nav.index')) ?></a>
             <a href="dashboard.php"    class="nav-item active"><?= htmlspecialchars($t('nav.dashboard')) ?></a>
             <a href="experiments.php" class="nav-item"><?= htmlspecialchars($t('nav.experiments')) ?></a>
             <a href="greenhouses.php" class="nav-item"><?= htmlspecialchars($t('nav.greenhouses')) ?></a>

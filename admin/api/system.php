@@ -96,8 +96,8 @@ try {
             'sms_critical_alerts', 'sms_warning_alerts', 'sms_weekly_reports',
             'gsm_admin_phone', 'gsm_module_port', 'gsm_baud_rate',
             'ip_whitelist_enabled', 'ip_whitelist_addresses',
-            'auto_cooling_fan', 'auto_ec_dosing',
-            'auto_shading_net', 'auto_humidity_misting',
+            'auto_cooling_fan', 'auto_humidity_fan', 'auto_ec_dosing',
+            'auto_shading_net',
         ];
 
         $pdo->beginTransaction();

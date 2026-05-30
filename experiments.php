@@ -5,19 +5,10 @@
 
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/security.php';
+require_once __DIR__ . '/auth_guard.php';
 require_once __DIR__ . '/preferences.php';
 
 // ── Auth guard ────────────────────────────────────────────────────────────────
-if (empty($_SESSION['user_id'])) {
-    header('Location: login.php');
-    exit;
-}
-
-if (empty($_SESSION['last_regen']) || time() - $_SESSION['last_regen'] > 300) {
-    session_regenerate_id(true);
-    $_SESSION['last_regen'] = time();
-}
-
 $pdo      = db();
 $userId   = (int)$_SESSION['user_id'];
 $userRole = $_SESSION['user_role'] ?? 'researcher';
@@ -478,6 +469,7 @@ $csrfToken = csrf_token();
             <span class="logo-text">EcoTwin</span>
         </a>
         <div class="navbar-menu" id="navbarMenu">
+            <a href="index.php"       class="nav-item"><?= htmlspecialchars($t('nav.index')) ?></a>
             <a href="dashboard.php"    class="nav-item"><?= htmlspecialchars($t('nav.dashboard')) ?></a>
             <a href="experiments.php"  class="nav-item active"><?= htmlspecialchars($t('nav.experiments')) ?></a>
             <a href="greenhouses.php" class="nav-item"><?= htmlspecialchars($t('nav.greenhouses')) ?></a>

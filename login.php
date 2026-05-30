@@ -188,7 +188,7 @@ $token = csrf_token();
                             id="togglePw"
                             aria-label="Show password"
                             aria-pressed="false"
-                            title="Show password"><i class="bi bi-eye" aria-hidden="true"></i></button>
+                            title="Show password"><span id="togglePwText">Show</span></button>
                     </div>
                 </div>
 
@@ -262,13 +262,13 @@ $token = csrf_token();
 
         // ── Password toggle ───────────────────────────────────────────────────────────
         const togglePwButton = document.getElementById('togglePw');
-        const togglePwIcon = togglePwButton.querySelector('i');
+        const togglePwText = document.getElementById('togglePwText');
 
         togglePwButton.addEventListener('click', function() {
             const input = document.getElementById('loginPassword');
             const hidden = input.type === 'password';
             input.type = hidden ? 'text' : 'password';
-            togglePwIcon.className = hidden ? 'bi bi-eye-slash' : 'bi bi-eye';
+            togglePwText.textContent = hidden ? 'Hide' : 'Show';
             this.setAttribute('aria-pressed', hidden ? 'true' : 'false');
             this.setAttribute('aria-label', hidden ? 'Hide password' : 'Show password');
             this.title = hidden ? 'Hide password' : 'Show password';
