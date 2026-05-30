@@ -438,6 +438,50 @@ $userInitials = strtoupper(implode('', array_map(
     </section>
 
     <!-- ── Summary Cards ─────────────────────────────────────────────── -->
+    <section class="visual-guide-grid mb-3" aria-label="Dashboard visual guide">
+        <article class="visual-guide-card">
+            <div class="visual-guide-icon experiment-icon" aria-hidden="true">
+                <span></span>
+            </div>
+            <div>
+                <span class="visual-guide-kicker">Step 1</span>
+                <h2>Check the experiment</h2>
+                <p>
+                    <?= $activeExp
+                        ? 'An experiment is currently running, so the dashboard is showing live greenhouse context.'
+                        : 'No experiment is running yet. Start one from the Experiments page before comparing readings.' ?>
+                </p>
+            </div>
+        </article>
+
+        <article class="visual-guide-card">
+            <div class="visual-guide-icon sensor-icon" aria-hidden="true">
+                <span></span>
+                <i></i>
+            </div>
+            <div>
+                <span class="visual-guide-kicker">Step 2</span>
+                <h2>Read the sensor map</h2>
+                <p>
+                    Colored points on each greenhouse show sensor locations. Open a point to see the value, crop range, and latest timestamp.
+                </p>
+            </div>
+        </article>
+
+        <article class="visual-guide-card">
+            <div class="visual-guide-icon action-icon" aria-hidden="true">
+                <span></span>
+            </div>
+            <div>
+                <span class="visual-guide-kicker">Step 3</span>
+                <h2>Act on alerts</h2>
+                <p>
+                    Green means normal, gold means watch closely, and red means the chamber needs attention before results drift.
+                </p>
+            </div>
+        </article>
+    </section>
+
     <section class="summary-grid mb-3">
 
         <div class="summary-card">

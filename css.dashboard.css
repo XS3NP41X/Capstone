@@ -592,6 +592,171 @@
 .legend-dot.caution { background: #BFBC8F; }
 .legend-dot.critical { background: #EF4444; }
 
+.visual-guide-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    min-width: 0;
+}
+
+.visual-guide-card {
+    position: relative;
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 14px;
+    align-items: center;
+    padding: 18px;
+    overflow: hidden;
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(240, 255, 240, 0.88)),
+        repeating-linear-gradient(90deg, rgba(46, 139, 87, 0.05) 0 1px, transparent 1px 18px);
+    border: 1px solid #dce9df;
+    border-radius: 8px;
+    box-shadow: 0 10px 24px rgba(46, 139, 87, 0.09);
+}
+
+.visual-guide-card::after {
+    content: "";
+    position: absolute;
+    right: -28px;
+    bottom: -32px;
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: rgba(191, 188, 143, 0.16);
+}
+
+.visual-guide-kicker {
+    display: block;
+    margin-bottom: 4px;
+    color: #2E8B57;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.visual-guide-card h2 {
+    margin: 0 0 5px;
+    color: #173326;
+    font-size: 17px;
+    line-height: 1.25;
+}
+
+.visual-guide-card p {
+    margin: 0;
+    color: #5f6f66;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.visual-guide-icon {
+    position: relative;
+    width: 58px;
+    height: 58px;
+    border-radius: 8px;
+    background: #F0FFF0;
+    border: 1px solid #cfe6d3;
+    box-shadow: inset 0 0 0 6px rgba(60, 179, 113, 0.09);
+}
+
+.experiment-icon::before,
+.experiment-icon::after {
+    content: "";
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    border-radius: 999px;
+    background: #2E8B57;
+}
+
+.experiment-icon::before {
+    top: 10px;
+    height: 32px;
+}
+
+.experiment-icon::after {
+    bottom: 9px;
+    height: 7px;
+    background: #BFBC8F;
+}
+
+.experiment-icon span {
+    position: absolute;
+    left: 22px;
+    top: 10px;
+    width: 14px;
+    height: 32px;
+    background: linear-gradient(180deg, #FFFFFF 0 42%, #3CB371 42% 100%);
+    border: 2px solid #FFFFFF;
+    border-radius: 0 0 8px 8px;
+}
+
+.sensor-icon::before,
+.sensor-icon::after,
+.sensor-icon span,
+.sensor-icon i {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+}
+
+.sensor-icon::before {
+    left: 9px;
+    top: 10px;
+    width: 13px;
+    height: 13px;
+    background: #3CB371;
+}
+
+.sensor-icon::after {
+    right: 10px;
+    top: 12px;
+    width: 13px;
+    height: 13px;
+    background: #BFBC8F;
+}
+
+.sensor-icon span {
+    left: 22px;
+    bottom: 10px;
+    width: 14px;
+    height: 14px;
+    background: #EF4444;
+}
+
+.sensor-icon i {
+    left: 14px;
+    top: 18px;
+    width: 31px;
+    height: 22px;
+    border: 2px dashed rgba(46, 139, 87, 0.45);
+    border-left: 0;
+    border-bottom: 0;
+    border-radius: 0;
+    transform: rotate(14deg);
+}
+
+.action-icon::before {
+    content: "";
+    position: absolute;
+    left: 13px;
+    top: 13px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: conic-gradient(#EF4444 0 30%, #BFBC8F 30% 63%, #3CB371 63% 100%);
+}
+
+.action-icon span {
+    position: absolute;
+    left: 23px;
+    top: 23px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #FFFFFF;
+}
+
 .greenhouse-status-card .gh-parameters {
     display: none;
 }
@@ -921,13 +1086,18 @@
     .dashboard-guide {
         grid-template-columns: 1fr;
     }
+
+    .visual-guide-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 768px) {
     .dashboard-guide,
     .greenhouse-status-card,
     .summary-card,
-    .section-explainer {
+    .section-explainer,
+    .visual-guide-card {
         overflow: hidden;
     }
 
@@ -943,6 +1113,16 @@
     .greenhouse-status-grid,
     .summary-grid {
         grid-template-columns: minmax(0, 1fr);
+    }
+
+    .visual-guide-card {
+        grid-template-columns: 52px minmax(0, 1fr);
+        padding: 14px;
+    }
+
+    .visual-guide-icon {
+        width: 48px;
+        height: 48px;
     }
 
     .greenhouse-model {
@@ -972,7 +1152,259 @@
     }
 
     .sensor-hotspot:hover .sensor-tooltip,
-    .sensor-hotspot:focus-visible .sensor-tooltip {
+.sensor-hotspot:focus-visible .sensor-tooltip {
         transform: translateY(0);
+    }
+}
+
+/* ============================================================================
+   DASHBOARD VISUAL UPGRADE
+   ============================================================================ */
+
+.dashboard-guide {
+    position: relative;
+    overflow: hidden;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 360px);
+    min-height: 220px;
+    padding: 28px;
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(240, 255, 240, 0.84)),
+        linear-gradient(90deg, rgba(46, 139, 87, 0.06) 1px, transparent 1px) 0 0 / 22px 22px,
+        linear-gradient(180deg, rgba(46, 139, 87, 0.05) 1px, transparent 1px) 0 0 / 22px 22px;
+}
+
+.dashboard-guide::before {
+    content: "";
+    position: absolute;
+    right: 28px;
+    top: 28px;
+    bottom: 28px;
+    width: min(34%, 340px);
+    border-radius: 12px;
+    background:
+        url("assets/Greenhouse_Model.png") center / contain no-repeat,
+        linear-gradient(135deg, rgba(240, 255, 240, 0.7), rgba(255, 255, 255, 0.84));
+    filter: drop-shadow(0 20px 26px rgba(46, 139, 87, 0.22));
+    opacity: 0.96;
+    pointer-events: none;
+}
+
+.dashboard-guide::after {
+    content: "";
+    position: absolute;
+    right: 18px;
+    bottom: 16px;
+    width: min(36%, 360px);
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(46, 139, 87, 0.12);
+    filter: blur(6px);
+    pointer-events: none;
+}
+
+.dashboard-guide > div {
+    position: relative;
+    z-index: 1;
+}
+
+.guide-title {
+    max-width: 620px;
+    font-size: 34px;
+}
+
+.guide-copy {
+    max-width: 620px;
+}
+
+.guide-legend {
+    align-self: end;
+    justify-self: end;
+    min-width: 190px;
+    background: rgba(255, 255, 255, 0.88);
+    box-shadow: 0 14px 30px rgba(23, 51, 38, 0.12);
+    backdrop-filter: blur(10px);
+}
+
+.summary-card {
+    position: relative;
+    overflow: hidden;
+    min-height: 150px;
+    display: grid;
+    align-content: start;
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(240, 255, 240, 0.82)),
+        radial-gradient(circle at 92% 12%, rgba(60, 179, 113, 0.16), transparent 5rem);
+}
+
+.summary-card::before {
+    content: "";
+    position: absolute;
+    right: -26px;
+    top: -30px;
+    width: 104px;
+    height: 104px;
+    border-radius: 50%;
+    background: rgba(191, 188, 143, 0.16);
+}
+
+.summary-icon {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 12px;
+    border-radius: 10px;
+    background: #FFFFFF;
+    border: 1px solid rgba(46, 139, 87, 0.14);
+    box-shadow: 0 10px 18px rgba(46, 139, 87, 0.1);
+}
+
+.summary-value,
+.summary-label,
+.summary-meta,
+.summary-warning,
+.pulse-indicator {
+    position: relative;
+    z-index: 1;
+}
+
+.visual-guide-card {
+    min-height: 142px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.visual-guide-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 18px 36px rgba(46, 139, 87, 0.14);
+}
+
+.visual-guide-icon {
+    background:
+        radial-gradient(circle at 35% 24%, rgba(255, 255, 255, 0.9), transparent 2.6rem),
+        linear-gradient(135deg, #F0FFF0, #FFFFFF);
+    box-shadow: inset 0 0 0 6px rgba(60, 179, 113, 0.09), 0 12px 22px rgba(46, 139, 87, 0.12);
+}
+
+.analytics-overview-card {
+    overflow: hidden;
+}
+
+.analytics-grid {
+    gap: 14px;
+}
+
+.analytics-stat {
+    position: relative;
+    overflow: hidden;
+}
+
+.analytics-stat::after {
+    content: "";
+    position: absolute;
+    right: -18px;
+    bottom: -24px;
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background: rgba(60, 179, 113, 0.13);
+}
+
+.greenhouse-status-card {
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.97), rgba(240, 255, 240, 0.76)),
+        linear-gradient(90deg, rgba(46, 139, 87, 0.035) 1px, transparent 1px) 0 0 / 18px 18px;
+}
+
+.greenhouse-model {
+    min-height: 330px;
+    border-radius: 12px;
+    background:
+        radial-gradient(ellipse at center 84%, rgba(46, 139, 87, 0.18), transparent 38%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(240, 255, 240, 0.72));
+}
+
+.greenhouse-photo {
+    transform: scale(1.08);
+    filter: drop-shadow(0 24px 30px rgba(46, 139, 87, 0.22));
+}
+
+.sensor-link {
+    stroke-width: 2.2;
+    stroke-dasharray: 4 5;
+}
+
+.hotspot-dot {
+    position: relative;
+    font-size: 13px;
+    box-shadow:
+        0 0 0 5px rgba(60, 179, 113, 0.2),
+        0 12px 22px rgba(46, 139, 87, 0.26),
+        inset 0 1px 0 rgba(255, 255, 255, 0.46);
+}
+
+.sensor-hotspot::before {
+    content: "";
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    background: rgba(60, 179, 113, 0.14);
+    animation: sensorPulse 2.4s ease-in-out infinite;
+}
+
+.sensor-hotspot.caution::before {
+    background: rgba(191, 188, 143, 0.2);
+}
+
+.sensor-hotspot.critical::before {
+    background: rgba(239, 68, 68, 0.16);
+}
+
+@keyframes sensorPulse {
+    0%, 100% {
+        opacity: 0.45;
+        transform: scale(0.92);
+    }
+    50% {
+        opacity: 0.9;
+        transform: scale(1.08);
+    }
+}
+
+.greenhouse-readable-summary {
+    background: linear-gradient(135deg, rgba(240, 255, 240, 0.96), rgba(255, 255, 255, 0.94));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+@media (max-width: 1024px) {
+    .dashboard-guide {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-guide::before,
+    .dashboard-guide::after {
+        display: none;
+    }
+
+    .guide-legend {
+        justify-self: start;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-guide {
+        min-height: auto;
+        padding: 20px;
+    }
+
+    .guide-title {
+        font-size: 26px;
+    }
+
+    .greenhouse-model {
+        min-height: 280px;
+    }
+
+    .greenhouse-photo {
+        transform: scale(1);
     }
 }

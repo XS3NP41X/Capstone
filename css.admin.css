@@ -13,6 +13,12 @@
   letter-spacing: 0.5px;
 }
 
+@media (max-width: 768px) {
+  .admin-badge-nav {
+    display: none;
+  }
+}
+
 /* Admin Page Header */
 .admin-page-header {
   display: flex;

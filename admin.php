@@ -135,6 +135,12 @@ function setting(array $s, string $key, $default = '')
   return $s[$key] ?? $default;
 }
 
+// Returns true only for enabled/positive setting values.
+function setting_enabled(array $s, string $key, string $default = '0'): bool
+{
+  return in_array((string)($s[$key] ?? $default), ['1', 'true', 'on', 'yes'], true);
+}
+
 // Returns the initials built from the provided display name.
 function initials(string $name): string
 {
@@ -549,7 +555,11 @@ function initials(string $name): string
           <div class="card-header">
             <h2 class="card-title">🔄 Data Sync Settings</h2>
           </div>
-          <div class="settings-content">
+          <div class="settings-content system-config-panel">
+            <div class="system-config-note">
+              <strong>LAN-ready alerts:</strong>
+              EcoTwin uses your GSM module and phone numbers for notifications instead of email.
+            </div>
             <div class="setting-item">
               <div class="setting-label">Sync Interval</div>
               <div class="setting-value">
@@ -591,7 +601,7 @@ function initials(string $name): string
               <div class="setting-value">
                 <label class="toggle-switch">
                   <input type="checkbox" id="cfg-auto_backup_enabled"
-                    <?= setting($settings, 'auto_backup_enabled', '1') ? 'checked' : '' ?> />
+                    <?= setting_enabled($settings, 'auto_backup_enabled', '1') ? 'checked' : '' ?> />
                   <span class="toggle-slider"></span>
                 </label>
               </div>
@@ -610,9 +620,9 @@ function initials(string $name): string
           <div class="settings-content">
             <?php
             $notifToggles = [
-              'email_critical_alerts' => 'Critical Alerts (Email)',
-              'email_warning_alerts'  => 'Warning Alerts (Email)',
-              'email_weekly_reports'  => 'Weekly Reports',
+              'sms_critical_alerts' => 'Critical Alerts by SMS',
+              'sms_warning_alerts'  => 'Warning Alerts by SMS',
+              'sms_weekly_reports'  => 'Weekly Summary by SMS',
             ];
             foreach ($notifToggles as $key => $label):
             ?>
@@ -621,22 +631,77 @@ function initials(string $name): string
                 <div class="setting-value">
                   <label class="toggle-switch">
                     <input type="checkbox" id="cfg-<?= $key ?>"
-                      <?= setting($settings, $key, '1') ? 'checked' : '' ?> />
+                      <?= setting_enabled($settings, $key, '1') ? 'checked' : '' ?> />
                     <span class="toggle-slider"></span>
                   </label>
                 </div>
               </div>
             <?php endforeach; ?>
             <div class="setting-item">
-              <div class="setting-label">Notify Admin Email</div>
+              <div class="setting-label">Admin Phone Number</div>
               <div class="setting-value">
-                <input type="email" id="cfg-admin_notify_email" class="form-select-admin"
-                  value="<?= htmlspecialchars(setting($settings, 'admin_notify_email', 'm.chen@spamast.edu')) ?>"
-                  style="width:220px;" />
+                <input type="tel" id="cfg-gsm_admin_phone" class="form-select-admin"
+                  value="<?= htmlspecialchars(setting($settings, 'gsm_admin_phone', '+639000000000')) ?>"
+                  placeholder="+63 9XX XXX XXXX" />
+              </div>
+            </div>
+            <div class="setting-item">
+              <div class="setting-label">GSM Module Port</div>
+              <div class="setting-value">
+                <input type="text" id="cfg-gsm_module_port" class="form-select-admin"
+                  value="<?= htmlspecialchars(setting($settings, 'gsm_module_port', 'ESP32_UART2')) ?>"
+                  placeholder="ESP32_UART2" />
+              </div>
+            </div>
+            <div class="setting-item">
+              <div class="setting-label">GSM Baud Rate</div>
+              <div class="setting-value">
+                <select class="form-select-admin" id="cfg-gsm_baud_rate">
+                  <?php foreach ([9600, 19200, 38400, 57600, 115200] as $baud): ?>
+                    <option value="<?= $baud ?>" <?= setting($settings, 'gsm_baud_rate', '9600') == $baud ? 'selected' : '' ?>>
+                      <?= $baud ?>
+                    </option>
+                  <?php endforeach; ?>
+                </select>
               </div>
             </div>
             <div class="mt-3">
               <button class="btn btn-primary" onclick="saveNotificationSettings()">Save Notification Settings</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- IP Whitelisting -->
+        <section class="card system-config-card-wide">
+          <div class="card-header">
+            <h2 class="card-title">LAN IP Whitelisting</h2>
+          </div>
+          <div class="settings-content system-config-panel">
+            <div class="system-config-note">
+              <strong>Registered IP access:</strong>
+              When enabled, only listed LAN IP addresses can open protected EcoTwin pages.
+              Current detected IP: <code><?= htmlspecialchars($_SERVER['REMOTE_ADDR'] ?? 'unknown') ?></code>
+            </div>
+            <div class="setting-item">
+              <div class="setting-label">Enable IP Whitelist</div>
+              <div class="setting-value">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="cfg-ip_whitelist_enabled"
+                    <?= setting_enabled($settings, 'ip_whitelist_enabled', '0') ? 'checked' : '' ?> />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+            <div class="setting-item setting-item-stack">
+              <div>
+                <div class="setting-label">Allowed IP Addresses</div>
+                <div class="setting-help">One per line. Supports exact IPs, wildcards like 192.168.4.*, and CIDR like 192.168.4.0/24.</div>
+              </div>
+              <textarea id="cfg-ip_whitelist_addresses" class="form-select-admin config-textarea"
+                placeholder="192.168.4.2&#10;192.168.4.3&#10;192.168.4.*"><?= htmlspecialchars(setting($settings, 'ip_whitelist_addresses', $_SERVER['REMOTE_ADDR'] ?? '')) ?></textarea>
+            </div>
+            <div class="mt-3">
+              <button class="btn btn-primary" onclick="saveWhitelistSettings()">Save Whitelist Settings</button>
             </div>
           </div>
         </section>
@@ -661,7 +726,7 @@ function initials(string $name): string
                 <div class="setting-value">
                   <label class="toggle-switch">
                     <input type="checkbox" id="cfg-<?= $key ?>"
-                      <?= setting($settings, $key, '1') ? 'checked' : '' ?> />
+                      <?= setting_enabled($settings, $key, '1') ? 'checked' : '' ?> />
                     <span class="toggle-slider"></span>
                   </label>
                 </div>

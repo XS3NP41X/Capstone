@@ -36,6 +36,77 @@ function security_db(): PDO
     throw new RuntimeException('No database connection helper is available.');
 }
 
+// Returns the IP address that should be checked against the LAN allow list.
+function ecotwin_client_ip(): string
+{
+    return trim((string)($_SERVER['REMOTE_ADDR'] ?? ''));
+}
+
+// Checks exact, wildcard, and CIDR IP allow-list entries.
+function ecotwin_ip_matches_rule(string $ip, string $rule): bool
+{
+    $rule = trim($rule);
+    if ($rule === '') {
+        return false;
+    }
+
+    if ($ip === $rule) {
+        return true;
+    }
+
+    if (str_contains($rule, '*')) {
+        $pattern = '/^' . str_replace('\*', '[0-9]{1,3}', preg_quote($rule, '/')) . '$/';
+        return (bool)preg_match($pattern, $ip);
+    }
+
+    if (str_contains($rule, '/')) {
+        [$subnet, $bits] = array_pad(explode('/', $rule, 2), 2, null);
+        $ipLong = ip2long($ip);
+        $subnetLong = ip2long((string)$subnet);
+        $bits = filter_var($bits, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 32]]);
+        if ($ipLong === false || $subnetLong === false || $bits === false) {
+            return false;
+        }
+        $mask = -1 << (32 - (int)$bits);
+        return ($ipLong & $mask) === ($subnetLong & $mask);
+    }
+
+    return false;
+}
+
+// Enforces optional LAN IP allow-listing from system_settings.
+function enforce_ip_whitelist(): void
+{
+    try {
+        $stmt = security_db()->query(
+            "SELECT setting_key, setting_value
+               FROM system_settings
+              WHERE setting_key IN ('ip_whitelist_enabled', 'ip_whitelist_addresses')"
+        );
+        $settings = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $settings[$row['setting_key']] = (string)$row['setting_value'];
+        }
+
+        if (($settings['ip_whitelist_enabled'] ?? '0') !== '1') {
+            return;
+        }
+
+        $clientIp = ecotwin_client_ip();
+        $rules = preg_split('/[\r\n,]+/', $settings['ip_whitelist_addresses'] ?? '') ?: [];
+        foreach ($rules as $rule) {
+            if (ecotwin_ip_matches_rule($clientIp, $rule)) {
+                return;
+            }
+        }
+
+        http_response_code(403);
+        die('<h1>403 - IP Not Registered</h1><p>Your device IP is not allowed to access EcoTwin.</p>');
+    } catch (PDOException $e) {
+        error_log('enforce_ip_whitelist: ' . $e->getMessage());
+    }
+}
+
 // ── CSRF ─────────────────────────────────────────────────────────────────────
 // Returns the CSRF token for the current session.
 function csrf_token(): string
@@ -429,6 +500,8 @@ function detach_user_references(PDO $pdo, int $userId): void
 // Enforces an authenticated session before continuing the request.
 function require_auth(): void
 {
+    enforce_ip_whitelist();
+
     if (empty($_SESSION['user_id'])) {
         restore_remembered_login();
     }

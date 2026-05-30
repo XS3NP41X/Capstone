@@ -92,8 +92,10 @@ try {
 
         $allowed_keys = [
             'sync_interval_minutes', 'alert_cooldown_minutes', 'data_retention_days',
-            'auto_backup_enabled', 'email_critical_alerts', 'email_warning_alerts',
-            'email_weekly_reports', 'admin_notify_email',
+            'auto_backup_enabled',
+            'sms_critical_alerts', 'sms_warning_alerts', 'sms_weekly_reports',
+            'gsm_admin_phone', 'gsm_module_port', 'gsm_baud_rate',
+            'ip_whitelist_enabled', 'ip_whitelist_addresses',
             'auto_cooling_fan', 'auto_ec_dosing',
             'auto_shading_net', 'auto_humidity_misting',
         ];
