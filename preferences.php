@@ -174,7 +174,7 @@ function ecotwinTranslations(): array
     return [
         'en-US' => [
             'nav.dashboard' => 'Dashboard',
-            'nav.index' => 'Index',
+            'nav.index' => 'About',
             'nav.experiments' => 'Experiments',
             'nav.greenhouses' => 'Greenhouses',
             'nav.reports' => 'Reports',
@@ -220,7 +220,7 @@ function ecotwinTranslations(): array
         ],
         'fil-PH' => [
             'nav.dashboard' => 'Dashboard',
-            'nav.index' => 'Index',
+            'nav.index' => 'About',
             'nav.experiments' => 'Mga Eksperimento',
             'nav.greenhouses' => 'Mga Greenhouse',
             'nav.reports' => 'Mga Ulat',

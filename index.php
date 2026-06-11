@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/security.php';
+require_once __DIR__ . '/preferences.php';
 
 restore_remembered_login();
 $isLoggedIn = !empty($_SESSION['user_id']);
@@ -19,13 +20,40 @@ try {
     $status['database'] = 'Online';
     $status['greenhouses'] = (int)$pdo->query("SELECT COUNT(*) FROM greenhouses")->fetchColumn();
     $status['sensors'] = (int)$pdo->query("SELECT COUNT(*) FROM sensors")->fetchColumn();
+    // Load preferences and profile details for consistent navbar
+    $preferences = ecotwinLoadUserPreferences($pdo, (int)($_SESSION['user_id'] ?? 0));
+    $profileDetails = ecotwinLoadUserProfileDetails($pdo, (int)($_SESSION['user_id'] ?? 0));
+    $preferenceBodyClass = ecotwinPreferenceBodyClass($preferences);
+    $t = fn(string $key, array $replacements = []) => ecotwinT($preferences['language'], $key, $replacements);
+
+    // Session display vars used by navbar
+    $userName     = e($_SESSION['user_name']  ?? 'User');
+    $userEmail    = e($_SESSION['user_email'] ?? '');
+    $userRole     = $_SESSION['user_role']   ?? 'researcher';
+    $userInitials = strtoupper(implode('', array_map(
+        fn($w) => $w[0],
+        array_slice(explode(' ', trim($_SESSION['user_name'] ?? 'U')), 0, 2)
+    )));
 } catch (Throwable $e) {
     error_log('Landing status error: ' . $e->getMessage());
     $status['database'] = 'Offline';
+    // Fallback preferences/profile when DB is not available
+    $preferences = ecotwinDefaultPreferences();
+    $profileDetails = ['avatar_url' => ''];
+    $preferenceBodyClass = ecotwinPreferenceBodyClass($preferences);
+    $t = fn(string $key, array $replacements = []) => ecotwinT($preferences['language'], $key, $replacements);
+    $userName     = e($_SESSION['user_name']  ?? 'User');
+    $userEmail    = e($_SESSION['user_email'] ?? '');
+    $userRole     = $_SESSION['user_role']   ?? 'researcher';
+    $userInitials = strtoupper(implode('', array_map(
+        fn($w) => $w[0],
+        array_slice(explode(' ', trim($_SESSION['user_name'] ?? 'U')), 0, 2)
+    )));
 }
 ?>
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -43,11 +71,13 @@ try {
             color: var(--brand-ink);
             font-family: Inter, "Segoe UI", Arial, sans-serif;
         }
+
         .landing-shell {
             min-height: 100vh;
             display: grid;
             grid-template-rows: auto 1fr;
         }
+
         .landing-nav {
             height: 68px;
             display: flex;
@@ -60,6 +90,7 @@ try {
             box-shadow: 0 8px 26px rgba(46, 139, 87, 0.08);
             backdrop-filter: blur(12px);
         }
+
         .landing-brand {
             display: flex;
             align-items: center;
@@ -67,6 +98,7 @@ try {
             font-weight: 800;
             font-size: 18px;
         }
+
         .landing-brand img {
             width: 42px;
             height: 42px;
@@ -76,77 +108,84 @@ try {
             background: var(--brand-mint);
             border: 1px solid rgba(191, 188, 143, 0.42);
         }
+
         .landing-nav-actions {
             display: flex;
             gap: 10px;
             align-items: center;
         }
+
         .landing-main {
             width: min(1240px, calc(100% - 32px));
             margin: 0 auto;
             padding: 40px 0;
             display: grid;
-            grid-template-columns: minmax(0, 1.2fr) minmax(340px, 0.8fr);
-            gap: 28px;
+            grid-template-columns: minmax(0, 1.12fr) minmax(340px, 0.88fr);
+            gap: 24px;
             align-items: stretch;
         }
-        .hero-panel, .status-panel {
-            background: rgba(255, 255, 255, 0.92);
-            border: 1px solid var(--brand-line);
+
+        .hero-panel,
+        .status-panel {
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(46, 139, 87, 0.15);
             border-radius: 8px;
-            padding: 28px;
-            box-shadow: var(--brand-shadow);
+            padding: 30px;
+            box-shadow: 0 18px 44px rgba(23, 51, 38, 0.1);
         }
+
         .hero-panel {
             position: relative;
             display: grid;
             align-content: center;
+            isolation: isolate;
             min-height: 600px;
             overflow: hidden;
             background:
-                linear-gradient(120deg, rgba(255, 255, 255, 0.96), rgba(240, 255, 240, 0.74)),
-                linear-gradient(90deg, rgba(46, 139, 87, 0.06) 1px, transparent 1px) 0 0 / 24px 24px;
+                linear-gradient(120deg, rgba(255, 255, 255, 0.99) 0 58%, rgba(240, 255, 240, 0.86) 100%),
+                linear-gradient(90deg, rgba(46, 139, 87, 0.035) 1px, transparent 1px) 0 0 / 24px 24px;
         }
+
         .hero-panel::before {
             content: "";
             position: absolute;
-            right: -12px;
-            bottom: 12px;
-            width: min(46%, 390px);
-            height: 48%;
+            right: -72px;
+            bottom: -24px;
+            width: min(42%, 330px);
+            height: 42%;
             background: url("assets/Greenhouse_Model.png") center / contain no-repeat;
-            filter: drop-shadow(0 28px 36px rgba(46, 139, 87, 0.26));
-            opacity: 0.95;
+            filter: drop-shadow(0 24px 32px rgba(46, 139, 87, 0.18));
+            opacity: 0.22;
             pointer-events: none;
+            z-index: 0;
         }
+
         .hero-panel::after {
             content: "";
             position: absolute;
-            right: 24px;
-            bottom: 34px;
-            width: min(42%, 360px);
-            height: 28px;
-            border-radius: 50%;
-            background: rgba(46, 139, 87, 0.16);
-            filter: blur(7px);
+            inset: 16px;
+            border: 1px solid rgba(46, 139, 87, 0.08);
+            border-radius: 8px;
             pointer-events: none;
+            z-index: 0;
         }
+
         .hero-motion-loop {
             position: absolute;
-            right: 28px;
-            top: 26px;
-            width: min(38%, 340px);
-            height: 158px;
+            right: 30px;
+            top: 28px;
+            width: 148px;
+            height: 44px;
             overflow: hidden;
-            border-radius: 12px;
-            border: 1px solid rgba(46, 139, 87, 0.14);
+            border-radius: 999px;
+            border: 1px solid rgba(46, 139, 87, 0.16);
             background:
-                linear-gradient(120deg, rgba(46, 139, 87, 0.16), rgba(255, 255, 255, 0.72)),
-                url("assets/Greenhouse_Model.png") center / cover no-repeat;
-            box-shadow: 0 18px 38px rgba(46, 139, 87, 0.18);
-            opacity: 0.88;
+                linear-gradient(120deg, rgba(255, 255, 255, 0.96), rgba(240, 255, 240, 0.88));
+            box-shadow: 0 10px 24px rgba(46, 139, 87, 0.1);
             pointer-events: none;
+            z-index: 1;
         }
+
         .hero-motion-loop::before {
             content: "";
             position: absolute;
@@ -156,22 +195,31 @@ try {
                 repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.22) 0 1px, transparent 1px 18px);
             animation: heroScan 5.8s linear infinite;
         }
+
         .hero-motion-loop::after {
             content: "LIVE LAN";
             position: absolute;
-            right: 12px;
-            bottom: 10px;
+            inset: 0;
+            display: grid;
+            place-items: center;
             padding: 5px 8px;
-            border-radius: 999px;
-            color: #FFFFFF;
-            background: rgba(46, 139, 87, 0.88);
+            color: var(--brand-deep);
+            background: transparent;
             font-size: 11px;
             font-weight: 900;
+            letter-spacing: 0.08em;
         }
+
         @keyframes heroScan {
-            from { transform: translateX(-28%) rotate(0deg); }
-            to { transform: translateX(28%) rotate(0deg); }
+            from {
+                transform: translateX(-28%) rotate(0deg);
+            }
+
+            to {
+                transform: translateX(28%) rotate(0deg);
+            }
         }
+
         .eyebrow,
         .hero-title,
         .hero-copy,
@@ -180,6 +228,7 @@ try {
             position: relative;
             z-index: 1;
         }
+
         .eyebrow {
             width: fit-content;
             padding: 8px 12px;
@@ -192,20 +241,23 @@ try {
             text-transform: uppercase;
             margin-bottom: 14px;
         }
+
         .hero-title {
-            max-width: 650px;
-            font-size: 52px;
+            max-width: 700px;
+            font-size: 50px;
             line-height: 1.05;
             margin: 0 0 16px;
             letter-spacing: 0;
         }
+
         .hero-copy {
-            max-width: 640px;
-            color: var(--brand-muted);
+            max-width: 680px;
+            color: #334155;
             font-size: 17px;
             line-height: 1.7;
             margin: 0 0 24px;
         }
+
         .gateway-visual {
             position: relative;
             display: grid;
@@ -216,12 +268,12 @@ try {
             padding: 18px;
             overflow: hidden;
             background:
-                linear-gradient(135deg, rgba(240, 255, 240, 0.92), rgba(255, 255, 255, 0.94)),
-                repeating-linear-gradient(90deg, rgba(46, 139, 87, 0.06) 0 1px, transparent 1px 20px);
-            border: 1px solid var(--brand-line);
+                linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(240, 255, 240, 0.74));
+            border: 1px solid rgba(46, 139, 87, 0.14);
             border-radius: 8px;
-            box-shadow: 0 16px 34px rgba(23, 51, 38, 0.1);
+            box-shadow: 0 14px 30px rgba(23, 51, 38, 0.08);
         }
+
         .gateway-node {
             position: relative;
             z-index: 1;
@@ -232,19 +284,22 @@ try {
             padding: 14px 10px;
             text-align: center;
             background: var(--brand-white);
-            border: 1px solid var(--brand-line);
+            border: 1px solid rgba(46, 139, 87, 0.13);
             border-radius: 8px;
             box-shadow: 0 8px 20px rgba(46, 139, 87, 0.08);
         }
+
         .gateway-node strong {
             color: var(--brand-ink);
             font-size: 14px;
         }
+
         .gateway-node span {
             color: var(--brand-muted);
             font-size: 12px;
             line-height: 1.35;
         }
+
         .gateway-icon {
             position: relative;
             width: 54px;
@@ -256,6 +311,7 @@ try {
             border: 1px solid #cfe6d3;
             box-shadow: inset 0 0 0 6px rgba(60, 179, 113, 0.08), 0 10px 20px rgba(46, 139, 87, 0.11);
         }
+
         .phone-icon::before {
             content: "";
             position: absolute;
@@ -267,6 +323,7 @@ try {
             border-radius: 7px;
             background: #FFFFFF;
         }
+
         .phone-icon::after {
             content: "";
             position: absolute;
@@ -277,11 +334,13 @@ try {
             border-radius: 50%;
             background: var(--brand-green);
         }
+
         .esp-icon::before,
         .esp-icon::after {
             content: "";
             position: absolute;
         }
+
         .esp-icon::before {
             left: 12px;
             top: 17px;
@@ -291,6 +350,7 @@ try {
             background: var(--brand-deep);
             box-shadow: inset 0 0 0 5px rgba(255, 255, 255, 0.18);
         }
+
         .esp-icon::after {
             left: 19px;
             top: 8px;
@@ -301,6 +361,7 @@ try {
             border-bottom: 0;
             transform: rotate(-45deg);
         }
+
         .data-icon::before {
             content: "";
             position: absolute;
@@ -312,12 +373,14 @@ try {
             background: linear-gradient(180deg, #FFFFFF 0 18%, var(--brand-green) 18% 100%);
             border: 2px solid var(--brand-deep);
         }
+
         .gateway-arrow {
             width: 28px;
             height: 2px;
             background: var(--brand-gold);
             position: relative;
         }
+
         .gateway-arrow::after {
             content: "";
             position: absolute;
@@ -329,11 +392,13 @@ try {
             border-right: 2px solid var(--brand-gold);
             transform: rotate(45deg);
         }
+
         .action-row {
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
         }
+
         .landing-btn {
             min-height: 44px;
             display: inline-flex;
@@ -348,30 +413,34 @@ try {
             background: var(--brand-white);
             transition: all 0.2s ease;
         }
+
         .landing-btn:hover {
             background: var(--brand-mint);
             color: var(--brand-deep);
             transform: translateY(-2px);
             box-shadow: var(--brand-shadow-sm);
         }
+
         .landing-btn.primary {
             background: var(--brand-deep);
             color: var(--brand-white);
             border-color: var(--brand-deep);
         }
+
         .landing-btn.primary:hover {
             background: var(--brand-green);
             border-color: var(--brand-green);
             color: var(--brand-white);
         }
+
         .status-panel {
             display: grid;
             gap: 16px;
             align-content: start;
             background:
-                linear-gradient(150deg, rgba(255, 255, 255, 0.96), rgba(240, 255, 240, 0.78)),
-                linear-gradient(90deg, rgba(46, 139, 87, 0.055) 1px, transparent 1px) 0 0 / 22px 22px;
+                linear-gradient(150deg, rgba(255, 255, 255, 0.98), rgba(240, 255, 240, 0.72));
         }
+
         .status-card {
             position: relative;
             overflow: hidden;
@@ -381,6 +450,7 @@ try {
             background: rgba(255, 255, 255, 0.88);
             box-shadow: 0 10px 22px rgba(46, 139, 87, 0.08);
         }
+
         .status-card::after {
             content: "";
             position: absolute;
@@ -391,33 +461,38 @@ try {
             border-radius: 50%;
             background: rgba(60, 179, 113, 0.12);
         }
+
         .status-label {
             color: var(--brand-muted);
             font-size: 12px;
             font-weight: 800;
             text-transform: uppercase;
         }
+
         .status-value {
             margin-top: 8px;
             font-size: 28px;
             font-weight: 900;
         }
+
         .flow {
             display: grid;
             gap: 10px;
             color: var(--brand-muted);
             line-height: 1.5;
         }
+
         .flow div {
             position: relative;
             padding: 12px;
             border-radius: 8px;
-            background: rgba(255, 255, 255, 0.88);
+            background: rgba(255, 255, 255, 0.94);
             color: var(--brand-ink);
             font-weight: 700;
             border-left: 4px solid var(--brand-gold);
             box-shadow: 0 8px 18px rgba(46, 139, 87, 0.08);
         }
+
         .module-showcase {
             grid-column: 1 / -1;
             display: grid;
@@ -430,6 +505,7 @@ try {
             border-radius: 8px;
             box-shadow: var(--brand-shadow);
         }
+
         .module-showcase-head {
             display: flex;
             justify-content: space-between;
@@ -437,17 +513,20 @@ try {
             align-items: end;
             flex-wrap: wrap;
         }
+
         .module-showcase h2 {
             margin: 0 0 6px;
             color: var(--brand-ink);
             font-size: 26px;
         }
+
         .module-showcase p {
             max-width: 680px;
             margin: 0;
             color: var(--brand-muted);
             line-height: 1.6;
         }
+
         .module-search {
             min-width: min(320px, 100%);
             height: 46px;
@@ -459,11 +538,13 @@ try {
             background: rgba(255, 255, 255, 0.94);
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
         }
+
         .module-filter-row {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
         }
+
         .module-filter-row button {
             min-height: 38px;
             padding: 0 12px;
@@ -474,17 +555,20 @@ try {
             font-weight: 800;
             cursor: pointer;
         }
+
         .module-filter-row button.active {
             background: var(--brand-deep);
             color: #FFFFFF;
             border-color: var(--brand-deep);
             box-shadow: 0 10px 20px rgba(46, 139, 87, 0.18);
         }
+
         .module-grid {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 14px;
         }
+
         .module-card {
             position: relative;
             min-height: 190px;
@@ -495,6 +579,7 @@ try {
             background: rgba(255, 255, 255, 0.92);
             box-shadow: 0 12px 24px rgba(46, 139, 87, 0.08);
         }
+
         .module-card::after {
             content: "";
             position: absolute;
@@ -505,6 +590,7 @@ try {
             border-radius: 50%;
             background: rgba(191, 188, 143, 0.16);
         }
+
         .module-graphic {
             position: relative;
             width: 58px;
@@ -515,6 +601,7 @@ try {
             border: 1px solid rgba(46, 139, 87, 0.16);
             box-shadow: inset 0 0 0 6px rgba(60, 179, 113, 0.08), 0 12px 22px rgba(46, 139, 87, 0.11);
         }
+
         .module-graphic::before {
             content: "";
             position: absolute;
@@ -523,25 +610,30 @@ try {
             background: var(--brand-green);
             box-shadow: 16px 0 0 var(--brand-gold), 8px 18px 0 var(--brand-deep);
         }
+
         .module-card strong,
         .module-card span {
             position: relative;
             z-index: 1;
             display: block;
         }
+
         .module-card strong {
             margin-bottom: 7px;
             color: var(--brand-ink);
             font-size: 17px;
         }
+
         .module-card span {
             color: var(--brand-muted);
             line-height: 1.5;
             font-size: 13px;
         }
+
         .module-card[hidden] {
             display: none;
         }
+
         .landing-footer {
             grid-column: 1 / -1;
             display: grid;
@@ -555,11 +647,13 @@ try {
             color: var(--brand-muted);
             line-height: 1.55;
         }
+
         .landing-footer strong {
             display: block;
             margin-bottom: 6px;
             color: var(--brand-ink);
         }
+
         .landing-footer a {
             display: block;
             color: var(--brand-deep);
@@ -567,186 +661,285 @@ try {
             text-decoration: none;
             margin-top: 4px;
         }
+
         @media (max-width: 880px) {
             .landing-main {
                 grid-template-columns: 1fr;
                 padding-top: 24px;
             }
+
             .hero-panel {
                 min-height: auto;
             }
+
             .hero-panel::before,
             .hero-panel::after,
             .hero-motion-loop {
                 display: none;
             }
+
             .hero-title {
                 font-size: 34px;
             }
+
             .gateway-visual {
                 grid-template-columns: 1fr;
             }
+
             .gateway-arrow {
                 width: 2px;
                 height: 24px;
                 justify-self: center;
             }
+
             .gateway-arrow::after {
                 right: -4px;
                 top: 13px;
                 transform: rotate(135deg);
             }
+
             .landing-nav {
                 padding: 0 16px;
             }
+
             .module-grid {
                 grid-template-columns: 1fr;
             }
+
             .landing-footer {
                 grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
-<body>
-<div class="landing-shell">
-    <nav class="landing-nav">
-        <div class="landing-brand">
-            <img src="ECOTwin_Logo.png" alt="ECOTwin logo">
-            <span>ECOTwin LAN</span>
-        </div>
-        <div class="landing-nav-actions">
-            <a class="landing-btn" href="greenhouses.php">Greenhouses</a>
-            <a class="landing-btn primary" href="<?= htmlspecialchars($primaryUrl) ?>"><?= htmlspecialchars($primaryLabel) ?></a>
-        </div>
-    </nav>
 
-    <main class="landing-main">
-        <section class="hero-panel">
-            <div class="hero-motion-loop" data-parallax="0.04" aria-hidden="true"></div>
-            <div class="eyebrow">Dual-Greenhouse Research Framework</div>
-            <h1 class="hero-title">Local greenhouse monitoring through the ESP32 LAN gateway.</h1>
-            <p class="hero-copy">
-                ECOTwin runs on the local XAMPP server while users connect through the ESP32 Wi-Fi network.
-                Sensor records, experiments, reports, and controls stay inside the LAN.
-            </p>
-            <div class="gateway-visual" aria-label="ECOTwin local connection flow">
-                <div class="gateway-node">
-                    <div class="gateway-icon phone-icon" aria-hidden="true"></div>
-                    <strong>User device</strong>
-                    <span>Phone or laptop joins the ESP32 Wi-Fi</span>
-                </div>
-                <div class="gateway-arrow" aria-hidden="true"></div>
-                <div class="gateway-node">
-                    <div class="gateway-icon esp-icon" aria-hidden="true"></div>
-                    <strong>ESP32 gateway</strong>
-                    <span>Points users to the local EcoTwin website</span>
-                </div>
-                <div class="gateway-arrow" aria-hidden="true"></div>
-                <div class="gateway-node">
-                    <div class="gateway-icon data-icon" aria-hidden="true"></div>
-                    <strong>EcoTwin data</strong>
-                    <span>Experiments, sensors, and reports stay organized</span>
-                </div>
-            </div>
-            <div class="action-row">
-                <a class="landing-btn primary" href="<?= htmlspecialchars($primaryUrl) ?>"><?= htmlspecialchars($primaryLabel) ?></a>
-                <a class="landing-btn" href="login.php">Researcher Login</a>
-            </div>
-        </section>
+<body class="<?= htmlspecialchars($preferenceBodyClass ?? '') ?>"
+    data-language="<?= htmlspecialchars($preferences['language'] ?? '') ?>"
+    data-timezone="<?= htmlspecialchars($preferences['timezone'] ?? '') ?>"
+    data-date-format="<?= htmlspecialchars($preferences['date_format'] ?? '') ?>">
+    <div class="landing-shell">
+        <nav class="navbar">
+            <div class="navbar-container">
+                <a href="index.php" class="navbar-logo">
+                    <img src="ECOTwin_Logo.png" alt="EcoTwin logo" class="logo-icon" />
+                    <span class="logo-text">EcoTwin</span>
+                </a>
 
-        <aside class="status-panel">
-            <div class="status-card">
-                <div class="status-label">Database</div>
-                <div class="status-value"><?= htmlspecialchars($status['database']) ?></div>
-            </div>
-            <div class="status-card">
-                <div class="status-label">Greenhouses</div>
-                <div class="status-value"><?= number_format($status['greenhouses']) ?></div>
-            </div>
-            <div class="status-card">
-                <div class="status-label">Sensors</div>
-                <div class="status-value"><?= number_format($status['sensors']) ?></div>
-            </div>
-            <div class="flow">
-                <div>1. Connect to ECOTwin-LAN</div>
-                <div>2. Open 192.168.4.1</div>
-                <div>3. Continue to this local website</div>
-            </div>
-        </aside>
+                <div class="navbar-menu" id="navbarMenu">
+                    <a href="index.php" class="nav-item active"><?= htmlspecialchars($t('nav.index')) ?></a>
+                    <a href="dashboard.php" class="nav-item"><?= htmlspecialchars($t('nav.dashboard')) ?></a>
+                    <a href="experiments.php" class="nav-item"><?= htmlspecialchars($t('nav.experiments')) ?></a>
+                    <a href="greenhouses.php" class="nav-item"><?= htmlspecialchars($t('nav.greenhouses')) ?></a>
+                    <a href="reports.php" class="nav-item"><?= htmlspecialchars($t('nav.reports')) ?></a>
+                    <?php if (($userRole ?? '') === 'admin'): ?>
+                        <a href="admin.php" class="nav-item"><?= htmlspecialchars($t('nav.admin')) ?></a>
+                    <?php endif; ?>
+                </div>
 
-        <section class="module-showcase" data-filter-group>
-            <div class="module-showcase-head">
+                <?php if (!empty($isLoggedIn)): ?>
+                    <div class="navbar-user">
+                        <div class="profile-icon <?= !empty($profileDetails['avatar_url']) ? 'has-avatar' : '' ?>" onclick="toggleProfileDropdown(event)">
+                            <?php if (!empty($profileDetails['avatar_url'])): ?>
+                                <img src="<?= e($profileDetails['avatar_url']) ?>" alt="Profile avatar" />
+                            <?php else: ?>
+                                <?= e($userInitials) ?>
+                            <?php endif; ?>
+                        </div>
+                        <div class="profile-dropdown" id="profileDropdown">
+                            <div class="profile-dropdown-header">
+                                <div class="profile-user-info">
+                                    <div class="profile-user-name"><?= $userName ?></div>
+                                    <div class="profile-user-email"><?= $userEmail ?></div>
+                                    <div class="profile-user-role"><?= e(ucfirst($userRole)) ?></div>
+                                </div>
+                            </div>
+                            <div class="profile-dropdown-body">
+                                <a href="profile_settings.php" class="profile-menu-item"><?= htmlspecialchars($t('menu.profile_settings')) ?></a>
+                                <a href="preference_settings.php" class="profile-menu-item"><?= htmlspecialchars($t('menu.preferences')) ?></a>
+                            </div>
+                            <div class="profile-dropdown-footer">
+                                <form id="logoutForm" method="POST" action="auth_handler.php" style="margin:0;">
+                                    <input type="hidden" name="action" value="logout" />
+                                    <button type="submit" class="logout-btn"><?= htmlspecialchars($t('menu.logout')) ?></button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <div class="navbar-user">
+                        <a class="landing-btn primary" href="<?= htmlspecialchars($primaryUrl) ?>"><?= htmlspecialchars($primaryLabel) ?></a>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </nav>
+
+        <main class="landing-main">
+            <section class="hero-panel">
+                <div class="hero-motion-loop" data-parallax="0.04" aria-hidden="true"></div>
+                <div class="eyebrow">Dual-Greenhouse Research Framework</div>
+                <h1 class="hero-title">Local greenhouse monitoring through the ESP32 LAN gateway.</h1>
+                <p class="hero-copy">
+                    ECOTwin runs on the local XAMPP server while users connect through the ESP32 Wi-Fi network.
+                    Sensor records, experiments, reports, and controls stay inside the LAN.
+                </p>
+                <div class="gateway-visual" aria-label="ECOTwin local connection flow">
+                    <div class="gateway-node">
+                        <div class="gateway-icon phone-icon" aria-hidden="true"></div>
+                        <strong>User device</strong>
+                        <span>Phone or laptop joins the ESP32 Wi-Fi</span>
+                    </div>
+                    <div class="gateway-arrow" aria-hidden="true"></div>
+                    <div class="gateway-node">
+                        <div class="gateway-icon esp-icon" aria-hidden="true"></div>
+                        <strong>ESP32 gateway</strong>
+                        <span>Points users to the local EcoTwin website</span>
+                    </div>
+                    <div class="gateway-arrow" aria-hidden="true"></div>
+                    <div class="gateway-node">
+                        <div class="gateway-icon data-icon" aria-hidden="true"></div>
+                        <strong>EcoTwin data</strong>
+                        <span>Experiments, sensors, and reports stay organized</span>
+                    </div>
+                </div>
+                <div class="action-row">
+                    <a class="landing-btn primary" href="<?= htmlspecialchars($primaryUrl) ?>"><?= htmlspecialchars($primaryLabel) ?></a>
+                    <a class="landing-btn" href="login.php">Researcher Login</a>
+                </div>
+                <div style="margin-top:12px;color:var(--brand-muted);font-size:14px;">
+                    Need an account? <a href="register.php">Request access</a> - fill the form and an administrator will review and approve your account.
+                </div>
+            </section>
+
+            <aside class="status-panel">
+                <div class="status-card">
+                    <div class="status-label">Database</div>
+                    <div class="status-value"><?= htmlspecialchars($status['database']) ?></div>
+                </div>
+                <div class="status-card">
+                    <div class="status-label">Greenhouses</div>
+                    <div class="status-value"><?= number_format($status['greenhouses']) ?></div>
+                </div>
+                <div class="status-card">
+                    <div class="status-label">Sensors</div>
+                    <div class="status-value"><?= number_format($status['sensors']) ?></div>
+                </div>
+                <div class="flow">
+                    <div>1. Connect to ECOTwin-LAN</div>
+                    <div>2. Open 192.168.4.1</div>
+                    <div>3. Continue to this local website</div>
+                </div>
+            </aside>
+
+            <section class="module-showcase" data-filter-group>
+                <div class="module-showcase-head">
+                    <div>
+                        <div class="eyebrow">Explore the system</div>
+                        <h2>Find the part of EcoTwin you need</h2>
+                        <p>Search or filter the main modules so first-time users can quickly understand where to monitor, manage, or export greenhouse work.</p>
+                    </div>
+                    <input class="module-search" data-filter-search type="search" placeholder="Search modules..." aria-label="Search EcoTwin modules">
+                </div>
+                <div class="module-filter-row" aria-label="Module filters">
+                    <button type="button" class="active" data-filter-value="all">All</button>
+                    <button type="button" data-filter-value="monitor">Monitor</button>
+                    <button type="button" data-filter-value="research">Research</button>
+                    <button type="button" data-filter-value="manage">Manage</button>
+                    <button type="button" data-filter-value="export">Export</button>
+                </div>
+                <div class="module-grid">
+                    <article class="module-card" data-filter-item data-filter-category="monitor">
+                        <div class="module-graphic"></div>
+                        <strong>Live Dashboard</strong>
+                        <span>See active experiments, greenhouse condition, alerts, and latest synchronized readings.</span>
+                    </article>
+                    <article class="module-card" data-filter-item data-filter-category="research monitor">
+                        <div class="module-graphic"></div>
+                        <strong>Greenhouse Sensor Map</strong>
+                        <span>Use visual sensor points to understand temperature, humidity, light, pH, EC, and water level.</span>
+                    </article>
+                    <article class="module-card" data-filter-item data-filter-category="research manage">
+                        <div class="module-graphic"></div>
+                        <strong>Experiments</strong>
+                        <span>Start, track, and protect experiment ownership so each researcher sees the right data.</span>
+                    </article>
+                    <article class="module-card" data-filter-item data-filter-category="export research">
+                        <div class="module-graphic"></div>
+                        <strong>Reports</strong>
+                        <span>Review events, compare greenhouse readings, and export research records for analysis.</span>
+                    </article>
+                    <article class="module-card" data-filter-item data-filter-category="manage">
+                        <div class="module-graphic"></div>
+                        <strong>Plant Library</strong>
+                        <span>Manage crops and threshold ranges so readings are judged against the correct plant profile.</span>
+                    </article>
+                    <article class="module-card" data-filter-item data-filter-category="manage monitor">
+                        <div class="module-graphic"></div>
+                        <strong>ESP32 LAN Gateway</strong>
+                        <span>Guide connected users from the ESP32 Wi-Fi network into the local EcoTwin website.</span>
+                    </article>
+                </div>
+            </section>
+
+            <footer class="landing-footer">
                 <div>
-                    <div class="eyebrow">Explore the system</div>
-                    <h2>Find the part of EcoTwin you need</h2>
-                    <p>Search or filter the main modules so first-time users can quickly understand where to monitor, manage, or export greenhouse work.</p>
+                    <strong>ECOTwin Research Greenhouse</strong>
+                    Local monitoring, experiment ownership, greenhouse automation thresholds, and reports for dual-chamber hydroponic studies.
                 </div>
-                <input class="module-search" data-filter-search type="search" placeholder="Search modules..." aria-label="Search EcoTwin modules">
-            </div>
-            <div class="module-filter-row" aria-label="Module filters">
-                <button type="button" class="active" data-filter-value="all">All</button>
-                <button type="button" data-filter-value="monitor">Monitor</button>
-                <button type="button" data-filter-value="research">Research</button>
-                <button type="button" data-filter-value="manage">Manage</button>
-                <button type="button" data-filter-value="export">Export</button>
-            </div>
-            <div class="module-grid">
-                <article class="module-card" data-filter-item data-filter-category="monitor">
-                    <div class="module-graphic"></div>
-                    <strong>Live Dashboard</strong>
-                    <span>See active experiments, greenhouse condition, alerts, and latest synchronized readings.</span>
-                </article>
-                <article class="module-card" data-filter-item data-filter-category="research monitor">
-                    <div class="module-graphic"></div>
-                    <strong>Greenhouse Sensor Map</strong>
-                    <span>Use visual sensor points to understand temperature, humidity, light, pH, EC, and water level.</span>
-                </article>
-                <article class="module-card" data-filter-item data-filter-category="research manage">
-                    <div class="module-graphic"></div>
-                    <strong>Experiments</strong>
-                    <span>Start, track, and protect experiment ownership so each researcher sees the right data.</span>
-                </article>
-                <article class="module-card" data-filter-item data-filter-category="export research">
-                    <div class="module-graphic"></div>
-                    <strong>Reports</strong>
-                    <span>Review events, compare greenhouse readings, and export research records for analysis.</span>
-                </article>
-                <article class="module-card" data-filter-item data-filter-category="manage">
-                    <div class="module-graphic"></div>
-                    <strong>Plant Library</strong>
-                    <span>Manage crops and threshold ranges so readings are judged against the correct plant profile.</span>
-                </article>
-                <article class="module-card" data-filter-item data-filter-category="manage monitor">
-                    <div class="module-graphic"></div>
-                    <strong>ESP32 LAN Gateway</strong>
-                    <span>Guide connected users from the ESP32 Wi-Fi network into the local EcoTwin website.</span>
-                </article>
-            </div>
-        </section>
+                <div>
+                    <strong>Data Flow</strong>
+                    Sensors write readings into ecotwin_db, then dashboards, alerts, and reports read from the same local database.
+                </div>
+                <div>
+                    <strong>Access</strong>
+                    Researchers manage experiments. Administrators manage users, plant profiles, system settings, and assignments.
+                </div>
+                <div>
+                    <strong>Quick Links</strong>
+                    <a href="dashboard.php">Dashboard</a>
+                    <a href="reports.php">Reports</a>
+                    <a href="greenhouses.php">Greenhouses</a>
+                </div>
+            </footer>
+        </main>
+    </div>
+    <script>
+        'use strict';
 
-        <footer class="landing-footer">
-            <div>
-                <strong>ECOTwin Research Greenhouse</strong>
-                Local monitoring, experiment ownership, greenhouse automation thresholds, and reports for dual-chamber hydroponic studies.
-            </div>
-            <div>
-                <strong>Data Flow</strong>
-                Sensors write readings into ecotwin_db, then dashboards, alerts, and reports read from the same local database.
-            </div>
-            <div>
-                <strong>Access</strong>
-                Researchers manage experiments. Administrators manage users, plant profiles, system settings, and assignments.
-            </div>
-            <div>
-                <strong>Quick Links</strong>
-                <a href="dashboard.php">Dashboard</a>
-                <a href="reports.php">Reports</a>
-                <a href="greenhouses.php">Greenhouses</a>
-            </div>
-        </footer>
-    </main>
-</div>
-<script src="js.navbar.js?v=<?= urlencode((string) @filemtime(__DIR__ . '/js.navbar.js')) ?>"></script>
+        function toggleProfileDropdown(event) {
+            event.stopPropagation();
+            const dd = document.getElementById('profileDropdown');
+            if (dd) dd.classList.toggle('active');
+        }
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.profile-icon') && !e.target.closest('.profile-dropdown')) {
+                const dd = document.getElementById('profileDropdown');
+                if (dd) dd.classList.remove('active');
+            }
+        });
+        const logoutForm = document.getElementById('logoutForm');
+        if (logoutForm) {
+            logoutForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                fetch('auth_handler.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: 'action=logout'
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success && data.redirect) {
+                            window.location.href = data.redirect;
+                        } else {
+                            window.location.href = 'index.php';
+                        }
+                    })
+                    .catch(() => window.location.href = 'index.php');
+            });
+        }
+    </script>
+    <script src="js.navbar.js?v=<?= urlencode((string) @filemtime(__DIR__ . '/js.navbar.js')) ?>"></script>
 </body>
+
 </html>

@@ -72,8 +72,13 @@ try {
   }
 
   // ---- Users -----------------------------------------------------------
-  $userRows = $pdo->query("
-        SELECT user_id, full_name, email, role, status,
+  $allUserRows = $pdo->query("
+        SELECT user_id, full_name, email, username, role,
+               CASE
+                 WHEN status IS NULL OR status = '' THEN 'pending'
+                 ELSE status
+               END AS status,
+               DATE_FORMAT(created_at, '%b %d, %Y') AS created_fmt,
                COALESCE(
                  CASE
                    WHEN last_login_at >= NOW() - INTERVAL 1 HOUR  THEN 'Just now'
@@ -86,6 +91,9 @@ try {
         FROM users
         ORDER BY FIELD(role,'admin','researcher'), full_name
     ")->fetchAll();
+  $pendingUserRows = array_values(array_filter($allUserRows, fn($u) => ($u['status'] ?? '') === 'pending'));
+  $userRows = array_values(array_filter($allUserRows, fn($u) => ($u['status'] ?? '') !== 'pending'));
+  $roleColors = ['admin' => 'badge-success', 'researcher' => 'badge-info'];
 
   // ---- Greenhouse assignments -------------------------------------------
   $ghRows = $pdo->query("
@@ -131,6 +139,8 @@ try {
   $t = fn(string $key, array $replacements = []) => ecotwinT($preferences['language'], $key, $replacements);
   $plantsJS     = [];
   $userRows     = [];
+  $pendingUserRows = [];
+  $roleColors = ['admin' => 'badge-success', 'researcher' => 'badge-info'];
   $cats         = [];
   $ghAssignments = ['A' => 0, 'B' => 0];
   $activeExperiment = null;
@@ -436,26 +446,26 @@ function initials(string $name): string
               </div>
             </div>
 
-              <div class="simulator-step">
-                <div class="step-number">1</div>
-                <button onclick="fillSimulatorFromPlant()">
-                  Load plant targets from greenhouse assignment
-                </button>
-              </div>
+            <div class="simulator-step">
+              <div class="step-number">1</div>
+              <button onclick="fillSimulatorFromPlant()">
+                Load plant targets from greenhouse assignment
+              </button>
+            </div>
 
-              <div class="simulator-step">
-                <div class="step-number">2</div>
-                <button onclick="generateSimulatorScenario()">
-                  Generate scenario (optimal / warning / critical)
-                </button>
-              </div>
+            <div class="simulator-step">
+              <div class="step-number">2</div>
+              <button onclick="generateSimulatorScenario()">
+                Generate scenario (optimal / warning / critical)
+              </button>
+            </div>
 
-              <div class="simulator-step primary">
-                <div class="step-number">3</div>
-                <button onclick="pushSimulatorReadings()">
-                  ▶ Push simulated readings to live stream
-                </button>
-              </div>
+            <div class="simulator-step primary">
+              <div class="step-number">3</div>
+              <button onclick="pushSimulatorReadings()">
+                ▶ Push simulated readings to live stream
+              </button>
+            </div>
           </div>
 
           <div class="simulator-panel">
@@ -506,6 +516,59 @@ function initials(string $name): string
        ================================================================== -->
     <div id="tab-users" class="tab-content">
       <div class="users-layout">
+        <section class="card user-approval-section" id="accountApprovalsSection">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Account Requests
+                <span class="badge badge-neutral" id="pendingRequestsBadge" style="margin-left:8px;"><?= count($pendingUserRows) ?> pending</span>
+              </h2>
+              <p class="approval-section-note">Review new registrations before they can sign in.</p>
+            </div>
+          </div>
+
+          <div class="approval-empty" id="approvalEmptyState" <?= count($pendingUserRows) > 0 ? 'style="display:none;"' : '' ?>>
+            No pending account requests.
+          </div>
+
+          <div class="approval-table-wrap" id="approvalTableWrap" <?= count($pendingUserRows) === 0 ? 'style="display:none;"' : '' ?>>
+            <table class="table approval-table" id="approvalRequestsTable">
+              <thead>
+                <tr>
+                  <th>Applicant</th>
+                  <th>Email</th>
+                  <th>Requested</th>
+                  <th>Role</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="approvalRequestsBody">
+                <?php foreach ($pendingUserRows as $u): ?>
+                  <tr id="approval-row-<?= $u['user_id'] ?>">
+                    <td>
+                      <div class="approval-applicant">
+                        <div class="user-avatar-small"><?= htmlspecialchars(initials($u['full_name'])) ?></div>
+                        <div>
+                          <div class="approval-name"><?= htmlspecialchars($u['full_name']) ?></div>
+                          <div class="approval-username">@<?= htmlspecialchars($u['username'] ?? '') ?></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td><?= htmlspecialchars($u['email']) ?></td>
+                    <td><?= htmlspecialchars($u['created_fmt'] ?? 'Unknown') ?></td>
+                    <td><span class="badge <?= $roleColors[$u['role']] ?? 'badge-neutral' ?>"><?= ucfirst($u['role']) ?></span></td>
+                    <td>
+                      <div class="approval-actions">
+                        <button class="btn btn-success btn-sm approve-btn" data-user-id="<?= $u['user_id'] ?>" onclick="approveUser(<?= $u['user_id'] ?>)">Approve</button>
+                        <button class="btn btn-danger btn-sm" onclick="rejectAccountRequest(<?= $u['user_id'] ?>)">Reject</button>
+                      </div>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
         <section class="card">
           <div class="card-header">
             <h2 class="card-title">System Users
@@ -551,6 +614,9 @@ function initials(string $name): string
                         <option value="admin" <?= $u['role'] === 'admin' ? 'selected' : '' ?>>Admin</option>
                         <option value="researcher" <?= $u['role'] === 'researcher' ? 'selected' : '' ?>>Researcher</option>
                       </select>
+                      <?php if ($u['status'] === 'pending'): ?>
+                        <button class="btn btn-success btn-sm approve-btn" data-user-id="<?= $u['user_id'] ?>" onclick="approveUser(<?= $u['user_id'] ?>)">Approve</button>
+                      <?php endif; ?>
                       <button class="btn btn-danger    btn-sm" onclick="deleteUser(<?= $u['user_id'] ?>)">Remove</button>
                     </div>
                   </td>
@@ -1763,7 +1829,59 @@ function initials(string $name): string
       try {
         await api(`admin/api/users.php?id=${id}`, 'DELETE');
         document.getElementById('user-row-' + id)?.remove();
+        removeApprovalRequestRow(id);
         showToast('🗑 User removed');
+      } catch (e) {
+        showToast('❌ ' + e.message, 'error');
+      }
+    }
+
+    function updateApprovalRequestState() {
+      const body = document.getElementById('approvalRequestsBody');
+      const badge = document.getElementById('pendingRequestsBadge');
+      const tableWrap = document.getElementById('approvalTableWrap');
+      const emptyState = document.getElementById('approvalEmptyState');
+      const count = body ? body.querySelectorAll('tr').length : 0;
+
+      if (badge) badge.textContent = `${count} pending`;
+      if (tableWrap) tableWrap.style.display = count > 0 ? '' : 'none';
+      if (emptyState) emptyState.style.display = count > 0 ? 'none' : '';
+    }
+
+    function removeApprovalRequestRow(id) {
+      document.getElementById('approval-row-' + id)?.remove();
+      updateApprovalRequestState();
+    }
+
+    async function rejectAccountRequest(id) {
+      if (!confirm('Reject this account request? This removes the pending user record.')) return;
+      try {
+        await api(`admin/api/users.php?id=${id}`, 'DELETE');
+        document.getElementById('user-row-' + id)?.remove();
+        removeApprovalRequestRow(id);
+        showToast('Account request rejected');
+      } catch (e) {
+        showToast('Error: ' + e.message, 'error');
+      }
+    }
+
+    async function approveUser(id) {
+      if (!confirm('Approve this registration and activate the user account?')) return;
+      try {
+        await api(`admin/api/users.php?id=${id}`, 'PUT', {
+          status: 'active'
+        });
+        const row = document.getElementById('user-row-' + id);
+        if (row) {
+          const statusCell = row.querySelector('td:nth-child(4)');
+          if (statusCell) {
+            statusCell.innerHTML = `<span class="status-dot status-online"></span> Active`;
+          }
+        }
+        document.querySelectorAll(`.approve-btn[data-user-id="${id}"]`).forEach(btn => btn.remove());
+        removeApprovalRequestRow(id);
+        showToast('✅ User approved');
+        setTimeout(() => location.reload(), 700);
       } catch (e) {
         showToast('❌ ' + e.message, 'error');
       }

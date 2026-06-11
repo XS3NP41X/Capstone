@@ -44,7 +44,7 @@ try {
         if (!$email) jsonResponse(['success' => false, 'error' => 'Valid email is required'], 422);
         if (strlen($pass) < 8) jsonResponse(['success' => false, 'error' => 'Password must be at least 8 characters'], 422);
 
-        $role = in_array($body['role'] ?? '', ['admin','researcher']) ? $body['role'] : 'researcher';
+        $role = in_array($body['role'] ?? '', ['admin', 'researcher']) ? $body['role'] : 'researcher';
 
         // Auto-generate username from email prefix
         $username = strtolower(explode('@', $email)[0]);
@@ -58,10 +58,12 @@ try {
 
         $hash = password_hash($pass, PASSWORD_BCRYPT);
         $ins  = $pdo->prepare("
-            INSERT INTO users (full_name, email, username, password_hash, role)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO users (full_name, email, username, password_hash, role, status)
+            VALUES (?, ?, ?, ?, ?, ?)
         ");
-        $ins->execute([$name, $email, $username, $hash, $role]);
+        if (!$ins->execute([$name, $email, $username, $hash, $role, 'active'])) {
+            jsonResponse(['success' => false, 'error' => 'Failed to create user: ' . implode(' ', $ins->errorInfo())], 500);
+        }
         $userId = (int)$pdo->lastInsertId();
         log_activity_event((int)($_SESSION['user_id'] ?? 0), 'users', 'create_user', "Created {$role} account for {$email}", 'user', $userId);
 
@@ -77,11 +79,11 @@ try {
         $allowed = [];
         $params  = [];
 
-        if (isset($body['role']) && in_array($body['role'], ['admin','researcher'])) {
+        if (isset($body['role']) && in_array($body['role'], ['admin', 'researcher'])) {
             $allowed[] = 'role = ?';
             $params[]  = $body['role'];
         }
-        if (isset($body['status']) && in_array($body['status'], ['active','inactive','suspended'])) {
+        if (isset($body['status']) && in_array($body['status'], ['active', 'inactive', 'suspended', 'pending'])) {
             $allowed[] = 'status = ?';
             $params[]  = $body['status'];
         }
@@ -126,7 +128,6 @@ try {
     }
 
     jsonResponse(['success' => false, 'error' => 'Method not allowed'], 405);
-
 } catch (PDOException $e) {
     if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
         try {

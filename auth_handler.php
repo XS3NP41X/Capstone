@@ -32,9 +32,18 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $action = $_POST['action'] ?? '';
 
 switch ($action) {
-    case 'login':        handle_login();        break;
-    case 'logout':       handle_logout();       break;
-    case 'forgot_email': handle_forgot_email(); break;
+    case 'login':
+        handle_login();
+        break;
+    case 'register':
+        handle_register();
+        break;
+    case 'logout':
+        handle_logout();
+        break;
+    case 'forgot_email':
+        handle_forgot_email();
+        break;
     default:
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Unknown action.']);
@@ -171,8 +180,15 @@ function handle_logout(): void
     $_SESSION = [];
     if (ini_get('session.use_cookies')) {
         $p = session_get_cookie_params();
-        setcookie(session_name(), '', time() - 42000,
-            $p['path'], $p['domain'], $p['secure'], $p['httponly']);
+        setcookie(
+            session_name(),
+            '',
+            time() - 42000,
+            $p['path'],
+            $p['domain'],
+            $p['secure'],
+            $p['httponly']
+        );
     }
     session_destroy();
 
@@ -228,4 +244,80 @@ function handle_forgot_email(): void
 
     // Always return success to prevent email enumeration
     echo json_encode(['success' => true]);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// REGISTER
+// ─────────────────────────────────────────────────────────────────────────────
+function handle_register(): void
+{
+    if (!csrf_verify($_POST['csrf_token'] ?? '')) {
+        echo json_encode(['success' => false, 'message' => 'Security token mismatch. Please refresh the page and try again.']);
+        return;
+    }
+
+    $name     = trim($_POST['name'] ?? '');
+    $email    = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+
+    if ($name === '' || $email === '' || $password === '') {
+        echo json_encode(['success' => false, 'message' => 'Name, email and password are required.']);
+        return;
+    }
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid email format.']);
+        return;
+    }
+
+    if (strlen($password) < 8) {
+        echo json_encode(['success' => false, 'message' => 'Password must be at least 8 characters.']);
+        return;
+    }
+
+    try {
+        $pdo = db();
+
+        // Prevent duplicate emails
+        $chk = $pdo->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
+        $chk->execute([$email]);
+        if ($chk->fetchColumn() > 0) {
+            echo json_encode(['success' => false, 'message' => 'An account with that email already exists.']);
+            return;
+        }
+
+        // Generate a sane username from email prefix, ensure uniqueness
+        $base = strtolower(explode('@', $email)[0]);
+        $username = $base;
+        $i = 1;
+        $ux = $pdo->prepare("SELECT COUNT(*) FROM users WHERE username = ?");
+        while (true) {
+            $ux->execute([$username]);
+            if ($ux->fetchColumn() == 0) break;
+            $username = $base . $i;
+            $i++;
+        }
+
+        $hash = password_hash($password, PASSWORD_BCRYPT);
+
+        $ins = $pdo->prepare(
+            "INSERT INTO users (full_name, email, username, password_hash, role, status)
+             VALUES (?, ?, ?, ?, ?, ?)"
+        );
+        if (!$ins->execute([$name, $email, $username, $hash, 'researcher', 'pending'])) {
+            error_log('Register INSERT failed: ' . json_encode($ins->errorInfo()));
+            echo json_encode(['success' => false, 'message' => 'Database insertion failed.']);
+            return;
+        }
+        $userId = (int)$pdo->lastInsertId();
+
+        log_activity_event(null, 'auth', 'register_request', "New registration for {$email}", 'user', $userId);
+
+        echo json_encode(['success' => true, 'message' => 'Registration received — an administrator will review and approve your account.']);
+        return;
+    } catch (PDOException $e) {
+        error_log('Register DB error: ' . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'A server error occurred. Please try again.']);
+        return;
+    }
 }
