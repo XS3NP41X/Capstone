@@ -14,6 +14,14 @@ require_role('admin');
 $method = $_SERVER['REQUEST_METHOD'];
 $id     = isset($_GET['id']) ? (int)$_GET['id'] : null;
 
+// Require CSRF token for state-changing methods (sent via X-CSRF-Token header)
+if (in_array($method, ['POST', 'PUT', 'DELETE'], true)) {
+    $csrfHeader = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    if (!csrf_verify($csrfHeader)) {
+        jsonResponse(['success' => false, 'error' => 'CSRF token mismatch'], 403);
+    }
+}
+
 try {
     $pdo = getDB();
 
@@ -189,7 +197,6 @@ try {
     }
 
     jsonResponse(['success' => false, 'error' => 'Method not allowed'], 405);
-
 } catch (PDOException $e) {
     if ($pdo->inTransaction()) $pdo->rollBack();
     jsonResponse(['success' => false, 'error' => $e->getMessage()], 500);
@@ -199,7 +206,8 @@ try {
 // HELPER: Insert threshold rows for all parameters
 // ============================================================================
 // Saves thresholds changes for the current request.
-function _saveThresholds(PDO $pdo, int $plantId, array $body): void {
+function _saveThresholds(PDO $pdo, int $plantId, array $body): void
+{
     $params = [
         ['temperature', '°C',     'temp'],
         ['humidity',    '%',      'hum'],
@@ -218,12 +226,12 @@ function _saveThresholds(PDO $pdo, int $plantId, array $body): void {
         if ($param === 'water_level') {
             $min    = (float)($body[$key . '_min']  ?? 0);
             $optLow = (float)($body[$key . '_opt']  ?? 0);
-            $optHigh= (float)($body[$key . '_opt']  ?? 0); // same as opt for water
+            $optHigh = (float)($body[$key . '_opt']  ?? 0); // same as opt for water
             $max    = (float)($body[$key . '_max']  ?? 0);
         } else {
             $min    = (float)($body[$key . '_min']      ?? 0);
             $optLow = (float)($body[$key . '_opt_low']  ?? 0);
-            $optHigh= (float)($body[$key . '_opt_high'] ?? 0);
+            $optHigh = (float)($body[$key . '_opt_high'] ?? 0);
             $max    = (float)($body[$key . '_max']      ?? 0);
         }
         $stmt->execute([$plantId, $param, $unit, $min, $optLow, $optHigh, $max]);

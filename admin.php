@@ -178,6 +178,7 @@ function initials(string $name): string
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="csrf-token" content="<?= htmlspecialchars(csrf_token()) ?>">
   <title><?= htmlspecialchars($t('page.admin.title')) ?> - EcoTwin</title>
   <link rel="stylesheet" href="css.main.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.main.css')) ?>" />
   <link rel="stylesheet" href="css.admin.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.admin.css')) ?>" />
@@ -1030,6 +1031,10 @@ function initials(string $name): string
       water_level: 'sim-water_level'
     };
 
+    // CSRF token from server (meta tag) for JS API write requests
+    const _metaCsrf = document.querySelector('meta[name="csrf-token"]');
+    const CSRF_TOKEN = _metaCsrf ? _metaCsrf.getAttribute('content') : '';
+
     let editingPlantId = null;
     let selectedPlantId = null;
     let currentCategory = 'all';
@@ -1044,6 +1049,7 @@ function initials(string $name): string
           'Content-Type': 'application/json'
         }
       };
+      if (method !== 'GET' && CSRF_TOKEN) opts.headers['X-CSRF-Token'] = CSRF_TOKEN;
       if (body) opts.body = JSON.stringify(body);
       const res = await fetch(url, opts);
       const raw = await res.text();
@@ -1163,8 +1169,16 @@ function initials(string $name): string
         <div class="th-row"><span class="th-label">Photoperiod</span><span class="th-val">${p.photo} hrs/day</span></div>
       </div>
     </div>
-    ${p.notes ? `<div class="plant-notes"><strong>📝 Notes:</strong> ${p.notes}</div>` : ''}
+    ${p.notes ? `<div class="plant-notes"><strong>📝 Notes:</strong> <div class="plant-notes-body"></div></div>` : ''}
   `;
+      // Safely insert notes as text to avoid stored XSS; preserve newlines
+      if (p.notes) {
+        const noteEl = content.querySelector('.plant-notes-body');
+        if (noteEl) {
+          noteEl.textContent = p.notes;
+          noteEl.style.whiteSpace = 'pre-wrap';
+        }
+      }
     }
 
     // Builds the threshold card markup for the selected plant.
