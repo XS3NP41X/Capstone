@@ -243,7 +243,7 @@ function initials(string $name): string
     <div class="admin-page-header">
       <div class="admin-header-left">
         <div class="admin-title-row">
-          <div class="admin-crown">⚙️</div>
+          <div class="admin-crown"><?= ecotwinIcon('settings') ?></div>
           <div>
             <h1 class="page-title"><?= htmlspecialchars($t('page.admin.title')) ?></h1>
             <p class="page-subtitle"><?= htmlspecialchars($t('page.admin.subtitle')) ?></p>
@@ -257,10 +257,10 @@ function initials(string $name): string
 
     <!-- Admin Tabs -->
     <div class="admin-tabs mb-3">
-      <button class="admin-tab active" onclick="switchTab('plants',    this)">🌱 Plant Library</button>
-      <button class="admin-tab" onclick="switchTab('greenhouse', this)">🏠 Greenhouse Assignment</button>
-      <button class="admin-tab" onclick="switchTab('users',      this)">👥 User Management</button>
-      <button class="admin-tab" onclick="switchTab('system',     this)">🖥️ System Config</button>
+      <button class="admin-tab active" onclick="switchTab('plants',    this)"><?= ecotwinIcon('sprout') ?> Plant Library</button>
+      <button class="admin-tab" onclick="switchTab('greenhouse', this)"><?= ecotwinIcon('home') ?> Greenhouse Assignment</button>
+      <button class="admin-tab" onclick="switchTab('users',      this)"><?= ecotwinIcon('users') ?> User Management</button>
+      <button class="admin-tab" onclick="switchTab('system',     this)"><?= ecotwinIcon('monitor') ?> System Config</button>
     </div>
 
     <!-- ==================================================================
@@ -272,7 +272,7 @@ function initials(string $name): string
         <!-- Left: Plant Selector -->
         <div class="plant-selector-panel">
           <div class="panel-header">
-            <h2 class="panel-title">🌿 Plant Library</h2>
+            <h2 class="panel-title"><?= ecotwinIcon('leaf') ?> Plant Library</h2>
             <button class="btn btn-primary btn-sm" onclick="openAddPlantModal()">+ Add Plant</button>
           </div>
           <div class="plant-search-wrap">
@@ -292,7 +292,7 @@ function initials(string $name): string
         <!-- Right: Plant Detail -->
         <div class="plant-detail-panel" id="plantDetailPanel">
           <div class="detail-placeholder" id="detailPlaceholder">
-            <div class="placeholder-icon">🌱</div>
+            <div class="placeholder-icon"><?= ecotwinIcon('sprout') ?></div>
             <div class="placeholder-text">Select a plant to view &amp; edit its thresholds</div>
             <div class="placeholder-subtext">Or add a new plant to the library</div>
           </div>
@@ -330,7 +330,7 @@ function initials(string $name): string
         ?>
           <div class="gh-assign-card gh-<?= strtolower($ghCode) ?>-card">
             <div class="gh-assign-header">
-              <div class="gh-assign-icon">🏠</div>
+              <div class="gh-assign-icon"><?= ecotwinIcon('home') ?></div>
               <div>
                 <div class="gh-assign-title">Greenhouse <?= $ghCode ?></div>
                 <div class="gh-assign-role"><?= ucfirst($gh['gh_role']) ?> Group</div>

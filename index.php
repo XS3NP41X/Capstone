@@ -301,77 +301,21 @@ try {
         }
 
         .gateway-icon {
-            position: relative;
             width: 54px;
             height: 54px;
             border-radius: 8px;
-            background:
-                radial-gradient(circle at 36% 22%, rgba(255, 255, 255, 0.95), transparent 2.6rem),
-                linear-gradient(135deg, var(--brand-mint), #FFFFFF);
+            background: #eef8f1;
             border: 1px solid #cfe6d3;
-            box-shadow: inset 0 0 0 6px rgba(60, 179, 113, 0.08), 0 10px 20px rgba(46, 139, 87, 0.11);
+            box-shadow: 0 10px 20px rgba(46, 139, 87, 0.11);
+            color: var(--brand-deep);
+            display: grid;
+            place-items: center;
         }
 
-        .phone-icon::before {
-            content: "";
-            position: absolute;
-            left: 17px;
-            top: 8px;
-            width: 20px;
-            height: 38px;
-            border: 3px solid var(--brand-deep);
-            border-radius: 7px;
-            background: #FFFFFF;
-        }
-
-        .phone-icon::after {
-            content: "";
-            position: absolute;
-            left: 24px;
-            bottom: 12px;
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--brand-green);
-        }
-
-        .esp-icon::before,
-        .esp-icon::after {
-            content: "";
-            position: absolute;
-        }
-
-        .esp-icon::before {
-            left: 12px;
-            top: 17px;
+        .gateway-icon .ui-icon {
             width: 30px;
-            height: 20px;
-            border-radius: 5px;
-            background: var(--brand-deep);
-            box-shadow: inset 0 0 0 5px rgba(255, 255, 255, 0.18);
-        }
-
-        .esp-icon::after {
-            left: 19px;
-            top: 8px;
-            width: 16px;
-            height: 16px;
-            border: 2px solid var(--brand-gold);
-            border-left: 0;
-            border-bottom: 0;
-            transform: rotate(-45deg);
-        }
-
-        .data-icon::before {
-            content: "";
-            position: absolute;
-            left: 13px;
-            top: 9px;
-            width: 28px;
-            height: 36px;
-            border-radius: 50% / 13%;
-            background: linear-gradient(180deg, #FFFFFF 0 18%, var(--brand-green) 18% 100%);
-            border: 2px solid var(--brand-deep);
+            height: 30px;
+            stroke-width: 1.9;
         }
 
         .gateway-arrow {
@@ -592,23 +536,22 @@ try {
         }
 
         .module-graphic {
-            position: relative;
             width: 58px;
             height: 58px;
             margin-bottom: 14px;
             border-radius: 12px;
-            background: linear-gradient(135deg, #F0FFF0, #FFFFFF);
+            background: #eef8f1;
             border: 1px solid rgba(46, 139, 87, 0.16);
-            box-shadow: inset 0 0 0 6px rgba(60, 179, 113, 0.08), 0 12px 22px rgba(46, 139, 87, 0.11);
+            box-shadow: 0 12px 22px rgba(46, 139, 87, 0.11);
+            color: #2E8B57;
+            display: grid;
+            place-items: center;
         }
 
-        .module-graphic::before {
-            content: "";
-            position: absolute;
-            inset: 14px;
-            border-radius: 9px;
-            background: var(--brand-green);
-            box-shadow: 16px 0 0 var(--brand-gold), 8px 18px 0 var(--brand-deep);
+        .module-graphic .ui-icon {
+            width: 30px;
+            height: 30px;
+            stroke-width: 1.9;
         }
 
         .module-card strong,
@@ -784,19 +727,19 @@ try {
                 </p>
                 <div class="gateway-visual" aria-label="ECOTwin local connection flow">
                     <div class="gateway-node">
-                        <div class="gateway-icon phone-icon" aria-hidden="true"></div>
+                        <div class="gateway-icon" aria-hidden="true"><?= ecotwinIcon('smartphone') ?></div>
                         <strong>User device</strong>
                         <span>Phone or laptop joins the ESP32 Wi-Fi</span>
                     </div>
                     <div class="gateway-arrow" aria-hidden="true"></div>
                     <div class="gateway-node">
-                        <div class="gateway-icon esp-icon" aria-hidden="true"></div>
+                        <div class="gateway-icon" aria-hidden="true"><?= ecotwinIcon('router') ?></div>
                         <strong>ESP32 gateway</strong>
                         <span>Points users to the local EcoTwin website</span>
                     </div>
                     <div class="gateway-arrow" aria-hidden="true"></div>
                     <div class="gateway-node">
-                        <div class="gateway-icon data-icon" aria-hidden="true"></div>
+                        <div class="gateway-icon" aria-hidden="true"><?= ecotwinIcon('database') ?></div>
                         <strong>EcoTwin data</strong>
                         <span>Experiments, sensors, and reports stay organized</span>
                     </div>
@@ -848,32 +791,32 @@ try {
                 </div>
                 <div class="module-grid">
                     <article class="module-card" data-filter-item data-filter-category="monitor">
-                        <div class="module-graphic"></div>
+                        <div class="module-graphic"><?= ecotwinIcon('gauge') ?></div>
                         <strong>Live Dashboard</strong>
                         <span>See active experiments, greenhouse condition, alerts, and latest synchronized readings.</span>
                     </article>
                     <article class="module-card" data-filter-item data-filter-category="research monitor">
-                        <div class="module-graphic"></div>
+                        <div class="module-graphic"><?= ecotwinIcon('activity') ?></div>
                         <strong>Greenhouse Sensor Map</strong>
                         <span>Use visual sensor points to understand temperature, humidity, light, pH, EC, and water level.</span>
                     </article>
                     <article class="module-card" data-filter-item data-filter-category="research manage">
-                        <div class="module-graphic"></div>
+                        <div class="module-graphic"><?= ecotwinIcon('flask') ?></div>
                         <strong>Experiments</strong>
                         <span>Start, track, and protect experiment ownership so each researcher sees the right data.</span>
                     </article>
                     <article class="module-card" data-filter-item data-filter-category="export research">
-                        <div class="module-graphic"></div>
+                        <div class="module-graphic"><?= ecotwinIcon('database') ?></div>
                         <strong>Reports</strong>
                         <span>Review events, compare greenhouse readings, and export research records for analysis.</span>
                     </article>
                     <article class="module-card" data-filter-item data-filter-category="manage">
-                        <div class="module-graphic"></div>
+                        <div class="module-graphic"><?= ecotwinIcon('leaf') ?></div>
                         <strong>Plant Library</strong>
                         <span>Manage crops and threshold ranges so readings are judged against the correct plant profile.</span>
                     </article>
                     <article class="module-card" data-filter-item data-filter-category="manage monitor">
-                        <div class="module-graphic"></div>
+                        <div class="module-graphic"><?= ecotwinIcon('wifi') ?></div>
                         <strong>ESP32 LAN Gateway</strong>
                         <span>Guide connected users from the ESP32 Wi-Fi network into the local EcoTwin website.</span>
                     </article>

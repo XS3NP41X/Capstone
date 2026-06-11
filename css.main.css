@@ -1901,3 +1901,335 @@ select:focus {
   border-color: var(--brand-deep);
   box-shadow: 0 0 0 3px rgba(46, 139, 87, 0.12);
 }
+
+/* ============================================================================
+   ECOTWIN UNIFIED PROFESSIONAL SYSTEM
+   Final shared layer for consistent product UI across pages.
+   ============================================================================ */
+
+:root {
+  --ui-bg: #f6faf7;
+  --ui-surface: #ffffff;
+  --ui-surface-soft: #f8fbf9;
+  --ui-border: #d9e4dd;
+  --ui-border-soft: #edf3ef;
+  --ui-text: #10251b;
+  --ui-muted: #58665f;
+  --ui-green: #2e8b57;
+  --ui-green-strong: #25764b;
+  --ui-green-soft: #eef8f1;
+  --ui-gold-soft: #fbf7df;
+  --ui-danger: #dc2626;
+  --ui-danger-soft: #fef2f2;
+  --ui-warning: #b7791f;
+  --ui-warning-soft: #fffbeb;
+  --ui-info: #2563eb;
+  --ui-info-soft: #eff6ff;
+  --ui-radius: 8px;
+  --ui-shadow: 0 8px 22px rgba(16, 37, 27, 0.06);
+  --ui-shadow-hover: 0 14px 30px rgba(16, 37, 27, 0.1);
+}
+
+.ui-icon {
+  width: 1.15em;
+  height: 1.15em;
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: -0.18em;
+}
+
+body:not(.theme-dark):not(.theme-high-contrast) {
+  background: var(--ui-bg);
+  color: var(--ui-text);
+}
+
+body:not(.theme-dark):not(.theme-high-contrast) .main-content {
+  width: min(100% - 40px, 1440px);
+  margin-inline: auto;
+  padding-bottom: 48px;
+}
+
+.page-header,
+.card,
+.summary-card,
+.stat-card,
+.hardware-card,
+.greenhouse-status-card,
+.analytics-overview-card,
+.visual-guide-card,
+.experiment-card,
+.create-experiment-card,
+.experiment-detail-card,
+.gh-form-card,
+.greenhouse-banner,
+.parameter-tile,
+.threshold-group,
+.chart-placeholder,
+.preferences-card,
+.profile-summary-card,
+.settings-card,
+.admin-report-card,
+.plant-selector-panel,
+.plant-detail-panel,
+.gh-assign-card,
+.simulator-card,
+.admin-panel,
+.admin-card,
+.export-summary,
+.export-details {
+  border-radius: var(--ui-radius) !important;
+}
+
+body:not(.theme-dark):not(.theme-high-contrast) .card,
+body:not(.theme-dark):not(.theme-high-contrast) .page-header,
+body:not(.theme-dark):not(.theme-high-contrast) .summary-card,
+body:not(.theme-dark):not(.theme-high-contrast) .stat-card,
+body:not(.theme-dark):not(.theme-high-contrast) .hardware-card,
+body:not(.theme-dark):not(.theme-high-contrast) .greenhouse-status-card,
+body:not(.theme-dark):not(.theme-high-contrast) .analytics-overview-card,
+body:not(.theme-dark):not(.theme-high-contrast) .experiment-card,
+body:not(.theme-dark):not(.theme-high-contrast) .create-experiment-card,
+body:not(.theme-dark):not(.theme-high-contrast) .experiment-detail-card,
+body:not(.theme-dark):not(.theme-high-contrast) .gh-form-card,
+body:not(.theme-dark):not(.theme-high-contrast) .parameter-tile,
+body:not(.theme-dark):not(.theme-high-contrast) .threshold-group,
+body:not(.theme-dark):not(.theme-high-contrast) .chart-placeholder,
+body:not(.theme-dark):not(.theme-high-contrast) .preferences-card,
+body:not(.theme-dark):not(.theme-high-contrast) .profile-summary-card,
+body:not(.theme-dark):not(.theme-high-contrast) .settings-card,
+body:not(.theme-dark):not(.theme-high-contrast) .admin-report-card,
+body:not(.theme-dark):not(.theme-high-contrast) .plant-selector-panel,
+body:not(.theme-dark):not(.theme-high-contrast) .plant-detail-panel,
+body:not(.theme-dark):not(.theme-high-contrast) .gh-assign-card,
+body:not(.theme-dark):not(.theme-high-contrast) .simulator-card {
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  box-shadow: var(--ui-shadow);
+}
+
+.card-header,
+.panel-header,
+.modal-header,
+.gh-assign-header,
+.threshold-header {
+  border-bottom-color: var(--ui-border-soft) !important;
+}
+
+.page-title,
+.card-title,
+.panel-title,
+.section-title,
+.admin-section-title,
+.detail-plant-name,
+.exp-title,
+.setting-title,
+.profile-name {
+  color: var(--ui-text) !important;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.page-subtitle,
+.text-muted,
+.profile-user-email,
+.exp-label,
+.exp-meta-label,
+.setting-description,
+.approval-section-note,
+.admin-report-meta,
+.detail-plant-sci {
+  color: var(--ui-muted) !important;
+}
+
+.btn,
+.btn-login,
+.btn-fp-primary,
+.btn-fp-secondary,
+.btn-full,
+.page-btn,
+.time-btn,
+.cat-btn,
+.admin-tab,
+.landing-btn,
+button {
+  border-radius: var(--ui-radius) !important;
+  letter-spacing: 0;
+}
+
+.btn,
+.btn-login,
+.btn-full,
+.btn-fp-primary,
+.btn-fp-secondary,
+.landing-btn {
+  min-height: 40px;
+  font-weight: 750;
+}
+
+.btn-primary,
+.btn-login,
+.btn-fp-primary,
+.landing-btn.primary {
+  background: var(--ui-green) !important;
+  border-color: var(--ui-green) !important;
+  color: #ffffff !important;
+}
+
+.btn-primary:hover,
+.btn-login:hover,
+.btn-fp-primary:hover,
+.landing-btn.primary:hover {
+  background: var(--ui-green-strong) !important;
+  border-color: var(--ui-green-strong) !important;
+}
+
+.btn-secondary,
+.btn-fp-secondary,
+.page-btn,
+.time-btn {
+  background: #ffffff !important;
+  border: 1px solid var(--ui-border) !important;
+  color: var(--ui-text) !important;
+}
+
+.btn-danger {
+  background: #ef4444 !important;
+  border-color: #ef4444 !important;
+  color: #ffffff !important;
+}
+
+.btn:hover:not(:disabled):not(.disabled),
+.btn-login:hover,
+.btn-full:hover,
+.page-btn:hover:not(:disabled),
+.time-btn:hover,
+.cat-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--ui-shadow-hover) !important;
+}
+
+.form-select,
+.form-input,
+.form-input-admin,
+.form-select-admin,
+.form-input-modal,
+.form-select-modal,
+.form-textarea-modal,
+.plant-search,
+input,
+select,
+textarea {
+  border-color: var(--ui-border) !important;
+  border-radius: var(--ui-radius) !important;
+  color: var(--ui-text);
+}
+
+.form-label,
+.form-label-admin,
+.form-group-modal label,
+.setting-label,
+.table th {
+  color: var(--ui-muted) !important;
+  font-weight: 750;
+}
+
+.table {
+  width: 100%;
+}
+
+.table th {
+  background: var(--ui-surface-soft) !important;
+  border-bottom: 1px solid var(--ui-border) !important;
+  letter-spacing: 0.02em;
+}
+
+.table td {
+  border-bottom-color: var(--ui-border-soft) !important;
+  color: var(--ui-text);
+}
+
+.table tr:hover {
+  background: #fbfdfb !important;
+}
+
+.badge,
+.plant-cat-tag {
+  border-radius: 999px !important;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.badge-success,
+.status-optimal,
+.badge-info {
+  background: var(--ui-green-soft) !important;
+  border-color: #bbf7d0 !important;
+  color: var(--ui-green) !important;
+}
+
+.badge-warning {
+  background: var(--ui-warning-soft) !important;
+  border-color: #fde68a !important;
+  color: var(--ui-warning) !important;
+}
+
+.badge-danger {
+  background: var(--ui-danger-soft) !important;
+  border-color: #fecaca !important;
+  color: var(--ui-danger) !important;
+}
+
+.badge-neutral {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #475569 !important;
+}
+
+.alert {
+  border-radius: var(--ui-radius) !important;
+  border-width: 1px;
+}
+
+.alert-info {
+  background: var(--ui-info-soft) !important;
+  border-color: #bfdbfe !important;
+  color: #1d4ed8 !important;
+}
+
+.alert-success {
+  background: var(--ui-green-soft) !important;
+  border-color: #bbf7d0 !important;
+  color: var(--ui-green) !important;
+}
+
+.alert-warning {
+  background: var(--ui-warning-soft) !important;
+  border-color: #fde68a !important;
+  color: #92400e !important;
+}
+
+.alert-danger {
+  background: var(--ui-danger-soft) !important;
+  border-color: #fecaca !important;
+  color: #991b1b !important;
+}
+
+.navbar {
+  background: #ffffff !important;
+}
+
+.nav-item.active {
+  background: var(--ui-green-soft) !important;
+  color: var(--ui-green) !important;
+}
+
+@media (max-width: 768px) {
+  body:not(.theme-dark):not(.theme-high-contrast) .main-content {
+    width: min(100% - 24px, 1440px);
+    padding-top: 20px;
+  }
+
+  .card-header {
+    gap: 12px;
+  }
+}

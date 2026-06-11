@@ -279,6 +279,38 @@
     gap: 16px;
 }
 
+.hardware-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.hardware-table {
+    min-width: 680px;
+    table-layout: fixed;
+}
+
+.hardware-table th:nth-child(1),
+.hardware-table td:nth-child(1) {
+    width: 48%;
+}
+
+.hardware-table th:nth-child(2),
+.hardware-table td:nth-child(2) {
+    width: 28%;
+}
+
+.hardware-table th:nth-child(3),
+.hardware-table td:nth-child(3) {
+    width: 24%;
+}
+
+.hardware-component-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
 .hardware-card {
     text-align: center;
     padding: 16px;
@@ -288,8 +320,20 @@
 }
 
 .hw-icon {
-    font-size: 32px;
-    margin-bottom: 8px;
+    width: 38px;
+    height: 38px;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 8px;
+    background: var(--ui-green-soft, #eef8f1);
+    border: 1px solid #bbf7d0;
+    color: var(--ui-green, #2e8b57);
+    flex: 0 0 auto;
+}
+
+.hw-icon .ui-icon {
+    width: 20px;
+    height: 20px;
 }
 
 .hw-name {
@@ -301,9 +345,9 @@
 .hw-status {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 6px;
-    font-size: 12px;
+    font-size: 14px;
     color: #5A5A5A;
 }
 
@@ -650,111 +694,21 @@
 }
 
 .visual-guide-icon {
-    position: relative;
     width: 58px;
     height: 58px;
     border-radius: 8px;
     background: #F0FFF0;
     border: 1px solid #cfe6d3;
-    box-shadow: inset 0 0 0 6px rgba(60, 179, 113, 0.09);
+    box-shadow: 0 10px 20px rgba(46, 139, 87, 0.08);
+    color: var(--ui-green, #2e8b57);
+    display: grid;
+    place-items: center;
 }
 
-.experiment-icon::before,
-.experiment-icon::after {
-    content: "";
-    position: absolute;
-    left: 16px;
-    right: 16px;
-    border-radius: 999px;
-    background: #2E8B57;
-}
-
-.experiment-icon::before {
-    top: 10px;
-    height: 32px;
-}
-
-.experiment-icon::after {
-    bottom: 9px;
-    height: 7px;
-    background: #BFBC8F;
-}
-
-.experiment-icon span {
-    position: absolute;
-    left: 22px;
-    top: 10px;
-    width: 14px;
-    height: 32px;
-    background: linear-gradient(180deg, #FFFFFF 0 42%, #3CB371 42% 100%);
-    border: 2px solid #FFFFFF;
-    border-radius: 0 0 8px 8px;
-}
-
-.sensor-icon::before,
-.sensor-icon::after,
-.sensor-icon span,
-.sensor-icon i {
-    content: "";
-    position: absolute;
-    border-radius: 50%;
-}
-
-.sensor-icon::before {
-    left: 9px;
-    top: 10px;
-    width: 13px;
-    height: 13px;
-    background: #3CB371;
-}
-
-.sensor-icon::after {
-    right: 10px;
-    top: 12px;
-    width: 13px;
-    height: 13px;
-    background: #BFBC8F;
-}
-
-.sensor-icon span {
-    left: 22px;
-    bottom: 10px;
-    width: 14px;
-    height: 14px;
-    background: #EF4444;
-}
-
-.sensor-icon i {
-    left: 14px;
-    top: 18px;
-    width: 31px;
-    height: 22px;
-    border: 2px dashed rgba(46, 139, 87, 0.45);
-    border-left: 0;
-    border-bottom: 0;
-    border-radius: 0;
-    transform: rotate(14deg);
-}
-
-.action-icon::before {
-    content: "";
-    position: absolute;
-    left: 13px;
-    top: 13px;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: conic-gradient(#EF4444 0 30%, #BFBC8F 30% 63%, #3CB371 63% 100%);
-}
-
-.action-icon span {
-    position: absolute;
-    left: 23px;
-    top: 23px;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: #FFFFFF;
+.visual-guide-icon .ui-icon {
+    width: 30px;
+    height: 30px;
+    stroke-width: 1.9;
 }
 
 .greenhouse-status-card .gh-parameters {
@@ -1407,4 +1361,61 @@
     .greenhouse-photo {
         transform: scale(1);
     }
+}
+
+/* ============================================================================
+   DASHBOARD CONSISTENCY PASS
+   ============================================================================ */
+
+.summary-card,
+.greenhouse-status-card,
+.visual-guide-card,
+.analytics-overview-card,
+.hardware-card {
+    background: #ffffff !important;
+    border: 1px solid var(--ui-border, #d9e4dd) !important;
+    box-shadow: var(--ui-shadow, 0 8px 22px rgba(16, 37, 27, 0.06)) !important;
+}
+
+.summary-card::before,
+.visual-guide-card::after,
+.analytics-stat::after {
+    display: none;
+}
+
+.experiment-banner,
+.dashboard-guide {
+    background: #ffffff !important;
+    border: 1px solid var(--ui-border, #d9e4dd);
+    border-left: 4px solid var(--ui-green, #2e8b57);
+    box-shadow: var(--ui-shadow, 0 8px 22px rgba(16, 37, 27, 0.06));
+    color: var(--ui-text, #10251b);
+}
+
+.experiment-banner *,
+.dashboard-guide * {
+    color: inherit;
+}
+
+.banner-actions .btn-sm {
+    background: var(--ui-green, #2e8b57);
+    color: #ffffff;
+}
+
+.summary-icon,
+.hardware-icon,
+.hw-icon,
+.guide-step-number,
+.visual-guide-icon {
+    background: var(--ui-green-soft, #eef8f1) !important;
+    border: 1px solid #bbf7d0 !important;
+    box-shadow: none !important;
+    color: var(--ui-green, #2e8b57) !important;
+}
+
+.greenhouse-model,
+.greenhouse-readable-summary {
+    background: var(--ui-surface-soft, #f8fbf9) !important;
+    border: 1px solid var(--ui-border, #d9e4dd);
+    box-shadow: none !important;
 }

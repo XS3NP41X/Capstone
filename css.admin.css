@@ -1539,6 +1539,11 @@
   box-shadow: none;
 }
 
+.admin-crown .ui-icon {
+  width: 24px;
+  height: 24px;
+}
+
 .admin-page-header .page-title {
   color: #10251b;
   font-size: 28px;
@@ -1718,4 +1723,341 @@
   .admin-tabs {
     grid-template-columns: 1fr;
   }
+}
+
+/* ============================================================================
+   ADMIN LAYOUT FIXES
+   ============================================================================ */
+
+.main-content {
+  width: min(100% - 32px, 1440px);
+}
+
+.admin-tabs,
+.tab-layout,
+.greenhouse-assign-grid,
+.settings-grid,
+.users-layout,
+.simulator-layout,
+.simulator-value-grid,
+.threshold-cards-grid,
+.card,
+.plant-selector-panel,
+.plant-detail-panel,
+.gh-assign-card {
+  min-width: 0;
+}
+
+.admin-tabs {
+  overflow-x: auto;
+  scrollbar-width: thin;
+  justify-content: center;
+}
+
+.admin-tab {
+  flex: 1 1 0;
+  white-space: nowrap;
+}
+
+.card {
+  overflow: hidden;
+}
+
+.card > .table,
+.card > .approval-table-wrap,
+.card > .admin-table-wrap {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  min-width: 720px;
+}
+
+.users-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+.users-layout .card {
+  width: 100%;
+}
+
+.users-layout .table {
+  display: table;
+  min-width: 100%;
+  table-layout: fixed;
+}
+
+.users-layout .table th,
+.users-layout .table td {
+  vertical-align: middle;
+}
+
+.users-layout .table th:nth-child(1),
+.users-layout .table td:nth-child(1) {
+  width: 19%;
+}
+
+.users-layout .table th:nth-child(2),
+.users-layout .table td:nth-child(2) {
+  width: 23%;
+}
+
+.users-layout .table th:nth-child(3),
+.users-layout .table td:nth-child(3) {
+  width: 11%;
+}
+
+.users-layout .table th:nth-child(4),
+.users-layout .table td:nth-child(4) {
+  width: 10%;
+}
+
+.users-layout .table th:nth-child(5),
+.users-layout .table td:nth-child(5) {
+  width: 12%;
+}
+
+.users-layout .table th:nth-child(6),
+.users-layout .table td:nth-child(6) {
+  width: 25%;
+}
+
+.users-layout .table td:not(:last-child) {
+  overflow-wrap: anywhere;
+}
+
+.users-layout #usersTableBody td:last-child > div {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+}
+
+.users-layout #usersTableBody .role-dropdown,
+.users-layout #usersTableBody .btn-danger {
+  min-width: 0;
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.users-layout #usersTableBody .role-dropdown {
+  flex: 1 1 150px;
+  max-width: 190px;
+}
+
+.users-layout #usersTableBody .btn-danger {
+  flex: 0 0 112px;
+}
+
+#tab-greenhouse .card > .table {
+  display: table;
+  min-width: 100%;
+  table-layout: fixed;
+}
+
+#tab-greenhouse .card > .table th,
+#tab-greenhouse .card > .table td {
+  vertical-align: middle;
+}
+
+#tab-greenhouse .card > .table th:nth-child(1),
+#tab-greenhouse .card > .table td:nth-child(1) {
+  width: 14%;
+}
+
+#tab-greenhouse .card > .table th:nth-child(2),
+#tab-greenhouse .card > .table td:nth-child(2) {
+  width: 14%;
+}
+
+#tab-greenhouse .card > .table th:nth-child(3),
+#tab-greenhouse .card > .table td:nth-child(3),
+#tab-greenhouse .card > .table th:nth-child(4),
+#tab-greenhouse .card > .table td:nth-child(4),
+#tab-greenhouse .card > .table th:nth-child(5),
+#tab-greenhouse .card > .table td:nth-child(5),
+#tab-greenhouse .card > .table th:nth-child(6),
+#tab-greenhouse .card > .table td:nth-child(6),
+#tab-greenhouse .card > .table th:nth-child(7),
+#tab-greenhouse .card > .table td:nth-child(7) {
+  width: 13%;
+}
+
+#tab-greenhouse .card > .table th:nth-child(8),
+#tab-greenhouse .card > .table td:nth-child(8) {
+  width: 10%;
+}
+
+#tab-greenhouse .card > .table td {
+  overflow-wrap: normal;
+}
+
+#tab-greenhouse .card > .table .badge {
+  white-space: nowrap;
+}
+
+.users-layout .card-header {
+  gap: 14px;
+}
+
+.users-layout .card-header > div {
+  min-width: 0;
+}
+
+.users-layout .card-header .btn {
+  flex-shrink: 0;
+}
+
+.settings-grid {
+  grid-template-columns: repeat(2, minmax(320px, 1fr));
+}
+
+.system-config-card-wide {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 1200px) {
+  .tab-layout {
+    grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+  }
+
+  .greenhouse-assign-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .main-content {
+    width: min(100% - 24px, 1440px);
+  }
+
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-page-header {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 560px) {
+  .main-content {
+    width: min(100% - 20px, 1440px);
+  }
+
+  .card-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-title-row {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .admin-tabs {
+    justify-content: stretch;
+  }
+
+  .admin-tab {
+    flex-basis: 100%;
+  }
+
+  .users-layout .card-header {
+    align-items: stretch;
+  }
+
+  .users-layout .card-header .btn {
+    width: 100%;
+  }
+}
+
+/* ============================================================================
+   ADMIN CONSISTENCY PASS
+   ============================================================================ */
+
+.admin-page-header {
+  background: #ffffff !important;
+  border: 1px solid var(--ui-border, #d9e4dd) !important;
+  border-left: 4px solid var(--ui-green, #2e8b57) !important;
+  box-shadow: var(--ui-shadow, 0 8px 22px rgba(16, 37, 27, 0.06)) !important;
+}
+
+.admin-tabs {
+  width: 100%;
+  gap: 8px;
+}
+
+.admin-tab {
+  background: #ffffff;
+  border-color: var(--ui-border, #d9e4dd);
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.admin-tab.active {
+  background: var(--ui-green, #2e8b57) !important;
+  border-color: var(--ui-green, #2e8b57) !important;
+  color: #ffffff !important;
+}
+
+.plant-selector-panel,
+.plant-detail-panel,
+.gh-assign-card,
+.simulator-card,
+.system-config-card-wide,
+.assign-guidance-panel,
+.simulator-panel,
+.approval-empty,
+.gh-empty-state,
+.gh-plant-preview,
+.th-card,
+.mini-thresh,
+.setting-item,
+.maintenance-item {
+  border-radius: 8px !important;
+}
+
+.assign-guidance-panel,
+.simulator-panel,
+.gh-step-item,
+.th-card,
+.mini-thresh,
+.setting-item,
+.maintenance-item {
+  background: var(--ui-surface-soft, #f8fbf9) !important;
+  border-color: var(--ui-border, #d9e4dd) !important;
+}
+
+.gh-a-card,
+.gh-b-card,
+.simulator-card {
+  border-top-color: var(--ui-green, #2e8b57) !important;
+}
+
+.simulator-intro {
+  background: var(--ui-warning-soft, #fffbeb) !important;
+  border-color: #fde68a !important;
+}
+
+.panel-title,
+.gh-assign-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.placeholder-icon .ui-icon,
+.gh-assign-icon .ui-icon {
+  width: 32px;
+  height: 32px;
 }

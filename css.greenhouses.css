@@ -637,3 +637,54 @@
     border-color: #3CB371;
     box-shadow: 0 0 0 3px rgba(60, 179, 113, 0.12);
 }
+
+/* ============================================================================
+   GREENHOUSES CONSISTENCY PASS
+   ============================================================================ */
+
+.greenhouse-banner {
+    background: #ffffff !important;
+    border: 1px solid var(--ui-border, #d9e4dd);
+    border-left: 4px solid var(--ui-green, #2e8b57);
+    box-shadow: var(--ui-shadow, 0 8px 22px rgba(16, 37, 27, 0.06)) !important;
+    color: var(--ui-text, #10251b);
+}
+
+.greenhouse-banner * {
+    color: inherit;
+}
+
+.tab-navigation {
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid var(--ui-border, #d9e4dd);
+}
+
+.tab-button {
+    flex: 1 1 0;
+    border: 1px solid transparent;
+    border-radius: 8px 8px 0 0 !important;
+    font-weight: 750;
+}
+
+.tab-button.active {
+    background: var(--ui-green-soft, #eef8f1);
+    border-color: var(--ui-border, #d9e4dd);
+    border-bottom-color: var(--ui-green, #2e8b57);
+}
+
+.parameter-tile,
+.threshold-group,
+.chart-placeholder,
+.actuator-item,
+.sensor-item {
+    background: #ffffff !important;
+    border: 1px solid var(--ui-border, #d9e4dd) !important;
+    box-shadow: var(--ui-shadow, 0 8px 22px rgba(16, 37, 27, 0.06)) !important;
+}
+
+.param-icon,
+.actuator-icon {
+    background: var(--ui-green-soft, #eef8f1);
+    color: var(--ui-green, #2e8b57) !important;
+}

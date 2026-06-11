@@ -483,3 +483,40 @@
     border-color: rgba(60, 179, 113, 0.35);
     color: #2E8B57;
 }
+
+/* ============================================================================
+   AUTH CONSISTENCY PASS
+   ============================================================================ */
+
+body.auth-page,
+body.login-page,
+body.register-page {
+    background: var(--ui-bg, #f6faf7) !important;
+}
+
+.login-card,
+.fp-card {
+    background: #ffffff !important;
+    border: 1px solid var(--ui-border, #d9e4dd) !important;
+    border-radius: 8px !important;
+    box-shadow: var(--ui-shadow, 0 8px 22px rgba(16, 37, 27, 0.06)) !important;
+}
+
+.login-logo {
+    background: var(--ui-green-soft, #eef8f1) !important;
+    border-color: #bbf7d0 !important;
+    box-shadow: none !important;
+}
+
+.form-input,
+.form-select {
+    background: #ffffff !important;
+    border-color: var(--ui-border, #d9e4dd) !important;
+}
+
+.btn-login,
+.btn-fp-primary,
+.btn-fp-secondary {
+    border-radius: 8px !important;
+    font-weight: 750;
+}

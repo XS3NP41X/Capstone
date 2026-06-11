@@ -205,7 +205,7 @@ foreach ($greenhouses as $gh) {
     }
 }
 
-// ── 8. Recent events & alerts (latest 5) ─────────────────────────────────────
+// ── 8. Greenhouse recent events & alerts (latest 5) ──────────────────────────
 try {
     $recentAlerts = $pdo->query(
         "SELECT severity, category, message, created_at, gh_code
@@ -218,24 +218,34 @@ try {
                   FROM alerts a
                   LEFT JOIN greenhouses g ON a.greenhouse_id = g.greenhouse_id
                 UNION ALL
-                SELECT 'info' AS severity,
-                       al.category,
-                       CONCAT(
-                         UPPER(LEFT(REPLACE(al.action, '_', ' '), 1)),
-                         SUBSTRING(REPLACE(al.action, '_', ' '), 2),
-                         COALESCE(CONCAT(': ', al.detail), '')
-                       ) AS message,
-                       al.created_at,
-                       NULL AS gh_code
-                  FROM activity_log al
+                SELECT CASE
+                         WHEN s.status = 'offline' THEN 'warning'
+                         WHEN s.status = 'online' THEN 'success'
+                         ELSE 'info'
+                       END AS severity,
+                       'sensor' AS category,
+                       CONCAT(s.label, ' is ', s.status) AS message,
+                       s.last_seen_at AS created_at,
+                       g.code AS gh_code
+                  FROM sensors s
+                  JOIN greenhouses g ON s.greenhouse_id = g.greenhouse_id
+                 WHERE s.last_seen_at IS NOT NULL
                 UNION ALL
-                SELECT CASE WHEN sl.action = 'logout' THEN 'success' ELSE 'info' END AS severity,
-                       'session' AS category,
-                       CONCAT(u.full_name, ' ', REPLACE(sl.action, '_', ' ')) AS message,
-                       sl.logged_at AS created_at,
-                       NULL AS gh_code
-                  FROM session_log sl
-                  JOIN users u ON u.user_id = sl.user_id
+                SELECT 'info' AS severity,
+                       sr.parameter AS category,
+                       CONCAT(
+                         UPPER(LEFT(REPLACE(sr.parameter, '_', ' '), 1)),
+                         SUBSTRING(REPLACE(sr.parameter, '_', ' '), 2),
+                         ' reading: ',
+                         ROUND(sr.value, 2),
+                         COALESCE(CONCAT(' ', NULLIF(sr.unit, '')), '')
+                       ) AS message,
+                       sr.recorded_at AS created_at,
+                       g.code AS gh_code
+                  FROM sensor_readings sr
+                  JOIN sensors s ON s.sensor_id = sr.sensor_id
+                  JOIN greenhouses g ON g.greenhouse_id = s.greenhouse_id
+                 WHERE sr.recorded_at IS NOT NULL
            ) recent
           ORDER BY created_at DESC
           LIMIT 5"
@@ -344,6 +354,19 @@ function hw_icon(string $type): string {
         'ups'          => '🔋',
         'power_supply' => '🔌',
         default        => '🖥️',
+    };
+}
+
+// Returns the indicator styling for status display.
+function hw_svg_icon(string $type): string {
+    return match($type) {
+        'arduino'      => ecotwinIcon('cpu'),
+        'esp32'        => ecotwinIcon('wifi'),
+        'nrf_module'   => ecotwinIcon('radio'),
+        'relay'        => ecotwinIcon('zap'),
+        'ups'          => ecotwinIcon('battery'),
+        'power_supply' => ecotwinIcon('plug'),
+        default        => ecotwinIcon('monitor'),
     };
 }
 
@@ -457,7 +480,7 @@ $userInitials = strtoupper(implode('', array_map(
     <section class="visual-guide-grid mb-3" aria-label="Dashboard visual guide">
         <article class="visual-guide-card">
             <div class="visual-guide-icon experiment-icon" aria-hidden="true">
-                <span></span>
+                <?= ecotwinIcon('flask') ?>
             </div>
             <div>
                 <span class="visual-guide-kicker">Step 1</span>
@@ -472,8 +495,7 @@ $userInitials = strtoupper(implode('', array_map(
 
         <article class="visual-guide-card">
             <div class="visual-guide-icon sensor-icon" aria-hidden="true">
-                <span></span>
-                <i></i>
+                <?= ecotwinIcon('activity') ?>
             </div>
             <div>
                 <span class="visual-guide-kicker">Step 2</span>
@@ -486,7 +508,7 @@ $userInitials = strtoupper(implode('', array_map(
 
         <article class="visual-guide-card">
             <div class="visual-guide-icon action-icon" aria-hidden="true">
-                <span></span>
+                <?= ecotwinIcon('alert-triangle') ?>
             </div>
             <div>
                 <span class="visual-guide-kicker">Step 3</span>
@@ -951,20 +973,38 @@ $userInitials = strtoupper(implode('', array_map(
     <!-- ── Hardware Status ───────────────────────────────────────────── -->
     <section class="hardware-section mt-4">
         <h2 class="section-title mb-2">Hardware Status</h2>
-        <div class="hardware-grid">
+        <div class="hardware-table-wrap">
             <?php if (empty($hardware)): ?>
                 <p class="text-muted">No hardware components registered.</p>
             <?php else: ?>
-            <?php foreach ($hardware as $hw): ?>
-            <div class="hardware-card">
-                <div class="hw-icon"><?= hw_icon($hw['type']) ?></div>
-                <div class="hw-name"><?= e($hw['label']) ?></div>
-                <div class="hw-status">
-                    <span class="status-dot <?= e(status_dot_cls($hw['status'])) ?>"></span>
-                    <span><?= e(ucfirst($hw['status'])) ?></span>
-                </div>
-            </div>
-            <?php endforeach; ?>
+            <table class="table hardware-table">
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($hardware as $hw): ?>
+                    <tr>
+                        <td>
+                            <div class="hardware-component-cell">
+                                <span class="hw-icon"><?= hw_svg_icon($hw['type']) ?></span>
+                                <span class="hw-name"><?= e($hw['label']) ?></span>
+                            </div>
+                        </td>
+                        <td><?= e(ucfirst(str_replace('_', ' ', $hw['type']))) ?></td>
+                        <td>
+                            <div class="hw-status">
+                                <span class="status-dot <?= e(status_dot_cls($hw['status'])) ?>"></span>
+                                <span><?= e(ucfirst($hw['status'])) ?></span>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
             <?php endif; ?>
         </div>
     </section>

@@ -385,3 +385,45 @@
 .lock-icon {
     color: #BFBC8F;
 }
+
+/* ============================================================================
+   EXPERIMENTS CONSISTENCY PASS
+   ============================================================================ */
+
+.experiment-card,
+.create-experiment-card,
+.hardware-notice,
+.empty-state,
+.lock-notice,
+.exp-meta-item,
+.exp-greenhouse-card,
+.timeline-item,
+.form-section {
+    background: #ffffff !important;
+    border: 1px solid var(--ui-border, #d9e4dd) !important;
+    box-shadow: var(--ui-shadow, 0 8px 22px rgba(16, 37, 27, 0.06)) !important;
+}
+
+.experiment-card.active {
+    border-left: 4px solid var(--ui-green, #2e8b57) !important;
+}
+
+.experiment-header.active,
+.experiment-banner {
+    background: #ffffff !important;
+    border: 1px solid var(--ui-border, #d9e4dd);
+    border-left: 4px solid var(--ui-green, #2e8b57);
+    box-shadow: var(--ui-shadow, 0 8px 22px rgba(16, 37, 27, 0.06));
+    color: var(--ui-text, #10251b);
+}
+
+.experiment-header.active *,
+.experiment-banner * {
+    color: inherit;
+}
+
+.lock-notice {
+    background: var(--ui-warning-soft, #fffbeb) !important;
+    border-color: #fde68a !important;
+    box-shadow: none !important;
+}

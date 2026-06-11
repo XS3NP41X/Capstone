@@ -31,16 +31,34 @@
 
 .export-notice {
     display: flex;
+    align-items: flex-start;
     gap: 12px;
     padding: 16px;
     background: #F0FFF0;
+    border: 1px solid #bbf7d0;
     border-radius: 8px;
     font-size: 14px;
+    line-height: 1.55;
     color: #2E8B57;
 }
 
 .export-notice .notice-icon {
-    font-size: 24px;
+    flex: 0 0 auto;
+    min-width: 64px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: #dcfce7;
+    color: #166534;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.export-notice > div:last-child {
+    min-width: 0;
+    flex: 1;
 }
 
 /* Filter Controls */
@@ -654,4 +672,43 @@
 .modal-header,
 .modal-actions {
     border-color: #dce9df;
+}
+
+/* ============================================================================
+   REPORTS CONSISTENCY PASS
+   ============================================================================ */
+
+.export-panel,
+.stat-card,
+.analytics-overview-card,
+.analytics-stat,
+.performance-item,
+.report-card,
+.admin-report-card {
+    background: #ffffff !important;
+    border-color: var(--ui-border, #d9e4dd) !important;
+    box-shadow: var(--ui-shadow, 0 8px 22px rgba(16, 37, 27, 0.06)) !important;
+}
+
+.form-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.export-notice {
+    align-items: flex-start;
+    background: var(--ui-green-soft, #eef8f1) !important;
+    border-color: #bbf7d0 !important;
+    color: var(--ui-green, #2e8b57) !important;
+}
+
+.page-btn.active {
+    background: var(--ui-green, #2e8b57) !important;
+    border-color: var(--ui-green, #2e8b57) !important;
+    color: #ffffff !important;
+}
+
+@media (max-width: 900px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
 }

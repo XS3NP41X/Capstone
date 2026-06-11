@@ -770,3 +770,34 @@ body:not(.theme-dark):not(.theme-high-contrast) .preference-field select:focus {
     border-color: #3CB371;
     box-shadow: 0 0 0 3px rgba(60, 179, 113, 0.12);
 }
+
+/* ============================================================================
+   SETTINGS CONSISTENCY PASS
+   ============================================================================ */
+
+.preferences-card,
+.profile-summary-card,
+.settings-card,
+.profile-config-card,
+.notification-channel-card {
+    background: #ffffff !important;
+    border: 1px solid var(--ui-border, #d9e4dd) !important;
+    border-radius: 8px !important;
+    box-shadow: var(--ui-shadow, 0 8px 22px rgba(16, 37, 27, 0.06)) !important;
+}
+
+.profile-avatar-large,
+.profile-avatar-preview {
+    box-shadow: none !important;
+    border: 1px solid var(--ui-border, #d9e4dd);
+}
+
+body.settings-page .btn,
+body.settings-page .btn-edit-config,
+body.settings-page .btn-save-config,
+body.settings-page .btn-cancel-config,
+body.settings-page .user-action-btn,
+body.settings-page .btn-full {
+    border-radius: 8px !important;
+    font-weight: 750;
+}
