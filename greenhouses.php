@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // ============================================================================
 // ECOTWIN - GREENHOUSES MONITORING PAGE
 // PHP conversion with MySQL (ecotwin_db) data integration
@@ -10,8 +10,8 @@ require_once __DIR__ . '/admin/db.php';
 require_once __DIR__ . '/preferences.php';
 require_once __DIR__ . '/config/query_helpers.php';
 
-// ── Auth guard ────────────────────────────────────────────────────────────────
-// ── Load greenhouse overview from DB ─────────────────────────────────────────
+//  Auth guard 
+//  Load greenhouse overview from DB 
 $db = getDB();
 $preferences = ecotwinLoadUserPreferences($db, (int)($_SESSION['user_id'] ?? 0));
 $profileDetails = ecotwinLoadUserProfileDetails($db, (int)($_SESSION['user_id'] ?? 0));
@@ -20,6 +20,14 @@ $t = fn(string $key, array $replacements = []) => ecotwinT($preferences['languag
 
 // Both greenhouses with plant and alert summary
 $greenhouses = ecotwinFetchGreenhouseOverview($db);
+
+$db->exec("
+    UPDATE sensors
+    SET status = 'offline', updated_at = NOW()
+    WHERE status = 'online'
+      AND last_seen_at IS NOT NULL
+      AND last_seen_at < DATE_SUB(NOW(), INTERVAL 15 SECOND)
+");
 
 // Active experiment info
 $active_exp = ecotwinFetchActiveExperiment($db);
@@ -35,7 +43,7 @@ foreach ($greenhouses as $gh) {
     $gh_map[$gh['code']] = $gh;
 }
 
-// ── Load latest readings per greenhouse ───────────────────────────────────────
+//  Load latest readings per greenhouse 
 // Loads readings data used by the current request.
 function loadReadings(PDO $db, int $gh_id): array {
     $rows = ecotwinFetchLatestReadings($db, $gh_id);
@@ -46,7 +54,7 @@ function loadReadings(PDO $db, int $gh_id): array {
     return $out;
 }
 
-// ── Load plant thresholds for a greenhouse ────────────────────────────────────
+//  Load plant thresholds for a greenhouse 
 // Loads thresholds data used by the current request.
 function loadThresholds(PDO $db, int $gh_id): array {
     $stmt = $db->prepare("
@@ -65,7 +73,7 @@ function loadThresholds(PDO $db, int $gh_id): array {
     return $out;
 }
 
-// ── Load automation rules ─────────────────────────────────────────────────────
+//  Load automation rules 
 // Loads rules data used by the current request.
 function loadRules(PDO $db, int $gh_id): array {
     $stmt = $db->prepare("
@@ -81,7 +89,7 @@ function loadRules(PDO $db, int $gh_id): array {
     return $stmt->fetchAll();
 }
 
-// ── Load sensors ──────────────────────────────────────────────────────────────
+//  Load sensors 
 // Loads sensors data used by the current request.
 function loadSensors(PDO $db, int $gh_id): array {
     $stmt = $db->prepare("
@@ -92,7 +100,7 @@ function loadSensors(PDO $db, int $gh_id): array {
     return $stmt->fetchAll();
 }
 
-// ── Load actuators ────────────────────────────────────────────────────────────
+//  Load actuators 
 // Loads actuators data used by the current request.
 function loadActuators(PDO $db, int $gh_id): array {
     $stmt = $db->prepare("
@@ -106,7 +114,7 @@ function loadActuators(PDO $db, int $gh_id): array {
     return $stmt->fetchAll();
 }
 
-// ── Load open alerts ──────────────────────────────────────────────────────────
+//  Load open alerts 
 // Loads alerts data used by the current request.
 function loadAlerts(PDO $db, int $gh_id): array {
     $stmt = $db->prepare("
@@ -120,7 +128,7 @@ function loadAlerts(PDO $db, int $gh_id): array {
     return $stmt->fetchAll();
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+//  Helpers 
 // Evaluates status against the current rules.
 function evalStatus(float $value, array $threshold): string {
     if ($value >= $threshold['val_opt_low'] && $value <= $threshold['val_opt_high']) return 'optimal';
@@ -148,15 +156,15 @@ function badgeFromActualReadings(array $readings, array $thresholds): string {
 // Builds the badge output for status display.
 function statusBadge(string $status): string {
     return match($status) {
-        'optimal'  => '<div class="param-status status-optimal">✓ Optimal</div>',
-        'critical' => '<div class="param-status status-critical">✕ Out of Range</div>',
-        'caution'  => '<div class="param-status status-caution">⚠ Caution</div>',
-        default    => '<div class="param-status">— No Data</div>',
+        'optimal'  => '<div class="param-status status-optimal">Optimal</div>',
+        'critical' => '<div class="param-status status-critical">Out of Range</div>',
+        'caution'  => '<div class="param-status status-caution">Caution</div>',
+        default    => '<div class="param-status">No Data</div>',
     };
 }
 
 // Formats value for display.
-function fmtValue(array $readings, string $param, string $default = '—'): string {
+function fmtValue(array $readings, string $param, string $default = ''): string {
     return isset($readings[$param]) ? number_format((float)$readings[$param]['value'], 1) : $default;
 }
 
@@ -194,15 +202,14 @@ function sensorStatusDot(string $status): string {
     return "<span class=\"status-dot {$dot}\"></span><span>{$label}</span>";
 }
 
-// ── Actuator type → icon map ──────────────────────────────────────────────────
+//  Actuator type  icon map 
 // Returns the icon output for actuator display.
 function actuatorIcon(string $type): string {
     return match($type) {
-        'nutrient_pump' => '💧',
-        'exhaust_fan', 'circulation_fan' => '🌀',
-        'shading_net'    => '☀️',
-        'misting_system' => '💦',
-        default          => '⚙️',
+        'nutrient_pump' => '&#128167;',
+        'exhaust_fan', 'circulation_fan' => '&#128168;',
+        'shading_net' => '&#9728;',
+        default => '&#9881;',
     };
 }
 
@@ -213,12 +220,11 @@ function actuatorLabel(string $type): string {
         'exhaust_fan'       => 'Exhaust Fan',
         'circulation_fan'   => 'Circulation Fan',
         'shading_net'       => 'Shading Net',
-        'misting_system'    => 'Misting System',
         default             => ucfirst(str_replace('_', ' ', $type)),
     };
 }
 
-// ── Sensor type → description ─────────────────────────────────────────────────
+//  Sensor type  description 
 // Returns the short sensor description shown in the greenhouse UI.
 function sensorDesc(string $type): string {
     return match($type) {
@@ -232,7 +238,7 @@ function sensorDesc(string $type): string {
     };
 }
 
-// ── Pre-load data for both greenhouses ────────────────────────────────────────
+//  Pre-load data for both greenhouses 
 $data = [];
 foreach ($greenhouses as $greenhouseRow) {
     $code = (string)$greenhouseRow['code'];
@@ -249,7 +255,7 @@ foreach ($greenhouses as $greenhouseRow) {
     ];
 }
 
-// ── Logged-in user (demo fallback) ────────────────────────────────────────────
+//  Logged-in user (demo fallback) 
 $current_user = [
     'name'  => $_SESSION['user_name']  ?? 'User',
     'email' => $_SESSION['user_email'] ?? '',
@@ -259,7 +265,7 @@ $current_user = [
 
 $userRole = strtolower($_SESSION['user_role'] ?? 'researcher');
 
-// ── Helper: render one greenhouse panel ───────────────────────────────────────
+//  Helper: render one greenhouse panel 
 // Renders greenhouse panel in the current interface.
 function renderGreenhousePanel(string $code, array $d, array $exp, bool $hasActiveExperiment, bool $canEditSettings): string {
     $info       = $d['info'];
@@ -274,7 +280,7 @@ function renderGreenhousePanel(string $code, array $d, array $exp, bool $hasActi
         ? ucfirst((string)$info['role']) . ' Group'
         : (string)($info['name'] ?? $code);
     $exp_subtitle = $exp
-        ? htmlspecialchars($exp['title'] ?? '') . ' • ' . htmlspecialchars($exp['exp_code'] ?? '')
+        ? htmlspecialchars($exp['title'] ?? '') . ' - ' . htmlspecialchars($exp['exp_code'] ?? '')
         : 'No active experiment';
 
     // Determine overall status badge
@@ -293,15 +299,15 @@ function renderGreenhousePanel(string $code, array $d, array $exp, bool $hasActi
 
     // Parameter definitions
     $params = [
-        ['param' => 'temperature', 'icon' => '🌡️', 'label' => 'Air Temperature', 'decimals' => 1],
-        ['param' => 'humidity',    'icon' => '💧',  'label' => 'Humidity',         'decimals' => 0],
-        ['param' => 'light',       'icon' => '☀️',  'label' => 'Light Intensity',  'decimals' => 0, 'format' => 'number'],
-        ['param' => 'ec',          'icon' => '🧪',  'label' => 'EC / TDS',         'decimals' => 1],
-        ['param' => 'ph',          'icon' => '🧪',  'label' => 'pH Level',         'decimals' => 1],
-        ['param' => 'water_level', 'icon' => '🌊',  'label' => 'Water Level',      'decimals' => 0],
+        ['param' => 'temperature', 'icon' => '&#127777;', 'label' => 'Air Temperature', 'decimals' => 1],
+        ['param' => 'humidity',    'icon' => '&#128167;', 'label' => 'Humidity',         'decimals' => 0],
+        ['param' => 'light',       'icon' => '&#9728;',   'label' => 'Light Intensity',  'decimals' => 0, 'format' => 'number'],
+        ['param' => 'ec',          'icon' => '&#129514;', 'label' => 'EC / TDS',         'decimals' => 1],
+        ['param' => 'ph',          'icon' => '&#9878;',   'label' => 'pH Level',         'decimals' => 1],
+        ['param' => 'water_level', 'icon' => '&#127754;', 'label' => 'Water Level',      'decimals' => 0],
     ];
 
-    // ── Build parameter tiles HTML ────────────────────────────────────────────
+    //  Build parameter tiles HTML 
     $tiles_html = '';
     foreach ($params as $p) {
         $reading = $readings[$p['param']] ?? null;
@@ -314,17 +320,17 @@ function renderGreenhousePanel(string $code, array $d, array $exp, bool $hasActi
             ? (isset($p['format']) && $p['format'] === 'number'
                 ? number_format($value, 0)
                 : number_format($value, $p['decimals']))
-            : '—';
+            : '-';
 
         $tile_class = $status === 'critical' ? 'parameter-tile critical' : 'parameter-tile';
         $val_class  = $status === 'critical' ? 'param-value critical-value' : 'param-value';
         $range_text = ($thresh && $value !== null)
-            ? 'Range: ' . $thresh['val_opt_low'] . '–' . $thresh['val_opt_high'] . ' ' . $thresh['unit']
+            ? 'Range: ' . $thresh['val_opt_low'] . ' - ' . $thresh['val_opt_high'] . ' ' . $thresh['unit']
             : 'No threshold configured';
 
         // Custom status badge for 'unknown' status
         $status_html = $status === 'unknown'
-            ? '<div class="param-status status-unknown">❔ Unknown</div>'
+            ? '<div class="param-status status-unknown">Unknown</div>'
             : statusBadge($status);
 
         $tiles_html .= <<<HTML
@@ -340,20 +346,23 @@ function renderGreenhousePanel(string $code, array $d, array $exp, bool $hasActi
         HTML;
     }
 
-    // ── Build automation rules form ────────────────────────────────────────────
+    //  Build automation rules form 
     $threshold_groups = [
-        ['param' => 'temperature', 'icon' => '🌡️', 'label' => 'Temperature Control (°C)',
+        ['param' => 'temperature', 'icon' => '&#127777;', 'label' => 'Temperature Control (C)',
          'above_label' => 'Activate Fan When Above:', 'below_label' => 'Stop Fan When Below:',
-         'above_default' => 40, 'below_default' => 35, 'step' => '0.1', 'unit' => '°C'],
-        ['param' => 'humidity',    'icon' => '💧',  'label' => 'Humidity Control (%)',
+         'above_default' => 40, 'below_default' => 35, 'step' => '0.1', 'unit' => 'C'],
+        ['param' => 'humidity',    'icon' => '&#128167;', 'label' => 'Humidity Control (%)',
          'above_label' => 'Activate Ventilation Above:', 'below_label' => 'Stop Ventilation Below:',
          'above_default' => 80, 'below_default' => 70, 'step' => '1', 'unit' => '%'],
-        ['param' => 'light',       'icon' => '☀️',  'label' => 'Light Intensity Control (lux)',
+        ['param' => 'light',       'icon' => '&#9728;',   'label' => 'Light Intensity Control (lux)',
          'above_label' => 'Activate Shading Above:', 'below_label' => 'Retract Shading Below:',
          'above_default' => 20000, 'below_default' => 15000, 'step' => '100', 'unit' => 'lux'],
-        ['param' => 'ec',          'icon' => '🧪',  'label' => 'EC/TDS Control (mS/cm)',
+        ['param' => 'ec',          'icon' => '&#129514;', 'label' => 'EC/TDS Control (ppm)',
          'above_label' => 'Turn Pump Off When Above:', 'below_label' => 'Turn Pump On When Below:',
-         'above_default' => 2.5, 'below_default' => 1.2, 'step' => '0.1', 'unit' => 'mS/cm'],
+         'above_default' => 700, 'below_default' => 350, 'step' => '1', 'unit' => 'ppm'],
+        ['param' => 'water_level', 'icon' => '&#127754;', 'label' => 'Water Level Control (raw)',
+         'above_label' => 'Stop Pump When Above:', 'below_label' => 'Run Pump When Below:',
+         'above_default' => 650, 'below_default' => 250, 'step' => '1', 'unit' => 'raw'],
     ];
 
     $settingsDisabled = $canEditSettings ? '' : 'disabled';
@@ -401,7 +410,7 @@ function renderGreenhousePanel(string $code, array $d, array $exp, bool $hasActi
         HTML;
     }
 
-    // ── Actuator rows ─────────────────────────────────────────────────────────
+    //  Actuator rows 
     $actuators_html = '';
     foreach ($actuators as $act) {
         $icon  = actuatorIcon($act['actuator_type']);
@@ -425,7 +434,7 @@ function renderGreenhousePanel(string $code, array $d, array $exp, bool $hasActi
         $actuators_html = '<div class="text-muted" style="padding:12px 0;">No actuator hardware is registered for this greenhouse.</div>';
     }
 
-    // ── Sensor rows ───────────────────────────────────────────────────────────
+    //  Sensor rows 
     $sensors_html = '';
     foreach ($sensors as $sen) {
         $offline_cls = $sen['status'] === 'offline' ? ' offline' : '';
@@ -443,11 +452,11 @@ function renderGreenhousePanel(string $code, array $d, array $exp, bool $hasActi
         HTML;
     }
 
-    // ── Alerts block ──────────────────────────────────────────────────────────
+    //  Alerts block 
     $alerts_html = '';
     foreach ($alerts as $alert) {
         $icon = match($alert['severity']) {
-            'critical' => '🔴', 'warning' => '⚠️', 'success' => '✅', default => 'ℹ️'
+            'critical' => 'CRITICAL', 'warning' => 'WARNING', 'success' => 'OK', default => 'INFO'
         };
         $msg  = htmlspecialchars($alert['message']);
         $ts   = htmlspecialchars($alert['created_at']);
@@ -469,12 +478,12 @@ function renderGreenhousePanel(string $code, array $d, array $exp, bool $hasActi
     $settingsDisabled = $canEditSettings ? '' : 'disabled';
     $settingsLockNotice = $canEditSettings
         ? ''
-        : '<div class="control-notice settings-lock-notice"><div class="notice-icon">🔒</div><div><strong>Greenhouse settings locked:</strong> Another user is conducting an active experiment. Threshold edits are available again when it ends.</div></div>';
+        : '<div class="control-notice settings-lock-notice"><div class="notice-icon">&#128274;</div><div><strong>Greenhouse settings locked:</strong> Another user is conducting an active experiment. Threshold edits are available again when it ends.</div></div>';
 
     $manualControlNotice = $hasActiveExperiment
         ? '<strong>Manual Control:</strong> Controls are locked during active experiments to maintain experimental integrity. Automatic control is managing all actuators.'
         : '<strong>Manual Control:</strong> No active experiment is running, so actuator controls are available for direct pump, fan, and shading toggles.';
-    $noticeIcon = $hasActiveExperiment ? '🔒' : '🟢';
+    $noticeIcon = $hasActiveExperiment ? '&#128274;' : '&#9679;';
     $buttonDisabled = $hasActiveExperiment ? 'disabled' : '';
 
     $lc_code = strtolower($code);
@@ -484,9 +493,9 @@ function renderGreenhousePanel(string $code, array $d, array $exp, bool $hasActi
         <!-- Status Banner -->
         <div class="greenhouse-banner gh-{$lc_code} mb-3">
             <div class="banner-info">
-                <div class="banner-icon">🏠</div>
+                <div class="banner-icon">&#127969;</div>
                 <div>
-                    <div class="banner-title">Greenhouse {$code} – {$role_label}</div>
+                    <div class="banner-title">Greenhouse {$code} - {$role_label}</div>
                     <div class="banner-subtitle">{$exp_subtitle}</div>
                 </div>
             </div>
@@ -569,14 +578,14 @@ function renderGreenhousePanel(string $code, array $d, array $exp, bool $hasActi
                         </div>
                     </div>
                     <div class="chart-legend">
-                        <div class="legend-item"><div class="legend-dot red"></div><span>Temperature (°C)</span></div>
+                        <div class="legend-item"><div class="legend-dot red"></div><span>Temperature (C)</span></div>
                         <div class="legend-item"><div class="legend-dot blue"></div><span>Humidity (%)</span></div>
                         <div class="legend-item"><div class="legend-dot purple"></div><span>EC (mS/cm)</span></div>
                     </div>
                     <div class="chart-container">
                         <canvas id="chart-{$lc_code}" width="100%" height="280"></canvas>
                         <div class="chart-placeholder" id="chart-placeholder-{$lc_code}">
-                            <div class="placeholder-icon">📊</div>
+                            <div class="placeholder-icon"></div>
                             <div class="placeholder-text">Loading trend data...</div>
                             <div class="placeholder-subtext">Fetching from the local database</div>
                         </div>
@@ -588,7 +597,7 @@ function renderGreenhousePanel(string $code, array $d, array $exp, bool $hasActi
                     <div class="card-header">
                         <h3 class="card-title">Sensor Hardware Status</h3>
                         <button class="btn btn-secondary btn-sm"
-                                onclick="refreshSensors('{$code}')">↻ Refresh</button>
+                                onclick="refreshSensors('{$code}')">Refresh</button>
                     </div>
                     <div class="sensor-list" id="sensors-{$lc_code}">
                         {$sensors_html}
@@ -602,10 +611,10 @@ function renderGreenhousePanel(string $code, array $d, array $exp, bool $hasActi
 
 // Closure workaround for status badge
 $statusBadge_fn = [
-    'optimal'  => '<div class="param-status status-optimal">✓ Optimal</div>',
-    'critical' => '<div class="param-status status-critical">✕ Out of Range</div>',
-    'caution'  => '<div class="param-status status-caution">⚠ Caution</div>',
-    'unknown'  => '<div class="param-status">— No Data</div>',
+    'optimal'  => '<div class="param-status status-optimal">Optimal</div>',
+    'critical' => '<div class="param-status status-critical">Out of Range</div>',
+    'caution'  => '<div class="param-status status-caution">Caution</div>',
+    'unknown'  => '<div class="param-status">No Data</div>',
 ];
 
 // Render panels (pass by reference to workaround closure limitation)
@@ -652,7 +661,7 @@ $rules_json = json_encode($rulesByCode, JSON_HEX_TAG);
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title><?= htmlspecialchars($t('page.greenhouses.title')) ?> – EcoTwin</title>
+    <title><?= htmlspecialchars($t('page.greenhouses.title')) ?>  EcoTwin</title>
     <link rel="stylesheet" href="css.main.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.main.css')) ?>" />
     <link rel="stylesheet" href="css.greenhouses.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.greenhouses.css')) ?>" />
     <style>
@@ -767,10 +776,10 @@ $rules_json = json_encode($rulesByCode, JSON_HEX_TAG);
 <!-- Scripts -->
 <!-- ============================================================ -->
 <script>
-// ── Initial rule data from PHP ─────────────────────────────────────────────
+//  Initial rule data from PHP 
 const dbRules = <?= $rules_json ?: '{}' ?>;
 
-// ── Tab switching (client-side, no reload) ─────────────────────────────────
+//  Tab switching (client-side, no reload) 
 // Switches the active tab and refreshes the matching page state.
 function switchTab(e, code) {
     e.preventDefault();
@@ -787,7 +796,7 @@ function switchTab(e, code) {
     }
 }
 
-// ── Profile dropdown ───────────────────────────────────────────────────────
+//  Profile dropdown 
 // Toggles the profile dropdown menu in the page header.
 function toggleProfileDropdown(event) {
     event.stopPropagation();
@@ -802,7 +811,7 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// ── Toast ──────────────────────────────────────────────────────────────────
+//  Toast 
 // Shows a toast message so action results are easier to notice while debugging.
 function showToast(msg, type = 'success') {
     const t = document.getElementById('toast');
@@ -811,7 +820,7 @@ function showToast(msg, type = 'success') {
     setTimeout(() => t.className = 'toast', 5000);
 }
 
-// ── Save automation rules via AJAX ─────────────────────────────────────────
+//  Save automation rules via AJAX 
 async function saveRules(ghCode) {
     const inputs = document.querySelectorAll(`.gh-${ghCode.toLowerCase()}-rule`);
     const rules  = [];
@@ -839,17 +848,17 @@ async function saveRules(ghCode) {
         const data = await res.json();
 
         if (data.success) {
-            msgEl.textContent    = '✅ ' + data.message;
+            msgEl.textContent    = ' ' + data.message;
             msgEl.className      = 'save-message success';
             msgEl.style.display  = 'block';
-            showToast(`✅ Greenhouse ${ghCode} thresholds saved!`);
+            showToast(` Greenhouse ${ghCode} thresholds saved!`);
         } else {
-            msgEl.textContent    = '❌ ' + (data.message || 'Save failed');
+            msgEl.textContent    = ' ' + (data.message || 'Save failed');
             msgEl.className      = 'save-message error';
             msgEl.style.display  = 'block';
         }
     } catch (err) {
-        msgEl.textContent    = '❌ Network error: ' + err.message;
+        msgEl.textContent    = ' Network error: ' + err.message;
         msgEl.className      = 'save-message error';
         msgEl.style.display  = 'block';
     }
@@ -857,7 +866,7 @@ async function saveRules(ghCode) {
     setTimeout(() => { msgEl.style.display = 'none'; }, 4000);
 }
 
-// ── Reload rules from DB (reset form) ─────────────────────────────────────
+//  Reload rules from DB (reset form) 
 async function reloadRules(ghCode) {
     try {
         const res   = await fetch(`greenhouses/greenhouses_api.php?action=get_rules&gh=${ghCode}`);
@@ -868,14 +877,14 @@ async function reloadRules(ghCode) {
             );
             inputs.forEach(inp => { inp.value = r.trigger_value; });
         });
-        showToast(`↻ Greenhouse ${ghCode} rules reloaded from database`);
+        showToast(` Greenhouse ${ghCode} rules reloaded from database`);
     } catch (err) {
-        showToast('❌ Failed to reload rules', 'error');
+        showToast(' Failed to reload rules', 'error');
     }
 }
 
-// ── Refresh sensor statuses ────────────────────────────────────────────────
-async function refreshSensors(ghCode) {
+//  Refresh sensor statuses 
+async function refreshSensors(ghCode, silent = false) {
     try {
         const res     = await fetch(`greenhouses/greenhouses_api.php?action=get_sensors&gh=${ghCode}`);
         const sensors = await res.json();
@@ -905,9 +914,9 @@ async function refreshSensors(ghCode) {
             </div>`;
         }).join('');
 
-        showToast(`↻ Greenhouse ${ghCode} sensor status refreshed`);
+        if (!silent) showToast(` Greenhouse ${ghCode} sensor status refreshed`);
     } catch (err) {
-        showToast('❌ Failed to refresh sensors', 'error');
+        showToast(' Failed to refresh sensors', 'error');
     }
 }
 
@@ -923,14 +932,12 @@ async function refreshActuators(ghCode) {
             exhaust_fan: 'Exhaust Fan',
             circulation_fan: 'Circulation Fan',
             shading_net: 'Shading Net',
-            misting_system: 'Misting System'
         };
         const actuatorIcons = {
-            nutrient_pump: '💧',
-            exhaust_fan: '🌀',
-            circulation_fan: '🌀',
-            shading_net: '☀️',
-            misting_system: '💦'
+            nutrient_pump: '&#128167;',
+            exhaust_fan: '&#128168;',
+            circulation_fan: '&#128168;',
+            shading_net: '&#9728;',
         };
         const badgeClass = {
             on: 'badge badge-success',
@@ -947,7 +954,7 @@ async function refreshActuators(ghCode) {
         el.innerHTML = actuators.map(act => `
             <div class="actuator-item">
                 <div class="actuator-info">
-                    <div class="actuator-icon">${actuatorIcons[act.actuator_type] ?? '⚙️'}</div>
+                    <div class="actuator-icon">${actuatorIcons[act.actuator_type] ?? '&#9881;'}</div>
                     <div>
                         <div class="actuator-name">${escHtml(act.actuator_type === 'nutrient_pump' ? 'Pump' : act.label)}</div>
                         <div class="actuator-desc">${escHtml(actuatorDescs[act.actuator_type] ?? act.actuator_type.replaceAll('_', ' '))}</div>
@@ -957,7 +964,7 @@ async function refreshActuators(ghCode) {
             </div>
         `).join('');
     } catch (err) {
-        showToast('❌ Failed to refresh actuators', 'error');
+        showToast('Failed to refresh actuators', 'error');
     }
 }
 
@@ -973,11 +980,11 @@ async function toggleActuator(ghCode, target) {
         await refreshActuators(ghCode);
         showToast(data.message || `Greenhouse ${ghCode} actuator updated`);
     } catch (err) {
-        showToast('❌ ' + (err.message || 'Failed to toggle actuator'), 'error');
+        showToast(err.message || 'Failed to toggle actuator', 'error');
     }
 }
 
-// ── Live readings refresh (polls API) ─────────────────────────────────────
+//  Live readings refresh (polls API) 
 async function refreshReadings(ghCode) {
     try {
         const res  = await fetch(`greenhouses/greenhouses_api.php?action=get_readings&gh=${ghCode}`);
@@ -985,12 +992,12 @@ async function refreshReadings(ghCode) {
         if (data.error) return;
 
         const paramMap = {
-            temperature: { icon: '🌡️', label: 'Air Temperature', decimals: 1 },
-            humidity:    { icon: '💧',  label: 'Humidity',         decimals: 0 },
-            light:       { icon: '☀️',  label: 'Light Intensity',  decimals: 0, format: 'number' },
-            ec:          { icon: '🧪',  label: 'EC / TDS',         decimals: 1 },
-            ph:          { icon: '🧪',  label: 'pH Level',         decimals: 1 },
-            water_level: { icon: '🌊',  label: 'Water Level',      decimals: 0 },
+            temperature: { icon: '&#127777;', label: 'Air Temperature', decimals: 1 },
+            humidity:    { icon: '&#128167;', label: 'Humidity',         decimals: 0 },
+            light:       { icon: '&#9728;',   label: 'Light Intensity',  decimals: 0, format: 'number' },
+            ec:          { icon: '&#129514;', label: 'EC / TDS',         decimals: 1 },
+            ph:          { icon: '&#9878;',   label: 'pH Level',         decimals: 1 },
+            water_level: { icon: '&#127754;', label: 'Water Level',      decimals: 0 },
         };
 
         const grid = document.getElementById(`params-grid-${ghCode.toLowerCase()}`);
@@ -1002,15 +1009,15 @@ async function refreshReadings(ghCode) {
             const value = r ? (cfg.format === 'number'
                 ? parseInt(r.value).toLocaleString()
                 : parseFloat(r.value).toFixed(cfg.decimals))
-                : '—';
+                : '-';
             const unit   = r ? r.unit : '';
             const status = r ? r.status : 'unknown';
             const tileClass = status === 'critical' ? 'parameter-tile critical' : 'parameter-tile';
             const valClass  = status === 'critical' ? 'param-value critical-value' : 'param-value';
-            const statusHtml = { optimal:'<div class="param-status status-optimal">✓ Optimal</div>',
-                                 critical:'<div class="param-status status-critical">✕ Out of Range</div>',
-                                 caution:'<div class="param-status status-caution">⚠ Caution</div>' }[status]
-                              ?? '<div class="param-status">— No Data</div>';
+            const statusHtml = { optimal:'<div class="param-status status-optimal">Optimal</div>',
+                                 critical:'<div class="param-status status-critical">Out of Range</div>',
+                                 caution:'<div class="param-status status-caution">Caution</div>' }[status]
+                              ?? '<div class="param-status">No Data</div>';
             const range  = r?.range_label ? `Range: ${r.range_label}` : 'No threshold configured';
 
             html += `
@@ -1196,7 +1203,7 @@ function drawTrendChart(canvas, series) {
     });
 }
 
-// ── Utility ────────────────────────────────────────────────────────────────
+//  Utility 
 // Escapes text before it is inserted into the page.
 function escHtml(str) {
     return str?.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') ?? '';
@@ -1205,21 +1212,26 @@ function escHtml(str) {
 // Capitalizes the first character of a string for display.
 function ucFirst(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
 
-// ── Auto-refresh readings every 60 seconds ─────────────────────────────────
+//  Auto-refresh live hardware state 
 setInterval(() => {
     const activeTab = document.querySelector('.greenhouse-content.active');
     if (activeTab) {
         const code = activeTab.id === 'greenhouse-a' ? 'A' : 'B';
         refreshReadings(code);
+        refreshSensors(code, true);
+        refreshActuators(code);
     }
-}, 60000);
+}, 5000);
 
-// ── On load: trigger initial trend load for visible tab ───────────────────
+//  On load: trigger initial trend load for visible tab 
 window.addEventListener('DOMContentLoaded', () => {
     const activeTab = document.querySelector('.greenhouse-content.active');
     if (activeTab) {
         const code = activeTab.id === 'greenhouse-a' ? 'A' : 'B';
         window._trendLoaded = { [code.toLowerCase()]: true };
+        refreshReadings(code);
+        refreshSensors(code, true);
+        refreshActuators(code);
         loadTrend(code, 168);
     }
 });
@@ -1228,3 +1240,4 @@ window.addEventListener('DOMContentLoaded', () => {
   <script src="js.navbar.js?v=<?= urlencode((string) @filemtime(__DIR__ . '/js.navbar.js')) ?>"></script>
 </body>
 </html>
+

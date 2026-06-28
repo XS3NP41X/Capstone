@@ -123,6 +123,7 @@ try {
  */
 function getLatestReadings(string $gh_code): array {
     $db = getDB();
+    markStaleSensorsOffline($db);
 
     // Resolve the greenhouse first because every follow-up query depends on its id.
     $stmt = $db->prepare("SELECT greenhouse_id, name, role, assigned_plant_id FROM greenhouses WHERE code = ?");
@@ -169,13 +170,13 @@ function getLatestReadings(string $gh_code): array {
             $v = (float)$row['value'];
             if ($v >= $t['val_opt_low'] && $v <= $t['val_opt_high']) {
                 $status = 'optimal';
-                $range_label = $t['val_opt_low'] . '–' . $t['val_opt_high'] . ' ' . $t['unit'];
+                $range_label = $t['val_opt_low'] . '' . $t['val_opt_high'] . ' ' . $t['unit'];
             } elseif ($v < $t['val_min'] || $v > $t['val_max']) {
                 $status = 'critical';
-                $range_label = $t['val_opt_low'] . '–' . $t['val_opt_high'] . ' ' . $t['unit'];
+                $range_label = $t['val_opt_low'] . '' . $t['val_opt_high'] . ' ' . $t['unit'];
             } else {
                 $status = 'caution';
-                $range_label = $t['val_opt_low'] . '–' . $t['val_opt_high'] . ' ' . $t['unit'];
+                $range_label = $t['val_opt_low'] . '' . $t['val_opt_high'] . ' ' . $t['unit'];
             }
         }
 
@@ -226,11 +227,27 @@ function getActuators(string $gh_code): array {
     return $stmt->fetchAll();
 }
 
+function esp32CommandForActuator(string $actuatorType, string $status): ?string {
+    $status = strtolower($status) === 'on' ? 'ON' : 'OFF';
+    return match ($actuatorType) {
+        'shading_net' => $status === 'ON' ? 'STEPPER:CW' : 'STEPPER:CCW',
+        default => null,
+    };
+}
+
+function sendEsp32Command(?string $command): bool {
+    if (!$command) return false;
+    $context = stream_context_create(['http' => ['method' => 'GET', 'timeout' => 2]]);
+    $result = @file_get_contents('http://192.168.4.1/api/command?cmd=' . rawurlencode($command), false, $context);
+    return is_string($result) && str_contains($result, '"ok":true');
+}
+
 /**
  * Returns sensor hardware details so the UI can show health and firmware status.
  */
 function getSensorStatuses(string $gh_code): array {
     $db = getDB();
+    markStaleSensorsOffline($db);
     $stmt = $db->prepare("
         SELECT s.sensor_id, s.sensor_type, s.label, s.parameter, s.unit,
                s.status, s.last_seen_at, s.firmware_version
@@ -241,6 +258,16 @@ function getSensorStatuses(string $gh_code): array {
     ");
     $stmt->execute([$gh_code]);
     return $stmt->fetchAll();
+}
+
+function markStaleSensorsOffline(PDO $db): void {
+    $db->exec("
+        UPDATE sensors
+        SET status = 'offline', updated_at = NOW()
+        WHERE status = 'online'
+          AND last_seen_at IS NOT NULL
+          AND last_seen_at < DATE_SUB(NOW(), INTERVAL 15 SECOND)
+    ");
 }
 
 /**
@@ -591,3 +618,4 @@ function jsonError(string $msg, int $code = 400): void {
     echo json_encode(['error' => $msg]);
     exit;
 }
+
