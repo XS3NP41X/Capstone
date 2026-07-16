@@ -135,3 +135,53 @@ function ecotwinFetchOpenAlerts(PDO $db, string $greenhouseCode = '', int $limit
     $stmt->execute();
     return $stmt->fetchAll();
 }
+
+/** Builds the same threshold-based live event feed used by the Reports page. */
+function ecotwinBuildLiveIssueEvents(PDO $db, string $greenhouseCode = 'all', string $severity = 'all'): array
+{
+    if (!in_array($severity, ['all', 'critical', 'warning'], true)) return [];
+
+    $sql = 'SELECT greenhouse_id, code, name, assigned_plant_id FROM greenhouses';
+    $params = [];
+    if ($greenhouseCode !== 'all') {
+        $sql .= ' WHERE code = ?';
+        $params[] = strtoupper($greenhouseCode);
+    }
+    $stmt = $db->prepare($sql . ' ORDER BY code');
+    $stmt->execute($params);
+    $events = [];
+
+    foreach ($stmt->fetchAll() as $greenhouse) {
+        if (empty($greenhouse['assigned_plant_id'])) continue;
+        $thresholdStmt = $db->prepare('SELECT parameter, val_min, val_opt_low, val_opt_high, val_max FROM plant_thresholds WHERE plant_id = ?');
+        $thresholdStmt->execute([(int)$greenhouse['assigned_plant_id']]);
+        $thresholds = [];
+        foreach ($thresholdStmt->fetchAll() as $threshold) $thresholds[$threshold['parameter']] = $threshold;
+
+        foreach (ecotwinFetchLatestReadings($db, (int)$greenhouse['greenhouse_id']) as $reading) {
+            $parameter = (string)$reading['parameter'];
+            if (!isset($thresholds[$parameter])) continue;
+            $limit = $thresholds[$parameter];
+            $value = (float)$reading['value'];
+            $eventSeverity = null;
+            if ($value < (float)$limit['val_min'] || $value > (float)$limit['val_max']) $eventSeverity = 'critical';
+            elseif ($value < (float)$limit['val_opt_low'] || $value > (float)$limit['val_opt_high']) $eventSeverity = 'warning';
+            if ($eventSeverity === null || ($severity !== 'all' && $severity !== $eventSeverity)) continue;
+
+            $events[] = [
+                'alert_id' => 'live-' . $greenhouse['code'] . '-' . $parameter,
+                'severity' => $eventSeverity,
+                'category' => $parameter,
+                'message' => ucfirst(str_replace('_', ' ', $parameter)) . ' is outside ' . ($eventSeverity === 'critical' ? 'the configured safe' : 'the optimal') . ' range',
+                'sensor_value' => $value,
+                'is_resolved' => 0,
+                'created_at' => $reading['recorded_at'],
+                'ts_fmt' => date('M j, g:i A', strtotime((string)$reading['recorded_at'])),
+                'gh_code' => $greenhouse['code'],
+                'gh_name' => $greenhouse['name'],
+            ];
+        }
+    }
+    usort($events, fn($a, $b) => strcmp((string)$b['created_at'], (string)$a['created_at']));
+    return $events;
+}

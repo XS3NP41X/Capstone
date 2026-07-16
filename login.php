@@ -39,7 +39,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 1. CSRF
     if (!csrf_verify($_POST['csrf_token'] ?? '')) {
         $error = 'Security token mismatch. Please refresh the page and try again.';
-
     } else {
         $email    = trim($_POST['email']    ?? '');
         $password =      $_POST['password'] ?? '';
@@ -47,14 +46,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 2. Basic validation
         if ($email === '' || $password === '') {
             $error = 'Email and password are required.';
-
         } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $error = 'Please enter a valid email address.';
-
         } elseif (is_locked_out($email)) {
             $mins  = (int) ceil(LOCKOUT_SECONDS / 60);
             $error = "Too many failed attempts. Try again in {$mins} minutes.";
-
         } else {
             // 3. Look up user
             try {
@@ -82,10 +78,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $error = $left > 0
                         ? "Invalid email or password. {$left} attempt(s) remaining."
                         : 'Account temporarily locked. Try again in 15 minutes.';
-
                 } elseif ($user['status'] !== 'active') {
                     $error = 'This account is inactive or suspended. Contact your administrator.';
-
                 } else {
                     // 5. SUCCESS — rehash if needed
                     if (needs_rehash($user['password_hash'])) {
@@ -137,82 +131,101 @@ $token = csrf_token();
 <html lang="en">
 
 <head>
+    <link rel="icon" type="image/png" href="ECOTwin_Logo.png?v=<?= urlencode((string) @filemtime(__DIR__ . '/ECOTwin_Logo.png')) ?>" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login — EcoTwin</title>
-    <link rel="stylesheet" href="css.main.css" />
-    <link rel="stylesheet" href="css.auth.css" />
+    <script src="js.performance.js?v=<?= urlencode((string) @filemtime(__DIR__ . '/js.performance.js')) ?>"></script>
+    <link rel="stylesheet" href="css.main.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.main.css')) ?>" />
+    <link rel="stylesheet" href="css.auth.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.auth.css')) ?>" />
+    <link rel="stylesheet" href="css.visual.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.visual.css')) ?>" />
 </head>
 
 <body>
 
     <div class="login-container">
-        <div class="login-card">
-            <img src="ECOTwin_Logo.png" alt="EcoTwin logo" class="login-logo" />
-            <h1 class="login-title">EcoTwin: Dual-Greenhouse Research Framework</h1>
-            <p class="login-subtitle">Web-based monitoring and control for research greenhouses</p>
-
-            <form class="login-form" id="loginForm" method="POST" action="login.php">
-                <input type="hidden" name="action" value="login" />
-                <input type="hidden" name="csrf_token" value="<?= e($token) ?>" />
-
-                <div class="form-group">
-                    <label class="form-label" for="loginEmail">Email Address</label>
-                    <input
-                        type="email"
-                        id="loginEmail"
-                        name="email"
-                        class="form-input"
-                        placeholder="your@spamast.edu"
-                        value="<?= e($email) ?>"
-                        required
-                        autocomplete="email"
-                        maxlength="150" />
+        <div class="auth-aurora auth-aurora-one" aria-hidden="true"></div>
+        <div class="auth-aurora auth-aurora-two" aria-hidden="true"></div>
+        <div class="auth-grid" aria-hidden="true"></div>
+        <div class="auth-shell">
+            <aside class="auth-showcase" aria-label="EcoTwin research platform">
+                <div class="showcase-mark"><img src="ECOTwin_Logo.png" alt="" /></div>
+                <div class="showcase-kicker">ECOTwin</div>
+                <h1>Research grows<br />with clarity.</h1>
+                <p>Monitor greenhouse conditions, compare experiments, and turn field readings into confident decisions.</p>
+                <div class="showcase-metrics">
+                    <div><strong>LIVE</strong><span>Sensor insights</span></div>
+                    <div><strong>2x</strong><span>Greenhouse study</span></div>
                 </div>
+            </aside>
+            <div class="login-card">
+                <img src="ECOTwin_Logo.png" alt="EcoTwin logo" class="login-logo" />
+                <div class="signin-kicker">SECURE RESEARCH ACCESS</div>
+                <h1 class="login-title">Welcome back</h1>
+                <p class="login-subtitle">Sign in to your EcoTwin greenhouse workspace.</p>
 
-                <div class="form-group">
-                    <label class="form-label" for="loginPassword">Password</label>
-                    <div class="password-wrap">
+                <form class="login-form" id="loginForm" method="POST" action="login.php">
+                    <input type="hidden" name="action" value="login" />
+                    <input type="hidden" name="csrf_token" value="<?= e($token) ?>" />
+
+                    <div class="form-group">
+                        <label class="form-label" for="loginEmail">Email Address</label>
                         <input
-                            type="password"
-                            id="loginPassword"
-                            name="password"
+                            type="email"
+                            id="loginEmail"
+                            name="email"
                             class="form-input"
-                            placeholder="Enter your password"
+                            placeholder="your@spamast.edu"
+                            value="<?= e($email) ?>"
                             required
-                            autocomplete="current-password"
-                            maxlength="128" />
-                        <button
-                            type="button"
-                            class="password-toggle"
-                            id="togglePw"
-                            aria-label="Show password"
-                            aria-pressed="false"
-                            title="Show password"><span id="togglePwText">Show</span></button>
+                            autocomplete="email"
+                            maxlength="150" />
                     </div>
-                </div>
 
-                <div class="remember-row">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="rememberMe" name="remember_me" value="1" />
-                        <span>Remember me</span>
-                    </label>
-                    <a href="#" class="forgot-link" id="openForgot">Forgot password?</a>
-                </div>
-
-                <?php if ($error !== ''): ?>
-                    <div class="login-error" style="display:flex;" role="alert">
-                        ⚠️ <?= e($error) ?>
+                    <div class="form-group">
+                        <label class="form-label" for="loginPassword">Password</label>
+                        <div class="password-wrap">
+                            <input
+                                type="password"
+                                id="loginPassword"
+                                name="password"
+                                class="form-input"
+                                placeholder="Enter your password"
+                                required
+                                autocomplete="current-password"
+                                maxlength="128" />
+                            <button
+                                type="button"
+                                class="password-toggle"
+                                id="togglePw"
+                                aria-label="Show password"
+                                aria-pressed="false"
+                                title="Show password"><span id="togglePwText">Show</span></button>
+                        </div>
                     </div>
-                <?php else: ?>
-                    <div class="login-error" id="loginError" role="alert"></div>
-                <?php endif; ?>
 
-                <button type="submit" class="btn-login">Sign In</button>
-            </form>
+                    <div class="remember-row">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="rememberMe" name="remember_me" value="1" />
+                            <span>Remember me</span>
+                        </label>
+                        <a href="#" class="forgot-link" id="openForgot">Forgot password?</a>
+                    </div>
 
-            <div class="login-footer">
-                SPAMAST – IASDC · EcoTwin v1.0
+                    <?php if ($error !== ''): ?>
+                        <div class="login-error" style="display:flex;" role="alert">
+                            ⚠️ <?= e($error) ?>
+                        </div>
+                    <?php else: ?>
+                        <div class="login-error" id="loginError" role="alert"></div>
+                    <?php endif; ?>
+
+                    <button type="submit" class="btn-login"><span class="button-label">Sign In</span><span class="button-spinner" aria-hidden="true"></span></button>
+                </form>
+
+                <div class="login-footer">
+                    Southern Philippines Agri-Business and Marine and Aquatic School of Technology · EcoTwin
+                </div>
             </div>
         </div>
     </div>
@@ -353,6 +366,14 @@ $token = csrf_token();
             step2.style.display = 'block';
             btn.disabled = false;
             btn.textContent = 'Send Reset Code';
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', function() {
+            if (!this.checkValidity()) return;
+            const button = this.querySelector('.btn-login');
+            button.disabled = true;
+            button.classList.add('is-loading');
+            button.setAttribute('aria-busy', 'true');
         });
     </script>
 </body>

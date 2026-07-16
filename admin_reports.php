@@ -4,6 +4,7 @@ require_role('admin');
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/security.php';
 require_once __DIR__ . '/preferences.php';
+require_once __DIR__ . '/config/print_pdf.php';
 
 $userName = htmlspecialchars($_SESSION['user_name'] ?? 'Administrator');
 $userEmail = htmlspecialchars($_SESSION['user_email'] ?? '');
@@ -27,6 +28,27 @@ function adminExportFilename(string $type, string $format): string
 function streamAdminExport(string $type, string $format, array $rows, array $meta = []): never
 {
     $filename = adminExportFilename($type, $format);
+    if ($format === 'pdf') {
+        $reportTitle = adminExportLabel($type);
+        $pdf = new EcoTwinPrintPdf($reportTitle, 'Administrative report | Generated ' . date('M j, Y g:i A'));
+        if ($meta) {
+            $pdf->section('Report Details');
+            $pdf->metadata(array_map(fn($label, $value) => [(string) $label, (string) $value], array_keys($meta), array_values($meta)));
+        }
+        $pdf->section('Exported Records');
+        if (!$rows) {
+            $pdf->metadata([['Status', 'No data is available for the selected filters.']]);
+        } else {
+            $headers = array_keys($rows[0]);
+            $columnWidth = (842 - 72) / max(1, count($headers));
+            $pdf->table(
+                array_map('strval', $headers),
+                array_map(fn($row) => array_map('strval', array_values($row)), $rows),
+                array_fill(0, count($headers), $columnWidth)
+            );
+        }
+        $pdf->output($filename);
+    }
     if ($format === 'json') {
         header('Content-Type: application/json; charset=utf-8');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
@@ -44,20 +66,23 @@ function streamAdminExport(string $type, string $format, array $rows, array $met
         header('Content-Type: application/vnd.ms-excel; charset=utf-8');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
 
+        $reportTitle = adminExportLabel($type);
+        $generatedAt = date('F j, Y \a\t g:i A');
         echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
-            body{font-family:Segoe UI,Arial,sans-serif;color:#0f172a;margin:18px}
-            table{border-collapse:collapse;width:100%}
-            .meta,.data{margin-bottom:18px}
-            .meta td,.data td,.data th{border:1px solid #dbe7e4;padding:8px 10px}
-            .meta td:first-child{font-weight:700;width:220px;background:#f8fafc}
-            .data th{background:#eef6f5;text-align:left;font-weight:800}
-            .title{font-size:22px;font-weight:800;margin-bottom:12px}
-            .empty{padding:14px;border:1px solid #dbe7e4;background:#f8fafc}
-        </style></head><body>';
-        echo '<div class="title">EcoTwin Admin Export</div>';
+            @page{size:landscape;margin:.42in .34in .58in .34in;mso-page-orientation:landscape;mso-header-data:"&CEcoTwin | ' . htmlspecialchars($reportTitle, ENT_QUOTES, 'UTF-8') . '";mso-footer-data:"&LEcoTwin Research Operations&RP&P of &N"}
+            *{box-sizing:border-box} body{font-family:Segoe UI,Arial,sans-serif;color:#173326;margin:0 auto;padding:0;font-size:10pt}
+            .sheet{width:100%;margin:0 auto}.hero{width:100%;border-collapse:separate;border-spacing:0;margin:0 auto 16px;background:#1f6f46;color:#fff;border:1px solid #174d32}
+            .hero td{padding:18px 22px;border:0;background:#1f6f46}.brand{font-size:9pt;font-weight:800;letter-spacing:1.4px;color:#d4f5df}.title{font-size:25pt;line-height:1.1;font-weight:800;margin:5px 0}.subtitle{font-size:10pt;color:#ffffff}
+            .meta,.data{width:100%;border-collapse:collapse;margin-bottom:16px}.section-title{background:#eaf7ee;color:#1c5a37;font-size:11pt;font-weight:800;padding:9px 11px;border:1px solid #cfe7d6}
+            .meta td{border:1px solid #dbe9df;padding:8px 10px}.meta td:first-child{font-weight:800;width:230px;background:#f3faf5;color:#315b42}.meta td:last-child{color:#173326}
+            .data th{background:#2e8b57;color:#fff;text-align:left;font-size:9pt;font-weight:800;letter-spacing:.25px;padding:9px 10px;border:1px solid #277b4e}.data td{border:1px solid #deebe2;padding:8px 10px;vertical-align:top}.data tr:nth-child(even) td{background:#f6fbf7}.data thead{display:table-header-group}
+            .empty{padding:18px;border:1px solid #cfe7d6;background:#f3faf5;color:#315b42}.footer{width:100%;margin-top:12px;padding-top:8px;border-top:1px solid #cfe7d6;color:#638070;font-size:8.5pt;text-align:center}.no-print{display:none}
+            @media print{body{margin:0}.hero{margin-bottom:12px}.data tr{page-break-inside:avoid}.footer{position:running(report-footer)}}
+        </style></head><body><div class="sheet">';
+        echo '<table class="hero"><tr><td><div class="brand">ECOTWIN  /  RESEARCH OPERATIONS</div><div class="title">' . htmlspecialchars($reportTitle, ENT_QUOTES, 'UTF-8') . '</div><div class="subtitle">Administrative report &middot; Prepared ' . htmlspecialchars($generatedAt, ENT_QUOTES, 'UTF-8') . '</div></td></tr></table>';
 
         if ($meta) {
-            echo '<table class="meta"><tbody>';
+            echo '<div class="section-title">Report Details</div><table class="meta"><tbody>';
             foreach ($meta as $label => $value) {
                 echo '<tr><td>' . htmlspecialchars((string) $label, ENT_QUOTES, 'UTF-8') . '</td><td>'
                     . htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8') . '</td></tr>';
@@ -66,12 +91,12 @@ function streamAdminExport(string $type, string $format, array $rows, array $met
         }
 
         if (!$rows) {
-            echo '<div class="empty">No data available for the selected filters.</div>';
-            echo '</body></html>';
+            echo '<div class="empty">No data is available for the selected filters.</div>';
+            echo '<div class="footer">EcoTwin &middot; ' . htmlspecialchars($reportTitle, ENT_QUOTES, 'UTF-8') . ' &middot; Print-ready administrative record</div></div></body></html>';
             exit;
         }
 
-        echo '<table class="data"><thead><tr>';
+        echo '<div class="section-title">Exported Records &middot; ' . count($rows) . ' row(s)</div><table class="data"><thead><tr>';
         foreach (array_keys($rows[0]) as $column) {
             echo '<th>' . htmlspecialchars((string) $column, ENT_QUOTES, 'UTF-8') . '</th>';
         }
@@ -83,7 +108,7 @@ function streamAdminExport(string $type, string $format, array $rows, array $met
             }
             echo '</tr>';
         }
-        echo '</tbody></table></body></html>';
+        echo '</tbody></table><div class="footer">EcoTwin &middot; ' . htmlspecialchars($reportTitle, ENT_QUOTES, 'UTF-8') . ' &middot; Generated ' . htmlspecialchars($generatedAt, ENT_QUOTES, 'UTF-8') . ' &middot; Print-ready administrative record</div></div></body></html>';
         exit;
     }
 
@@ -286,7 +311,7 @@ try {
         if (!in_array($exportType, ['sensors', 'logins', 'activity'], true)) {
             $exportType = 'sensors';
         }
-        if (!in_array($exportFormat, ['csv', 'json', 'xls'], true)) {
+        if (!in_array($exportFormat, ['csv', 'json', 'xls', 'pdf'], true)) {
             $exportFormat = 'csv';
         }
 
@@ -424,11 +449,14 @@ function adminReportStatusClass(string $status): string {
 <!doctype html>
 <html lang="<?= htmlspecialchars($preferences['language']) ?>">
 <head>
+  <link rel="icon" type="image/png" href="ECOTwin_Logo.png?v=<?= urlencode((string) @filemtime(__DIR__ . '/ECOTwin_Logo.png')) ?>" />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Reports - EcoTwin</title>
+  <script src="js.performance.js?v=<?= urlencode((string) @filemtime(__DIR__ . '/js.performance.js')) ?>"></script>
   <link rel="stylesheet" href="css.main.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.main.css')) ?>" />
   <link rel="stylesheet" href="css.reports.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.reports.css')) ?>" />
+  <link rel="stylesheet" href="css.visual.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.visual.css')) ?>" />
   <style>
     .admin-report-grid { display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap:16px; margin-bottom:24px; }
     .admin-report-card { background:#fff; border:1px solid #dbe7e4; border-radius:16px; padding:18px 20px; box-shadow:0 10px 24px rgba(15,23,42,.05); }
@@ -558,8 +586,9 @@ function adminReportStatusClass(string $status): string {
             <div class="form-group">
               <label class="form-label" for="admin-export-format">Format</label>
               <select class="form-select" id="admin-export-format">
-                <option value="xls">Excel Styled (.xls)</option>
-                <option value="csv">CSV (Excel)</option>
+              <option value="xls">Excel Styled (.xls)</option>
+              <option value="pdf">Print-ready PDF (.pdf)</option>
+              <option value="csv">CSV (Excel)</option>
                 <option value="json">JSON</option>
               </select>
             </div>
@@ -769,6 +798,7 @@ const adminExportRangeLabels = {
 };
 const adminExportFormatLabels = {
   xls: 'Excel Styled (.xls)',
+  pdf: 'Print-ready PDF (.pdf)',
   csv: 'CSV (Excel)',
   json: 'JSON'
 };
@@ -856,8 +886,7 @@ function runAdminExport() {
   }
 
   const button = document.getElementById('admin-export-btn');
-  button.disabled = true;
-  button.textContent = 'Preparing download...';
+  setAdminExportLoading(button, true);
   showToast('Preparing export. Your download should start shortly.');
 
   const link = document.createElement('a');
@@ -868,10 +897,18 @@ function runAdminExport() {
   document.body.removeChild(link);
 
   setTimeout(() => {
-    button.disabled = false;
-    button.textContent = 'Export Data';
+    setAdminExportLoading(button, false);
     showToast('Export started. Check your downloads folder.', 'success');
   }, 2500);
+}
+
+function setAdminExportLoading(button, loading) {
+  button.disabled = loading;
+  button.classList.toggle('is-exporting', loading);
+  button.setAttribute('aria-busy', loading ? 'true' : 'false');
+  button.innerHTML = loading
+    ? '<span class="export-spinner" aria-hidden="true"></span><span>Preparing download…</span>'
+    : '<span>Export Data</span>';
 }
 
 // Toggles the profile dropdown menu in the page header.

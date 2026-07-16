@@ -329,11 +329,14 @@ function buildRange(int $cur, int $total): array {
 <!doctype html>
 <html lang="<?= htmlspecialchars($preferences['language']) ?>">
 <head>
+  <link rel="icon" type="image/png" href="ECOTwin_Logo.png?v=<?= urlencode((string) @filemtime(__DIR__ . '/ECOTwin_Logo.png')) ?>" />
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title><?= htmlspecialchars($t('page.reports.title')) ?> - EcoTwin</title>
+  <script src="js.performance.js?v=<?= urlencode((string) @filemtime(__DIR__ . '/js.performance.js')) ?>"></script>
   <link rel="stylesheet" href="css.main.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.main.css')) ?>" />
   <link rel="stylesheet" href="css.reports.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.reports.css')) ?>" />
+  <link rel="stylesheet" href="css.visual.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.visual.css')) ?>" />
 </head>
 <body class="<?= htmlspecialchars($preferenceBodyClass) ?>"
       data-language="<?= htmlspecialchars($preferences['language']) ?>"
@@ -480,6 +483,7 @@ function buildRange(int $cur, int $total): array {
             <label class="form-label">Format</label>
             <select class="form-select" id="format-select">
               <option value="xls">Excel Styled (.xls)</option>
+              <option value="pdf">Print-ready PDF (.pdf)</option>
               <option value="csv">CSV (Excel)</option>
               <option value="json">JSON</option>
             </select>
@@ -507,9 +511,8 @@ function buildRange(int $cur, int $total): array {
       <div class="export-notice">
         <div class="notice-icon">📊</div>
         <div>
-          <strong>Real Data Export:</strong> Downloads actual sensor readings from
-          <code>sensor_readings</code>. CSV includes UTF-8 BOM for Excel. JSON includes
-          full export metadata. Maximum 50,000 rows per export.
+          <strong>Analytics-ready export:</strong> Downloads concise summaries for parameter ranges,
+          greenhouse volume, sensor activity, and data quality. Excel and PDF exports are formatted for print review.
         </div>
       </div>
     </div>
@@ -849,7 +852,7 @@ function viewDetail(id) {
 const ghLbl  = {both:'Both Greenhouses',A:'Greenhouse A',B:'Greenhouse B'};
 const drLbl  = {'24h':'Last 24 Hours','7d':'Last 7 Days','30d':'Last 30 Days',
                 experiment:'Current Experiment',custom:'Custom Range'};
-const fmtLbl = {xls:'Excel Styled (.xls)',csv:'CSV (Excel)',json:'JSON'};
+const fmtLbl = {xls:'Excel Styled (.xls)',pdf:'Print-ready PDF (.pdf)',csv:'CSV (Excel)',json:'JSON'};
 
 // Toggles custom dates state in the interface.
 function toggleCustomDates() {
@@ -891,17 +894,25 @@ function doExport() {
 
     // Trigger browser download without leaving the page
     const btn = document.getElementById('export-btn');
-    btn.disabled = true; btn.textContent = 'Preparing download…';
+    setExportLoading(btn, true);
     showToast('Preparing export. Your download should start shortly.');
 
     const a = document.createElement('a');
     a.href = url; a.download = ''; document.body.appendChild(a); a.click(); document.body.removeChild(a);
 
     setTimeout(() => {
-        btn.disabled = false;
-        btn.textContent = 'Export Data';
+        setExportLoading(btn, false);
         showToast('Export started. Check your downloads folder.', 'success');
     }, 2500);
+}
+
+function setExportLoading(button, loading) {
+    button.disabled = loading;
+    button.classList.toggle('is-exporting', loading);
+    button.setAttribute('aria-busy', loading ? 'true' : 'false');
+    button.innerHTML = loading
+        ? '<span class="export-spinner" aria-hidden="true"></span><span>Preparing download…</span>'
+        : '<span>Export Data</span>';
 }
 
 // ============================================================
@@ -927,7 +938,7 @@ window.addEventListener('DOMContentLoaded', () => {
     refreshReportsLive();
 });
 
-setInterval(refreshReportsLive, 15_000);
+setInterval(refreshReportsLive, document.documentElement.classList.contains('performance-lite') ? 60_000 : 15_000);
 
 // ============================================================
 // MODAL + PROFILE HELPERS

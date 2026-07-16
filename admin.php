@@ -176,12 +176,15 @@ function initials(string $name): string
 <html lang="<?= htmlspecialchars($preferences['language']) ?>">
 
 <head>
+  <link rel="icon" type="image/png" href="ECOTwin_Logo.png?v=<?= urlencode((string) @filemtime(__DIR__ . '/ECOTwin_Logo.png')) ?>" />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="csrf-token" content="<?= htmlspecialchars(csrf_token()) ?>">
   <title><?= htmlspecialchars($t('page.admin.title')) ?> - EcoTwin</title>
+  <script src="js.performance.js?v=<?= urlencode((string) @filemtime(__DIR__ . '/js.performance.js')) ?>"></script>
   <link rel="stylesheet" href="css.main.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.main.css')) ?>" />
   <link rel="stylesheet" href="css.admin.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.admin.css')) ?>" />
+  <link rel="stylesheet" href="css.visual.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.visual.css')) ?>" />
 </head>
 
 <body class="<?= htmlspecialchars($preferenceBodyClass) ?>"

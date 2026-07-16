@@ -7,6 +7,7 @@
 
 require_once __DIR__ . '/../../admin/db.php';
 require_once __DIR__ . '/../../config/security.php';
+require_once __DIR__ . '/../../config/print_pdf.php';
 require_auth();
 
 // Ensures data exports table exists before it is used.
@@ -219,7 +220,7 @@ $dateTo    = $_GET['date_to']    ?? null;
 
 // Allowed values guard
 if (!in_array($ghCode,  ['A','B','both'])) $ghCode = 'both';
-if (!in_array($format,  ['csv','json','xls']))    $format = 'csv';
+if (!in_array($format,  ['csv','json','xls','pdf']))    $format = 'csv';
 if ($range === 'experiment') $range = 'exp';
 if (!in_array($range, ['24h', '7d', '30d', 'exp', 'custom'], true)) $range = '24h';
 
@@ -327,7 +328,30 @@ try {
     header('Content-Disposition: attachment; filename="' . $filename . '"');
     header('Cache-Control: no-cache, must-revalidate');
 
-    if ($format === 'json') {
+    if ($format === 'pdf') {
+        $pdf = new EcoTwinPrintPdf('EcoTwin Data Analytics', $label . ' | Generated ' . date('M j, Y g:i A'));
+        $pdf->section('Report Details');
+        $pdf->metadata([
+            ['Greenhouse Scope', $analytics['overview']['greenhouse_scope']],
+            ['Date Range', $label],
+            ['Period Start', $from],
+            ['Period End', $to],
+            ['Total Readings', (string) $rowCount],
+            ['Unique Sensors', (string) $analytics['overview']['unique_sensors']],
+        ]);
+        $pdf->section('Parameter Analytics');
+        $pdf->table(['Parameter', 'Unit', 'Count', 'Min', 'Max', 'Average'], array_map(
+            fn($stat) => [(string) $stat['parameter'], (string) $stat['unit'], (string) $stat['count'], (string) $stat['min'], (string) $stat['max'], (string) $stat['avg']],
+            $analytics['by_parameter']
+        ));
+        $pdf->section('Sensor Reading History');
+        $pdf->table(
+            ['Timestamp', 'Greenhouse', 'Parameter', 'Value', 'Unit', 'Quality', 'Sensor Label', 'Sensor Type'],
+            array_map(fn($row) => [(string) $row['timestamp'], 'GH ' . (string) $row['greenhouse'], (string) $row['parameter'], (string) $row['value'], (string) $row['unit'], (string) $row['quality'], (string) $row['sensor_label'], (string) $row['sensor_type']], $rows),
+            [116, 62, 88, 55, 46, 58, 172, 173]
+        );
+        $pdf->output($filename);
+    } elseif ($format === 'json') {
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode([
             'meta' => [
@@ -341,7 +365,6 @@ try {
                 'system'        => 'EcoTwin v1.0 – SPAMAST IASDC',
             ],
             'analytics' => $analytics,
-            'readings' => $rows,
         ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
     } elseif ($format === 'xls') {
@@ -386,27 +409,30 @@ try {
         }
 
         echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
-            body{font-family:Segoe UI,Arial,sans-serif;color:#111827;margin:18px}
+            @page{size:landscape;margin:.45in .35in .55in .35in;mso-page-orientation:landscape;mso-header-data:"&CEcoTwin Data Analytics Report";mso-footer-data:"&LEcoTwin - SPAMAST IASDC&RP&P of &N"}
+            body{font-family:Segoe UI,Arial,sans-serif;color:#111827;margin:0 auto;padding:0}
             table{border-collapse:collapse}
-            .sheet{width:1180px}
-            .hero{width:1180px;border:1px solid #d7e7e4;background:#eef6f5;margin-bottom:16px}
-            .hero td{padding:10px 14px;border:none}
-            .eyebrow{font-size:14pt;font-weight:700;color:#1f2937}
-            .title{font-size:24pt;font-weight:800;color:#111827}
-            .subtitle{font-size:10pt;color:#4b5563}
-            .layout{width:1180px;margin-bottom:16px}
+            .sheet{width:100%;margin:0 auto}
+            .hero{width:100%;border:1px solid #1f6f46;background:#1f6f46;margin:0 auto 16px}
+            .hero td{padding:16px 18px;border:none;background:#1f6f46;color:#ffffff}
+            .eyebrow{font-size:9pt;font-weight:800;letter-spacing:1.2px;color:#d9f3e2}
+            .title{font-size:22pt;font-weight:800;color:#ffffff;margin-top:4px}
+            .subtitle{font-size:10pt;color:#ffffff;margin-top:5px}
+            .layout{width:100%;margin:0 auto 16px;table-layout:fixed}
             .layout td{vertical-align:top}
-            .panel{width:100%;border:1px solid #dbe5e3;background:#ffffff}
-            .panel-title{background:#eef6f5;font-size:12pt;font-weight:800;color:#111827;padding:8px 10px}
-            .summary-table,.data-table{width:100%}
+            .panel{width:100%;border:1px solid #dbe5e3;background:#ffffff;margin:0 auto}
+            .panel-title{background:#dff1e5;font-size:11pt;font-weight:800;color:#173326;padding:8px 10px}
+            .summary-table,.data-table{width:100%;table-layout:auto}
             .summary-table td,.data-table td,.data-table th{border:1px solid #e5ecea;padding:7px 10px}
             .summary-table td{font-size:10pt}
-            .data-table th{background:#f7fbfa;color:#374151;font-size:12pt;font-weight:700;text-align:left}
-            .data-table td{font-size:10pt}
+            .data-table th{background:#2E8B57;color:#ffffff;font-size:9pt;font-weight:800;text-align:left;white-space:nowrap}
+            .data-table td{font-size:9pt;color:#17261e}
+            .data-table tbody tr:nth-child(even) td{background:#f4faf6}
+            .data-table thead{display:table-header-group}
             .metric{font-weight:700;width:42%}
             .value{color:#2E8B57;font-weight:700}
             .mini td,.mini th{border:1px solid #e5ecea;padding:6px 8px}
-            .mini th{background:#f7fbfa;font-size:12pt;font-weight:700;text-align:left}
+            .mini th{background:#e7f4eb;font-size:9pt;font-weight:800;text-align:left}
             .mini td{font-size:10pt}
             .bars{font-family:Consolas,monospace;color:#2E8B57;font-weight:700;letter-spacing:1px}
             .spark{font-family:Consolas,monospace;color:#2E8B57;font-size:16pt;font-weight:700}
@@ -417,11 +443,14 @@ try {
             .trend-label{font-size:10pt;font-weight:700;color:#334155}
             .trend-bar{font-family:Consolas,monospace;font-size:20pt;line-height:1;color:#2E8B57;font-weight:700}
             .trend-avg{font-size:9pt;color:#475569}
+            .print-footer{width:100%;border-top:1px solid #b9d8c3;padding-top:8px;font-size:9pt;color:#385747;text-align:center}
+            .page-break{page-break-before:always}
+            @media print{body{margin:0}.hero{margin-bottom:12px}.panel{page-break-inside:avoid}.data-table tr{page-break-inside:avoid}.print-footer{position:running(report-footer)}}
         </style></head><body><div class="sheet">';
         echo '<table class="hero"><tr><td>';
-        echo '<div class="eyebrow">EcoTwin Report</div>';
+        echo '<div class="eyebrow">ECOTWIN  /  RESEARCH OPERATIONS</div>';
         echo '<div class="title">' . exportHtml($title) . '</div>';
-        echo '<div class="subtitle"> </div>';
+        echo '<div class="subtitle">Printable analytics summary &middot; ' . exportHtml($label) . ' &middot; Generated ' . exportHtml(date('Y-m-d H:i:s')) . '</div>';
         echo '</td></tr></table>';
 
         echo '<table class="layout"><tr>';
@@ -467,44 +496,42 @@ try {
         echo '</td>';
         echo '</tr></table>';
 
-        echo '<table class="panel" style="width:1180px;margin-bottom:16px"><tr><td class="panel-title">Parameter Analytics</td></tr><tr><td style="padding:0"><table class="data-table"><tr><th>Parameter</th><th>Unit</th><th>Count</th><th>Min</th><th>Max</th><th>Average</th></tr>';
+        echo '<table class="panel" style="width:100%;margin-bottom:16px"><tr><td class="panel-title">Parameter Analytics</td></tr><tr><td style="padding:0"><table class="data-table"><thead><tr><th>Parameter</th><th>Unit</th><th>Count</th><th>Min</th><th>Max</th><th>Average</th></tr></thead><tbody>';
         foreach ($analytics['by_parameter'] as $stat) {
             echo '<tr><td>' . exportHtml((string) $stat['parameter']) . '</td><td>' . exportHtml((string) $stat['unit']) . '</td><td>' . exportHtml((string) $stat['count']) . '</td><td>' . exportHtml((string) $stat['min']) . '</td><td>' . exportHtml((string) $stat['max']) . '</td><td>' . exportHtml((string) $stat['avg']) . '</td></tr>';
         }
-        echo '</table></td></tr></table>';
+        echo '</tbody></table></td></tr></table>';
 
-        echo '<table class="panel" style="width:1180px;margin-bottom:16px"><tr><td class="panel-title">Greenhouse Breakdown</td></tr><tr><td style="padding:0"><table class="data-table"><tr><th>Greenhouse</th><th>Reading Count</th></tr>';
+        echo '<table class="panel" style="width:100%;margin-bottom:16px"><tr><td class="panel-title">Greenhouse Breakdown</td></tr><tr><td style="padding:0"><table class="data-table"><thead><tr><th>Greenhouse</th><th>Reading Count</th></tr></thead><tbody>';
         foreach ($analytics['by_greenhouse'] as $stat) {
             echo '<tr><td>GH ' . exportHtml((string) $stat['greenhouse']) . '</td><td>' . exportHtml((string) $stat['count']) . '</td></tr>';
         }
-        echo '</table></td></tr></table>';
+        echo '</tbody></table></td></tr></table>';
 
-        echo '<table class="panel" style="width:1180px;margin-bottom:16px"><tr><td class="panel-title">Top Sensors</td></tr><tr><td style="padding:0"><table class="data-table"><tr><th>Sensor Label</th><th>Reading Count</th></tr>';
+        echo '<table class="panel" style="width:100%;margin-bottom:16px"><tr><td class="panel-title">Top Sensors</td></tr><tr><td style="padding:0"><table class="data-table"><thead><tr><th>Sensor Label</th><th>Reading Count</th></tr></thead><tbody>';
         foreach ($analytics['by_sensor'] as $stat) {
             echo '<tr><td>' . exportHtml((string) $stat['sensor_label']) . '</td><td>' . exportHtml((string) $stat['count']) . '</td></tr>';
         }
-        echo '</table></td></tr></table>';
+        echo '</tbody></table></td></tr></table>';
 
-        echo '<table class="panel" style="width:1180px;margin-bottom:16px"><tr><td class="panel-title">Quality Breakdown</td></tr><tr><td style="padding:0"><table class="data-table"><tr><th>Quality</th><th>Count</th></tr>';
+        echo '<table class="panel" style="width:100%;margin-bottom:16px"><tr><td class="panel-title">Quality Breakdown</td></tr><tr><td style="padding:0"><table class="data-table"><thead><tr><th>Quality</th><th>Count</th></tr></thead><tbody>';
         foreach ($analytics['by_quality'] as $stat) {
             echo '<tr><td>' . exportHtml((string) $stat['quality']) . '</td><td>' . exportHtml((string) $stat['count']) . '</td></tr>';
         }
-        echo '</table></td></tr></table>';
-
-        echo '<table class="panel" style="width:1180px"><tr><td class="panel-title">Readings</td></tr><tr><td style="padding:0"><table class="data-table"><tr><th>Timestamp</th><th>Greenhouse</th><th>Parameter</th><th>Value</th><th>Unit</th><th>Quality</th><th>Sensor Label</th><th>Sensor Type</th></tr>';
-        foreach ($rows as $row) {
-            echo '<tr>'
-                . '<td>' . exportHtml((string) $row['timestamp']) . '</td>'
-                . '<td>' . exportHtml((string) $row['greenhouse']) . '</td>'
-                . '<td>' . exportHtml((string) $row['parameter']) . '</td>'
-                . '<td>' . exportHtml((string) $row['value']) . '</td>'
-                . '<td>' . exportHtml((string) $row['unit']) . '</td>'
-                . '<td>' . exportHtml((string) $row['quality']) . '</td>'
-                . '<td>' . exportHtml((string) $row['sensor_label']) . '</td>'
-                . '<td>' . exportHtml((string) $row['sensor_type']) . '</td>'
-                . '</tr>';
+        echo '</tbody></table></td></tr></table>';
+        echo '<div class="page-break"></div>';
+        echo '<table class="hero" style="margin-top:16px"><tr><td><div class="eyebrow">ECOTWIN  /  SENSOR DATA ARCHIVE</div><div class="title">Sensor Reading History</div><div class="subtitle">Complete readings for ' . exportHtml($label) . ' &middot; ' . exportHtml((string) $rowCount) . ' record(s)</div></td></tr></table>';
+        echo '<table class="panel" style="width:100%;margin-bottom:16px"><tr><td class="panel-title">Detailed Sensor Readings</td></tr><tr><td style="padding:0"><table class="data-table"><thead><tr><th>Timestamp</th><th>Greenhouse</th><th>Parameter</th><th>Value</th><th>Unit</th><th>Quality</th><th>Sensor Label</th><th>Sensor Type</th></tr></thead><tbody>';
+        if ($rows) {
+            foreach ($rows as $row) {
+                echo '<tr><td>' . exportHtml((string) ($row['timestamp'] ?? '')) . '</td><td>GH ' . exportHtml((string) ($row['greenhouse'] ?? '')) . '</td><td>' . exportHtml((string) ($row['parameter'] ?? '')) . '</td><td>' . exportHtml((string) ($row['value'] ?? '')) . '</td><td>' . exportHtml((string) ($row['unit'] ?? '')) . '</td><td>' . exportHtml((string) ($row['quality'] ?? '')) . '</td><td>' . exportHtml((string) ($row['sensor_label'] ?? '')) . '</td><td>' . exportHtml((string) ($row['sensor_type'] ?? '')) . '</td></tr>';
+            }
+        } else {
+            echo '<tr><td colspan="8" class="muted">No sensor readings are available for the selected period.</td></tr>';
         }
-        echo '</table></td></tr></table></div></body></html>';
+        echo '</tbody></table></td></tr></table>';
+        echo '<div class="print-footer">EcoTwin Data Analytics &middot; ' . exportHtml($label) . ' &middot; Generated ' . exportHtml(date('F j, Y \a\t g:i A')) . ' &middot; Print-ready research report</div>';
+        echo '</div></body></html>';
 
     } else {
         // CSV
@@ -566,17 +593,6 @@ try {
         }
         fputcsv($out, []);
 
-        // Column headers
-        writeCsvSectionTitle($out, 'Readings');
-        fputcsv($out, ['Timestamp','Greenhouse','Parameter','Value','Unit','Quality','Sensor Label','Sensor Type']);
-
-        foreach ($rows as $r) {
-            fputcsv($out, [
-                $r['timestamp'], $r['greenhouse'], $r['parameter'],
-                $r['value'], $r['unit'], $r['quality'],
-                $r['sensor_label'], $r['sensor_type'],
-            ]);
-        }
         fclose($out);
     }
     exit;

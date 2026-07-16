@@ -5,10 +5,16 @@
 /* Export Panel */
 .export-panel {
     padding: 24px;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba(240,255,240,.6), rgba(255,255,255,.34));
 }
+.export-panel::after { content: ''; position: absolute; width: 220px; height: 220px; border-radius: 50%; right: -105px; top: -125px; background: rgba(60,179,113,.11); filter: blur(4px); pointer-events: none; }
 
 .export-form {
     margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
 }
 
 .form-row {
@@ -40,7 +46,16 @@
     font-size: 14px;
     line-height: 1.55;
     color: #2E8B57;
+    position: relative;
+    z-index: 1;
+    background: rgba(240,255,240,.68);
+    backdrop-filter: blur(10px);
 }
+
+.btn.is-exporting { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-width: 176px; cursor: wait; }
+.export-spinner { width: 15px; height: 15px; box-sizing: border-box; border: 2px solid rgba(255,255,255,.44); border-top-color: #fff; border-radius: 50%; animation: exportSpin .7s linear infinite; }
+@keyframes exportSpin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .export-spinner { animation: none; } }
 
 .export-notice .notice-icon {
     flex: 0 0 auto;

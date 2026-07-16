@@ -1,0 +1,120 @@
+/* EcoTwin visual finish — loaded after each module stylesheet. */
+body:not(.theme-dark):not(.theme-high-contrast) {
+  background: radial-gradient(860px 540px at -12% -10%, rgba(72,190,119,.2), transparent 60%), radial-gradient(740px 450px at 105% 0, rgba(190,220,139,.18), transparent 60%), #f1f8f3 !important;
+  background-attachment: fixed !important;
+}
+body:not(.theme-dark):not(.theme-high-contrast) .navbar { background: rgba(255,255,255,.8) !important; border-color: rgba(255,255,255,.85) !important; box-shadow: 0 10px 34px rgba(24,78,49,.09) !important; backdrop-filter: blur(20px) saturate(150%); }
+body:not(.theme-dark):not(.theme-high-contrast) .page-header { padding: 26px 28px; border: 1px solid rgba(255,255,255,.78); border-radius: 20px; background: linear-gradient(115deg, rgba(255,255,255,.82), rgba(230,247,235,.62)) !important; box-shadow: 0 18px 45px rgba(24,78,49,.09); backdrop-filter: blur(14px); }
+body:not(.theme-dark):not(.theme-high-contrast) .page-title { letter-spacing: -.045em; }
+body:not(.theme-dark):not(.theme-high-contrast) .card,
+body:not(.theme-dark):not(.theme-high-contrast) .summary-card,
+body:not(.theme-dark):not(.theme-high-contrast) .stat-card,
+body:not(.theme-dark):not(.theme-high-contrast) .hardware-card,
+body:not(.theme-dark):not(.theme-high-contrast) .greenhouse-status-card,
+body:not(.theme-dark):not(.theme-high-contrast) .analytics-overview-card,
+body:not(.theme-dark):not(.theme-high-contrast) .visual-guide-card,
+body:not(.theme-dark):not(.theme-high-contrast) .experiment-card,
+body:not(.theme-dark):not(.theme-high-contrast) .experiment-detail-card,
+body:not(.theme-dark):not(.theme-high-contrast) .gh-form-card,
+body:not(.theme-dark):not(.theme-high-contrast) .preferences-card,
+body:not(.theme-dark):not(.theme-high-contrast) .profile-summary-card,
+body:not(.theme-dark):not(.theme-high-contrast) .settings-card,
+body:not(.theme-dark):not(.theme-high-contrast) .admin-report-card,
+body:not(.theme-dark):not(.theme-high-contrast) .admin-card,
+body:not(.theme-dark):not(.theme-high-contrast) .admin-panel {
+  background: linear-gradient(145deg, rgba(255,255,255,.88), rgba(247,253,248,.68)) !important;
+  border: 1px solid rgba(255,255,255,.8) !important;
+  box-shadow: 0 15px 38px rgba(24,78,49,.08) !important;
+  backdrop-filter: blur(12px);
+  transition: transform .25s cubic-bezier(.16,1,.3,1), box-shadow .25s ease, border-color .25s ease;
+}
+body:not(.theme-dark):not(.theme-high-contrast) .card:hover,
+body:not(.theme-dark):not(.theme-high-contrast) .summary-card:hover,
+body:not(.theme-dark):not(.theme-high-contrast) .stat-card:hover,
+body:not(.theme-dark):not(.theme-high-contrast) .experiment-card:hover { transform: translateY(-3px); border-color: rgba(114,201,142,.42) !important; box-shadow: 0 22px 46px rgba(24,78,49,.12) !important; }
+body:not(.theme-dark):not(.theme-high-contrast) .btn-primary { background: linear-gradient(135deg, #2e8b57, #49b879) !important; border-color: transparent !important; box-shadow: 0 9px 20px rgba(46,139,87,.2); }
+body:not(.theme-dark):not(.theme-high-contrast) input, body:not(.theme-dark):not(.theme-high-contrast) select, body:not(.theme-dark):not(.theme-high-contrast) textarea { background-color: rgba(255,255,255,.8) !important; }
+body:not(.theme-dark):not(.theme-high-contrast) .modal-overlay { background: rgba(15,42,28,.36) !important; backdrop-filter: blur(7px); }
+@media (max-width:768px) { body:not(.theme-dark):not(.theme-high-contrast) .page-header { padding:20px; border-radius:16px; } body:not(.theme-dark):not(.theme-high-contrast) .card:hover { transform:none; } }
+@media (prefers-reduced-motion:reduce) { body:not(.theme-dark):not(.theme-high-contrast) *, body:not(.theme-dark):not(.theme-high-contrast) *::before, body:not(.theme-dark):not(.theme-high-contrast) *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; } }
+
+/* Layout polish: a consistent navigation, header, card, and grid language. */
+body:not(.theme-dark):not(.theme-high-contrast) .navbar-container { height: 72px; padding-inline: clamp(18px, 3vw, 42px); }
+body:not(.theme-dark):not(.theme-high-contrast) .logo-text { font-weight: 800; letter-spacing: -.045em; }
+body:not(.theme-dark):not(.theme-high-contrast) .navbar-menu { gap: 5px; padding: 5px; border: 1px solid rgba(41,122,76,.09); border-radius: 999px; background: rgba(237,248,240,.58); }
+body:not(.theme-dark):not(.theme-high-contrast) .nav-item { padding: 8px 13px; font-size: 13px; font-weight: 700; border: 0 !important; }
+body:not(.theme-dark):not(.theme-high-contrast) .nav-item.active { background: linear-gradient(135deg, #2e8b57, #4cbb7b) !important; color: #fff !important; box-shadow: 0 6px 15px rgba(46,139,87,.25) !important; }
+body:not(.theme-dark):not(.theme-high-contrast) .profile-icon { width: 40px; height: 40px; border: 2px solid rgba(255,255,255,.88); box-shadow: 0 5px 13px rgba(24,78,49,.16); }
+body:not(.theme-dark):not(.theme-high-contrast) .profile-dropdown { overflow: hidden; border: 1px solid rgba(255,255,255,.85); border-radius: 16px; box-shadow: 0 18px 42px rgba(24,78,49,.16); backdrop-filter: blur(16px); }
+
+body:not(.theme-dark):not(.theme-high-contrast) .main-content { padding-top: 32px; padding-bottom: 64px; }
+body:not(.theme-dark):not(.theme-high-contrast) .page-header { margin-bottom: 28px; }
+body:not(.theme-dark):not(.theme-high-contrast) .page-header::before { content: 'ECOTWIN  /  RESEARCH OPERATIONS'; display: block; margin-bottom: 9px; color: #2e8b57; font-size: 10px; font-weight: 850; letter-spacing: .14em; }
+body:not(.theme-dark):not(.theme-high-contrast) .page-header .page-title { position: relative; z-index: 1; }
+body:not(.theme-dark):not(.theme-high-contrast) .page-header .page-subtitle { position: relative; z-index: 1; font-size: 15px; }
+
+body:not(.theme-dark):not(.theme-high-contrast) .summary-grid,
+body:not(.theme-dark):not(.theme-high-contrast) .analytics-grid,
+body:not(.theme-dark):not(.theme-high-contrast) .settings-grid,
+body:not(.theme-dark):not(.theme-high-contrast) .greenhouse-grid { gap: clamp(14px, 2vw, 22px); }
+body:not(.theme-dark):not(.theme-high-contrast) .summary-card,
+body:not(.theme-dark):not(.theme-high-contrast) .stat-card { position: relative; overflow: hidden; padding: 22px !important; }
+body:not(.theme-dark):not(.theme-high-contrast) .summary-card::before,
+body:not(.theme-dark):not(.theme-high-contrast) .stat-card::before { content: ''; position: absolute; top: 0; left: 18px; right: 18px; height: 3px; border-radius: 0 0 999px 999px; background: linear-gradient(90deg, #2e8b57, #9bd47c); opacity: .85; }
+body:not(.theme-dark):not(.theme-high-contrast) .summary-icon { display: grid; place-items: center; width: 43px; height: 43px; margin-bottom: 15px; border-radius: 13px; background: linear-gradient(145deg, #e3f6e9, #f8fdf9); box-shadow: inset 0 1px rgba(255,255,255,.9); }
+body:not(.theme-dark):not(.theme-high-contrast) .summary-value { font-size: clamp(1.7rem, 3vw, 2.25rem); letter-spacing: -.055em; line-height: 1.05; }
+body:not(.theme-dark):not(.theme-high-contrast) .summary-label { font-weight: 750; color: #355845; }
+
+body:not(.theme-dark):not(.theme-high-contrast) .card-header { margin-bottom: 20px; padding-bottom: 15px; }
+body:not(.theme-dark):not(.theme-high-contrast) .card-title { font-size: 1.08rem; }
+body:not(.theme-dark):not(.theme-high-contrast) .greenhouse-banner { position: relative; overflow: hidden; padding: 26px 28px; border: 1px solid rgba(255,255,255,.22); border-radius: 18px; box-shadow: 0 16px 30px rgba(25,91,52,.2); }
+body:not(.theme-dark):not(.theme-high-contrast) .greenhouse-banner::after { content: ''; position: absolute; right: -42px; bottom: -72px; width: 180px; height: 180px; border-radius: 50%; border: 28px solid rgba(255,255,255,.13); }
+body:not(.theme-dark):not(.theme-high-contrast) .parameter-tile { background: rgba(244,252,246,.78) !important; border-color: rgba(89,156,108,.13) !important; border-radius: 14px; }
+body:not(.theme-dark):not(.theme-high-contrast) .tab-navigation { gap: 7px; padding: 5px; border: 1px solid rgba(41,122,76,.1); border-radius: 13px; background: rgba(255,255,255,.54); }
+body:not(.theme-dark):not(.theme-high-contrast) .tab-button { border: 0 !important; border-radius: 9px; padding: 10px 17px; font-size: 14px; }
+body:not(.theme-dark):not(.theme-high-contrast) .tab-button.active { color: #fff; background: #2e8b57; box-shadow: 0 5px 13px rgba(46,139,87,.22); }
+
+@media (max-width: 768px) {
+  body:not(.theme-dark):not(.theme-high-contrast) .navbar-container { height: 64px; }
+  body:not(.theme-dark):not(.theme-high-contrast) .navbar-menu { border-radius: 16px; }
+  body:not(.theme-dark):not(.theme-high-contrast) .main-content { padding-top: 22px; padding-bottom: 36px; }
+  body:not(.theme-dark):not(.theme-high-contrast) .page-header::before { font-size: 9px; }
+}
+
+/* Keep the interface responsive on entry-level phones, tablets, and laptops. */
+html.performance-lite body:not(.theme-dark):not(.theme-high-contrast) { background-attachment: scroll !important; }
+@media (max-width: 768px), (pointer: coarse) { body:not(.theme-dark):not(.theme-high-contrast) { background-attachment: scroll !important; } }
+html.performance-lite body:not(.theme-dark):not(.theme-high-contrast) .navbar,
+html.performance-lite body:not(.theme-dark):not(.theme-high-contrast) .page-header,
+html.performance-lite body:not(.theme-dark):not(.theme-high-contrast) .card,
+html.performance-lite body:not(.theme-dark):not(.theme-high-contrast) .summary-card,
+html.performance-lite body:not(.theme-dark):not(.theme-high-contrast) .stat-card,
+html.performance-lite body:not(.theme-dark):not(.theme-high-contrast) .hardware-card,
+html.performance-lite body:not(.theme-dark):not(.theme-high-contrast) .greenhouse-status-card,
+html.performance-lite body:not(.theme-dark):not(.theme-high-contrast) .login-card,
+html.performance-lite body:not(.theme-dark):not(.theme-high-contrast) .fp-card,
+html.performance-lite body:not(.theme-dark):not(.theme-high-contrast) .modal-overlay {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+html.performance-lite body:not(.theme-dark):not(.theme-high-contrast) .card,
+html.performance-lite body:not(.theme-dark):not(.theme-high-contrast) .summary-card,
+html.performance-lite body:not(.theme-dark):not(.theme-high-contrast) .stat-card,
+html.performance-lite body:not(.theme-dark):not(.theme-high-contrast) .hardware-card,
+html.performance-lite body:not(.theme-dark):not(.theme-high-contrast) .greenhouse-status-card {
+  background: #ffffff !important;
+  box-shadow: 0 7px 18px rgba(24,78,49,.07) !important;
+  transform: none !important;
+}
+html.performance-lite .auth-aurora { display: none; }
+@supports (content-visibility: auto) {
+  html.performance-lite .main-content > .card,
+  html.performance-lite .main-content > section { content-visibility: auto; contain-intrinsic-size: auto 440px; }
+}
+html.performance-lite body:not(.theme-dark):not(.theme-high-contrast) *,
+html.performance-lite body:not(.theme-dark):not(.theme-high-contrast) *::before,
+html.performance-lite body:not(.theme-dark):not(.theme-high-contrast) *::after {
+  animation-duration: .01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: .01ms !important;
+}
