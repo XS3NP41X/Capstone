@@ -198,7 +198,7 @@ try {
 
     jsonResponse(['success' => false, 'error' => 'Method not allowed'], 405);
 } catch (PDOException $e) {
-    if ($pdo->inTransaction()) $pdo->rollBack();
+    if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
     jsonResponse(['success' => false, 'error' => $e->getMessage()], 500);
 }
 

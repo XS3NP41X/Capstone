@@ -333,7 +333,6 @@ $csrfToken = csrf_token();
     <script src="js.performance.js?v=<?= urlencode((string) @filemtime(__DIR__ . '/js.performance.js')) ?>"></script>
     <link rel="stylesheet" href="css.main.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.main.css')) ?>" />
     <link rel="stylesheet" href="css.experiments.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.experiments.css')) ?>" />
-    <link rel="stylesheet" href="css.visual.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.visual.css')) ?>" />
     <style>
         /* ── Create experiment modal ── */
         .modal-overlay {
@@ -456,6 +455,7 @@ $csrfToken = csrf_token();
             .form-row-2 { grid-template-columns: 1fr; }
         }
     </style>
+    <link rel="stylesheet" href="css.visual.css?v=<?= urlencode((string) @filemtime(__DIR__ . '/css.visual.css')) ?>" />
 </head>
 <body class="<?= htmlspecialchars($preferenceBodyClass) ?>"
       data-language="<?= htmlspecialchars($preferences['language']) ?>"

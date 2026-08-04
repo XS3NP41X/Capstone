@@ -9,6 +9,18 @@
     overflow: hidden;
     background: linear-gradient(135deg, rgba(240,255,240,.6), rgba(255,255,255,.34));
 }
+
+/* Neomorphic module surfaces */
+body:not(.theme-dark):not(.theme-high-contrast) .report-card,
+body:not(.theme-dark):not(.theme-high-contrast) .analytics-overview-card,
+body:not(.theme-dark):not(.theme-high-contrast) .stat-card,
+body:not(.theme-dark):not(.theme-high-contrast) .export-panel,
+body:not(.theme-dark):not(.theme-high-contrast) .card {
+  background: #e8f0ea !important;
+  border: 0 !important;
+  border-radius: 20px !important;
+  box-shadow: -9px -9px 18px rgba(255,255,255,.92), 9px 9px 18px rgba(93,118,101,.23) !important;
+}
 .export-panel::after { content: ''; position: absolute; width: 220px; height: 220px; border-radius: 50%; right: -105px; top: -125px; background: rgba(60,179,113,.11); filter: blur(4px); pointer-events: none; }
 
 .export-form {
@@ -727,3 +739,44 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Final module surface override */
+body:not(.theme-dark):not(.theme-high-contrast) :is(.report-card, .analytics-overview-card, .stat-card, .export-panel, .performance-item, .export-summary, .export-details, .card) {
+    background: #e8f0ea !important;
+    border-color: transparent !important;
+    box-shadow: -7px -7px 15px rgba(255,255,255,.9), 7px 7px 15px rgba(93,118,101,.22) !important;
+}
+
+/* Activity log: long alert messages stay inside their table cell. */
+#alerts-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+#alerts-table-wrap .table {
+    width: 100%;
+    min-width: 720px;
+    table-layout: fixed;
+}
+
+#alerts-table-wrap .table th,
+#alerts-table-wrap .table td {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    white-space: normal;
+    vertical-align: top;
+}
+
+#alerts-table-wrap .table th:nth-child(1),
+#alerts-table-wrap .table td:nth-child(1) { width: 7%; }
+#alerts-table-wrap .table th:nth-child(2),
+#alerts-table-wrap .table td:nth-child(2) { width: 16%; }
+#alerts-table-wrap .table th:nth-child(3),
+#alerts-table-wrap .table td:nth-child(3) { width: 13%; }
+#alerts-table-wrap .table th:nth-child(4),
+#alerts-table-wrap .table td:nth-child(4) { width: 13%; }
+#alerts-table-wrap .table th:nth-child(5),
+#alerts-table-wrap .table td:nth-child(5) { width: 39%; }
+#alerts-table-wrap .table th:nth-child(6),
+#alerts-table-wrap .table td:nth-child(6) { width: 12%; }

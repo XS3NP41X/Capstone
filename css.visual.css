@@ -111,10 +111,691 @@ html.performance-lite .auth-aurora { display: none; }
   html.performance-lite .main-content > .card,
   html.performance-lite .main-content > section { content-visibility: auto; contain-intrinsic-size: auto 440px; }
 }
+
+/* ============================================================================
+   NEOMORPHIC SYSTEM — shared finish for every ECOTwin module
+   ============================================================================ */
+:root {
+  --neo-bg: #e8f0ea;
+  --neo-surface: #e8f0ea;
+  --neo-light: rgba(255, 255, 255, .92);
+  --neo-dark: rgba(93, 118, 101, .23);
+  --neo-green: #27784b;
+  --neo-green-bright: #43a86d;
+  --neo-text: #244334;
+  --neo-muted: #698174;
+  --neo-raised: -9px -9px 18px var(--neo-light), 9px 9px 18px var(--neo-dark);
+  --neo-raised-sm: -5px -5px 10px var(--neo-light), 5px 5px 10px var(--neo-dark);
+  --neo-pressed: inset -4px -4px 8px rgba(255,255,255,.76), inset 4px 4px 9px rgba(93,118,101,.22);
+}
+
+body:not(.theme-dark):not(.theme-high-contrast) {
+  background: var(--neo-bg) !important;
+  color: var(--neo-text);
+}
+
+body:not(.theme-dark):not(.theme-high-contrast) .navbar,
+body:not(.theme-dark):not(.theme-high-contrast) .page-header,
+body:not(.theme-dark):not(.theme-high-contrast) .card,
+body:not(.theme-dark):not(.theme-high-contrast) .summary-card,
+body:not(.theme-dark):not(.theme-high-contrast) .stat-card,
+body:not(.theme-dark):not(.theme-high-contrast) .hardware-card,
+body:not(.theme-dark):not(.theme-high-contrast) .greenhouse-status-card,
+body:not(.theme-dark):not(.theme-high-contrast) .analytics-overview-card,
+body:not(.theme-dark):not(.theme-high-contrast) .experiment-card,
+body:not(.theme-dark):not(.theme-high-contrast) .experiment-detail-card,
+body:not(.theme-dark):not(.theme-high-contrast) .gh-form-card,
+body:not(.theme-dark):not(.theme-high-contrast) .settings-card,
+body:not(.theme-dark):not(.theme-high-contrast) .preferences-card,
+body:not(.theme-dark):not(.theme-high-contrast) .profile-summary-card,
+body:not(.theme-dark):not(.theme-high-contrast) .profile-module,
+body:not(.theme-dark):not(.theme-high-contrast) .preference-module,
+body:not(.theme-dark):not(.theme-high-contrast) .admin-card,
+body:not(.theme-dark):not(.theme-high-contrast) .admin-panel,
+body:not(.theme-dark):not(.theme-high-contrast) .admin-report-card,
+body:not(.theme-dark):not(.theme-high-contrast) .login-card,
+body:not(.theme-dark):not(.theme-high-contrast) .register-card,
+body:not(.theme-dark):not(.theme-high-contrast) .modal-box,
+body:not(.theme-dark):not(.theme-high-contrast) .profile-dropdown {
+  background: var(--neo-surface) !important;
+  border: 0 !important;
+  border-radius: 22px !important;
+  box-shadow: var(--neo-raised) !important;
+  backdrop-filter: none !important;
+}
+
+body:not(.theme-dark):not(.theme-high-contrast) .navbar {
+  margin: 12px clamp(12px, 2vw, 28px) 0;
+  border-radius: 20px !important;
+}
+body:not(.theme-dark):not(.theme-high-contrast) .navbar-container { max-width: none; }
+body:not(.theme-dark):not(.theme-high-contrast) .page-header { padding: 25px 30px; }
+body:not(.theme-dark):not(.theme-high-contrast) .page-header::before { color: var(--neo-green); }
+
+/* Raised action controls, inset data-entry controls. */
+body:not(.theme-dark):not(.theme-high-contrast) .btn,
+body:not(.theme-dark):not(.theme-high-contrast) .navbar-toggle,
+body:not(.theme-dark):not(.theme-high-contrast) .nav-item,
+body:not(.theme-dark):not(.theme-high-contrast) .tab-button,
+body:not(.theme-dark):not(.theme-high-contrast) .admin-tab,
+body:not(.theme-dark):not(.theme-high-contrast) .page-btn,
+body:not(.theme-dark):not(.theme-high-contrast) .user-action-btn,
+body:not(.theme-dark):not(.theme-high-contrast) .password-toggle {
+  border: 0 !important;
+  border-radius: 13px !important;
+  box-shadow: var(--neo-raised-sm);
+}
+body:not(.theme-dark):not(.theme-high-contrast) .btn:active,
+body:not(.theme-dark):not(.theme-high-contrast) .navbar-toggle:active,
+body:not(.theme-dark):not(.theme-high-contrast) .nav-item:active,
+body:not(.theme-dark):not(.theme-high-contrast) .tab-button:active,
+body:not(.theme-dark):not(.theme-high-contrast) .admin-tab:active { box-shadow: var(--neo-pressed) !important; transform: translateY(1px); }
+body:not(.theme-dark):not(.theme-high-contrast) .btn-primary,
+body:not(.theme-dark):not(.theme-high-contrast) .nav-item.active,
+body:not(.theme-dark):not(.theme-high-contrast) .tab-button.active,
+body:not(.theme-dark):not(.theme-high-contrast) .admin-tab.active {
+  background: linear-gradient(145deg, var(--neo-green-bright), var(--neo-green)) !important;
+  color: #fff !important;
+  box-shadow: -4px -4px 9px rgba(255,255,255,.58), 6px 6px 13px rgba(39,120,75,.28) !important;
+}
+body:not(.theme-dark):not(.theme-high-contrast) .btn-secondary,
+body:not(.theme-dark):not(.theme-high-contrast) .nav-item,
+body:not(.theme-dark):not(.theme-high-contrast) .tab-button,
+body:not(.theme-dark):not(.theme-high-contrast) .admin-tab { background: var(--neo-surface) !important; color: var(--neo-text); }
+
+body:not(.theme-dark):not(.theme-high-contrast) input:not([type="checkbox"]):not([type="radio"]),
+body:not(.theme-dark):not(.theme-high-contrast) select,
+body:not(.theme-dark):not(.theme-high-contrast) textarea,
+body:not(.theme-dark):not(.theme-high-contrast) .plant-search,
+body:not(.theme-dark):not(.theme-high-contrast) .form-input-modal,
+body:not(.theme-dark):not(.theme-high-contrast) .form-select-modal {
+  background: var(--neo-surface) !important;
+  border: 0 !important;
+  border-radius: 13px !important;
+  box-shadow: var(--neo-pressed) !important;
+  color: var(--neo-text) !important;
+}
+body:not(.theme-dark):not(.theme-high-contrast) input:focus,
+body:not(.theme-dark):not(.theme-high-contrast) select:focus,
+body:not(.theme-dark):not(.theme-high-contrast) textarea:focus { outline: 2px solid rgba(67,168,109,.45) !important; outline-offset: 2px; }
+
+/* Nested surfaces keep the hierarchy readable across greenhouse, reports, and admin modules. */
+body:not(.theme-dark):not(.theme-high-contrast) .parameter-tile,
+body:not(.theme-dark):not(.theme-high-contrast) .performance-item,
+body:not(.theme-dark):not(.theme-high-contrast) .threshold-group,
+body:not(.theme-dark):not(.theme-high-contrast) .gh-assignment,
+body:not(.theme-dark):not(.theme-high-contrast) .export-summary,
+body:not(.theme-dark):not(.theme-high-contrast) .export-details,
+body:not(.theme-dark):not(.theme-high-contrast) .plant-selector-panel,
+body:not(.theme-dark):not(.theme-high-contrast) .plant-detail-panel,
+body:not(.theme-dark):not(.theme-high-contrast) .gh-assign-card,
+body:not(.theme-dark):not(.theme-high-contrast) .simulator-panel,
+body:not(.theme-dark):not(.theme-high-contrast) .maintenance-item,
+body:not(.theme-dark):not(.theme-high-contrast) .setting-item,
+body:not(.theme-dark):not(.theme-high-contrast) .profile-summary-item {
+  background: var(--neo-surface) !important;
+  border: 0 !important;
+  border-radius: 16px !important;
+  box-shadow: var(--neo-pressed) !important;
+}
+body:not(.theme-dark):not(.theme-high-contrast) .table { border-collapse: separate; border-spacing: 0 8px; }
+body:not(.theme-dark):not(.theme-high-contrast) .table th { background: transparent !important; border: 0 !important; color: var(--neo-muted); }
+body:not(.theme-dark):not(.theme-high-contrast) .table td { background: var(--neo-surface); border: 0 !important; }
+body:not(.theme-dark):not(.theme-high-contrast) .table td:first-child { border-radius: 12px 0 0 12px; }
+body:not(.theme-dark):not(.theme-high-contrast) .table td:last-child { border-radius: 0 12px 12px 0; }
+body:not(.theme-dark):not(.theme-high-contrast) .table tr:hover td { box-shadow: var(--neo-raised-sm); }
+
+body:not(.theme-dark):not(.theme-high-contrast) .badge { box-shadow: inset 1px 1px 2px rgba(255,255,255,.6), 2px 2px 5px rgba(93,118,101,.12); }
+body:not(.theme-dark):not(.theme-high-contrast) .login-container,
+body:not(.theme-dark):not(.theme-high-contrast) .register-container { background: var(--neo-bg) !important; }
+body:not(.theme-dark):not(.theme-high-contrast) .login-logo { filter: drop-shadow(4px 5px 6px rgba(48,92,64,.22)); }
+
+/* Preserve the same tactile language in dark mode without forcing the light palette. */
+body.theme-dark { background: #1d2822 !important; }
+body.theme-dark .navbar, body.theme-dark .card, body.theme-dark .summary-card, body.theme-dark .stat-card,
+body.theme-dark .hardware-card, body.theme-dark .greenhouse-status-card, body.theme-dark .settings-card,
+body.theme-dark .preferences-card, body.theme-dark .admin-card, body.theme-dark .login-card, body.theme-dark .modal-box {
+  border: 0 !important; border-radius: 20px !important; box-shadow: -7px -7px 16px rgba(49,67,57,.45), 8px 8px 18px rgba(5,9,7,.52) !important;
+}
+body.theme-dark input, body.theme-dark select, body.theme-dark textarea { border: 0 !important; border-radius: 12px !important; box-shadow: inset -3px -3px 7px rgba(47,65,55,.45), inset 4px 4px 9px rgba(5,9,7,.55) !important; }
+
+@media (max-width: 768px) {
+  body:not(.theme-dark):not(.theme-high-contrast) .navbar { margin: 8px 10px 0; border-radius: 16px !important; }
+  body:not(.theme-dark):not(.theme-high-contrast) .page-header,
+  body:not(.theme-dark):not(.theme-high-contrast) .card,
+  body:not(.theme-dark):not(.theme-high-contrast) .summary-card { border-radius: 17px !important; }
+}
+
+/* ============================================================================
+   ACCESSIBLE THEME OVERRIDES — applied after every light-theme visual rule
+   ============================================================================ */
+body.theme-dark {
+  background: #14231a !important;
+  color: #edf7ef !important;
+}
+body.theme-dark :is(.navbar, .page-header, .landing-footer, .profile-dropdown, .admin-page-header,
+  .greenhouse-banner, .experiment-banner, .tab-navigation, .admin-tabs, .modal-box, .confirm-box,
+  .login-card, .register-card, .card, .summary-card, .stat-card, .report-card, .admin-report-card,
+  .analytics-overview-card, .visual-guide-card, .greenhouse-status-card, .hardware-card, .hardware-section,
+  .experiment-card, .experiment-detail-card, .create-experiment-card, .exp-greenhouse-card, .gh-form-card,
+  .settings-card, .preferences-card, .profile-summary-card, .profile-module, .preference-module, .admin-card,
+  .admin-panel, .user-card, .user-approval-section, .plant-selector-panel, .plant-detail-panel, .gh-assign-card,
+  .simulator-card, .system-config-card-wide, .export-panel, .hero-panel, .status-panel, .status-card,
+  .module-showcase, .module-card) {
+  background: #1d3024 !important;
+  background-image: none !important;
+  border-color: #3d5b46 !important;
+  color: #edf7ef !important;
+  box-shadow: -7px -7px 16px rgba(58,83,65,.32), 8px 8px 18px rgba(5,13,8,.58) !important;
+}
+body.theme-dark :is(.card-header, .panel-header, .modal-header, .modal-head, .modal-foot, .report-header,
+  .section-header, .stat-header, .performance-header, .gh-header, .gh-footer, .analytics-header,
+  .analytics-footnote, .threshold-header, .module-showcase-head, .setting-item, .maintenance-item,
+  .parameter-tile, .param-item, .sensor-item, .actuator-item, .performance-item, .export-summary,
+  .export-details, .greenhouse-model, .greenhouse-readable-summary) {
+  background: #18291f !important;
+  border-color: #3d5b46 !important;
+  color: #edf7ef !important;
+  box-shadow: inset -3px -3px 7px rgba(58,83,65,.28), inset 3px 3px 8px rgba(5,13,8,.52) !important;
+}
+body.theme-dark :is(input, select, textarea, .form-input, .form-select, .plant-search, .btn-secondary,
+  .nav-item:not(.active), .tab-button:not(.active), .admin-tab:not(.active), .page-btn:not(.active)) {
+  background: #14231a !important;
+  border-color: #4d6c57 !important;
+  color: #edf7ef !important;
+}
+body.theme-dark :is(.page-title, .card-title, .section-title, .logo-text, .gh-title, .exp-title, .panel-title,
+  .admin-title, .setting-label, .nav-item, .profile-menu-item, .table th, .table td) { color: #edf7ef !important; }
+body.theme-dark :is(.page-subtitle, .text-muted, .gh-subtitle, .setting-help, .maintenance-date,
+  .profile-user-email, .profile-user-role, .param-label, .summary-label) { color: #b9cfbe !important; }
+
+body.theme-high-contrast {
+  background: #000 !important;
+  color: #fff !important;
+}
+body.theme-high-contrast :is(.navbar, .page-header, .landing-footer, .profile-dropdown, .admin-page-header,
+  .greenhouse-banner, .experiment-banner, .tab-navigation, .admin-tabs, .modal-box, .confirm-box,
+  .login-card, .register-card, .card, .summary-card, .stat-card, .report-card, .admin-report-card,
+  .analytics-overview-card, .visual-guide-card, .greenhouse-status-card, .hardware-card, .hardware-section,
+  .experiment-card, .experiment-detail-card, .create-experiment-card, .exp-greenhouse-card, .gh-form-card,
+  .settings-card, .preferences-card, .profile-summary-card, .profile-module, .preference-module, .admin-card,
+  .admin-panel, .user-card, .user-approval-section, .plant-selector-panel, .plant-detail-panel, .gh-assign-card,
+  .simulator-card, .system-config-card-wide, .export-panel, .hero-panel, .status-panel, .status-card,
+  .module-showcase, .module-card, .card-header, .panel-header, .gh-header, .gh-footer, .setting-item,
+  .parameter-tile, .param-item, .sensor-item, .actuator-item, .performance-item) {
+  background: #000 !important;
+  background-image: none !important;
+  border: 2px solid #fff !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+body.theme-high-contrast :is(input, select, textarea, .form-input, .form-select, .plant-search, .btn-secondary,
+  .nav-item:not(.active), .tab-button:not(.active), .admin-tab:not(.active), .page-btn:not(.active)) {
+  background: #000 !important;
+  border: 2px solid #fff !important;
+  color: #fff !important;
+}
+body.theme-high-contrast :is(.btn-primary, .nav-item.active, .tab-button.active, .admin-tab.active, .page-btn.active) {
+  background: #ffff00 !important;
+  border: 2px solid #ffff00 !important;
+  color: #000 !important;
+  box-shadow: none !important;
+}
+body.theme-high-contrast :is(.page-title, .card-title, .section-title, .logo-text, .gh-title, .exp-title,
+  .panel-title, .admin-title, .setting-label, .nav-item, .profile-menu-item, .table th, .table td,
+  .page-subtitle, .text-muted, .gh-subtitle, .setting-help, .maintenance-date) { color: #fff !important; }
+
+/* Navigation spacing rhythm. */
+.navbar-container {
+  gap: 18px;
+  padding-inline: clamp(20px, 3vw, 44px);
+}
+.navbar-menu { gap: 8px; }
+.navbar-user { gap: 10px; }
+.nav-item { padding: 9px 14px; }
+
+@media (max-width: 768px) {
+  .navbar-container {
+    gap: 12px;
+    padding: 10px 16px;
+  }
+  .navbar-menu {
+    gap: 10px;
+    padding-top: 12px !important;
+    padding-bottom: 8px !important;
+  }
+  .navbar-menu .nav-item { padding: 12px 16px; }
+  .navbar-user { margin-inline: 0; }
+}
+
+/* ============================================================================
+   ENCHANTED FOREST — final application-wide palette
+   ============================================================================ */
+:root {
+  --forest-deep: #173326;
+  --forest-primary: #2e8b57;
+  --forest-medium: #3cb371;
+  --forest-sage: #8fbc8f;
+  --forest-mint: #f0fff0;
+  --forest-surface: #d7e7db;
+  --forest-surface-light: #dfece2;
+  --forest-gold: #bfbc8f;
+  --forest-shadow-dark: rgba(37, 76, 51, .26);
+}
+
+html body:not(.theme-dark):not(.theme-high-contrast) {
+  background: var(--forest-mint) !important;
+  color: var(--forest-deep);
+}
+html body:not(.theme-dark):not(.theme-high-contrast) :is(.navbar, .page-header, .landing-footer,
+  .profile-dropdown, .admin-page-header, .greenhouse-banner, .experiment-banner, .tab-navigation, .admin-tabs) {
+  background: var(--forest-surface) !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: -10px -10px 20px rgba(255,255,255,.92), 10px 10px 20px var(--forest-shadow-dark) !important;
+}
+html body:not(.theme-dark):not(.theme-high-contrast) :is(.main-content, .landing-main, .login-container, .register-container) :is(
+  .card, .summary-card, .stat-card, .report-card, .admin-report-card, .analytics-overview-card,
+  .visual-guide-card, .greenhouse-status-card, .hardware-card, .hardware-section, .experiment-card,
+  .experiment-detail-card, .create-experiment-card, .exp-greenhouse-card, .gh-form-card, .settings-card,
+  .preferences-card, .profile-summary-card, .profile-module, .preference-module, .admin-card, .admin-panel,
+  .user-card, .user-approval-section, .plant-selector-panel, .plant-detail-panel, .gh-assign-card,
+  .simulator-card, .system-config-card-wide, .export-panel, .hero-panel, .status-panel, .status-card,
+  .module-showcase, .module-card, .login-card, .register-card, .modal-box, .confirm-box) {
+  background: var(--forest-surface) !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: -10px -10px 20px rgba(255,255,255,.92), 10px 10px 20px var(--forest-shadow-dark) !important;
+}
+html body:not(.theme-dark):not(.theme-high-contrast) :is(.main-content, .landing-main, .login-container, .register-container) :is(
+  .card-header, .panel-header, .modal-header, .modal-head, .modal-foot, .report-header, .section-header,
+  .stat-header, .performance-header, .gh-header, .gh-footer, .analytics-header, .analytics-footnote,
+  .threshold-header, .module-showcase-head, .setting-item, .maintenance-item, .parameter-tile, .param-item,
+  .sensor-item, .actuator-item, .performance-item, .export-summary, .export-details, .greenhouse-model,
+  .greenhouse-readable-summary) {
+  background: var(--forest-surface-light) !important;
+  border-color: transparent !important;
+  box-shadow: inset -3px -3px 7px rgba(255,255,255,.8), inset 3px 3px 8px rgba(37,76,51,.16) !important;
+}
+html body:not(.theme-dark):not(.theme-high-contrast) :is(.btn-primary, .landing-btn.primary, .nav-item.active,
+  .admin-tab.active, .tab-button.active, .page-btn.active) {
+  background: linear-gradient(145deg, var(--forest-medium), var(--forest-primary)) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+}
+html body:not(.theme-dark):not(.theme-high-contrast) :is(.btn-secondary, .landing-btn:not(.primary), .nav-item:not(.active),
+  .admin-tab:not(.active), .tab-button:not(.active), .page-btn:not(.active), .cat-btn, .user-action-btn) {
+  background: var(--forest-surface-light) !important;
+  color: var(--forest-deep) !important;
+  border-color: transparent !important;
+}
+html body:not(.theme-dark):not(.theme-high-contrast) :is(.page-title, .card-title, .section-title, .logo-text,
+  .gh-title, .exp-title, .panel-title, .admin-title, .setting-label) { color: var(--forest-deep) !important; }
+html body:not(.theme-dark):not(.theme-high-contrast) :is(.page-subtitle, .text-muted, .gh-subtitle, .setting-help,
+  .maintenance-date, .profile-user-email, .profile-user-role) { color: #587062 !important; }
+html body:not(.theme-dark):not(.theme-high-contrast) :is(input, select, textarea, .form-input, .form-select, .plant-search) {
+  background: var(--forest-surface-light) !important;
+  color: var(--forest-deep) !important;
+  border-color: transparent !important;
+}
+html body:not(.theme-dark):not(.theme-high-contrast) :is(input, select, textarea):focus {
+  outline-color: var(--forest-medium) !important;
+  box-shadow: inset -3px -3px 7px rgba(255,255,255,.8), inset 3px 3px 8px rgba(37,76,51,.16), 0 0 0 3px rgba(60,179,113,.22) !important;
+}
+
+/* Admin › System Config: every operational setting gets a distinct tactile layer. */
+body:not(.theme-dark):not(.theme-high-contrast) #tab-system .card,
+body:not(.theme-dark):not(.theme-high-contrast) #tab-system .system-config-card-wide {
+  background: var(--neo-surface) !important;
+  box-shadow: var(--neo-raised) !important;
+}
+body:not(.theme-dark):not(.theme-high-contrast) #tab-system .settings-content {
+  display: grid;
+  gap: 14px;
+}
+body:not(.theme-dark):not(.theme-high-contrast) #tab-system .setting-item,
+body:not(.theme-dark):not(.theme-high-contrast) #tab-system .maintenance-item,
+body:not(.theme-dark):not(.theme-high-contrast) #tab-system .system-config-note {
+  background: var(--neo-surface) !important;
+  border: 0 !important;
+  border-radius: 15px !important;
+  box-shadow: var(--neo-pressed) !important;
+}
+body:not(.theme-dark):not(.theme-high-contrast) #tab-system .setting-item { padding: 15px 17px; }
+body:not(.theme-dark):not(.theme-high-contrast) #tab-system .system-config-note {
+  padding: 14px 16px;
+  color: var(--neo-text);
+}
+body:not(.theme-dark):not(.theme-high-contrast) #tab-system .setting-label { color: var(--neo-text); font-weight: 700; }
+body:not(.theme-dark):not(.theme-high-contrast) #tab-system .setting-help,
+body:not(.theme-dark):not(.theme-high-contrast) #tab-system .maintenance-date { color: var(--neo-muted); }
+body:not(.theme-dark):not(.theme-high-contrast) #tab-system .toggle-slider {
+  background: #d6e1d9 !important;
+  border: 0 !important;
+  box-shadow: var(--neo-pressed) !important;
+}
+body:not(.theme-dark):not(.theme-high-contrast) #tab-system .toggle-switch input:checked + .toggle-slider {
+  background: var(--neo-green) !important;
+  box-shadow: inset -2px -2px 5px rgba(255,255,255,.24), inset 3px 3px 6px rgba(20,70,42,.35) !important;
+}
+
+/* Module coverage: panels that use bespoke markup instead of the shared .card class. */
+body:not(.theme-dark):not(.theme-high-contrast) .user-card,
+body:not(.theme-dark):not(.theme-high-contrast) .user-approval-section,
+body:not(.theme-dark):not(.theme-high-contrast) .approval-empty,
+body:not(.theme-dark):not(.theme-high-contrast) .assign-guidance-panel,
+body:not(.theme-dark):not(.theme-high-contrast) .gh-a-card,
+body:not(.theme-dark):not(.theme-high-contrast) .gh-b-card,
+body:not(.theme-dark):not(.theme-high-contrast) .threshold-card,
+body:not(.theme-dark):not(.theme-high-contrast) .create-experiment-card,
+body:not(.theme-dark):not(.theme-high-contrast) .exp-greenhouse-card,
+body:not(.theme-dark):not(.theme-high-contrast) .report-card,
+body:not(.theme-dark):not(.theme-high-contrast) .export-panel,
+body:not(.theme-dark):not(.theme-high-contrast) .hardware-section,
+body:not(.theme-dark):not(.theme-high-contrast) .control-panel,
+body:not(.theme-dark):not(.theme-high-contrast) .chart-container,
+body:not(.theme-dark):not(.theme-high-contrast) .section-explainer,
+body:not(.theme-dark):not(.theme-high-contrast) .visual-guide-card,
+body:not(.theme-dark):not(.theme-high-contrast) .hero-panel,
+body:not(.theme-dark):not(.theme-high-contrast) .status-panel,
+body:not(.theme-dark):not(.theme-high-contrast) .module-showcase,
+body:not(.theme-dark):not(.theme-high-contrast) .module-card,
+body:not(.theme-dark):not(.theme-high-contrast) .status-card {
+  background: var(--neo-surface) !important;
+  border: 0 !important;
+  border-radius: 20px !important;
+  box-shadow: var(--neo-raised) !important;
+}
+
+body:not(.theme-dark):not(.theme-high-contrast) .parameter-tile,
+body:not(.theme-dark):not(.theme-high-contrast) .sensor-item,
+body:not(.theme-dark):not(.theme-high-contrast) .actuator-item,
+body:not(.theme-dark):not(.theme-high-contrast) .param-item,
+body:not(.theme-dark):not(.theme-high-contrast) .exp-meta,
+body:not(.theme-dark):not(.theme-high-contrast) .exp-meta-item,
+body:not(.theme-dark):not(.theme-high-contrast) .timeline-item,
+body:not(.theme-dark):not(.theme-high-contrast) .gateway-node,
+body:not(.theme-dark):not(.theme-high-contrast) .module-graphic {
+  background: var(--neo-surface) !important;
+  border: 0 !important;
+  border-radius: 15px !important;
+  box-shadow: var(--neo-pressed) !important;
+}
+
+body:not(.theme-dark):not(.theme-high-contrast) .greenhouse-banner,
+body:not(.theme-dark):not(.theme-high-contrast) .experiment-header,
+body:not(.theme-dark):not(.theme-high-contrast) .experiment-banner {
+  box-shadow: -6px -6px 12px rgba(255,255,255,.48), 8px 8px 16px rgba(29,95,56,.25) !important;
+}
+
+/* Catch-all for legacy module wrappers and white header strips. */
+body:not(.theme-dark):not(.theme-high-contrast) .main-content > section,
+body:not(.theme-dark):not(.theme-high-contrast) .main-content > article,
+body:not(.theme-dark):not(.theme-high-contrast) .main-content > aside,
+body:not(.theme-dark):not(.theme-high-contrast) .tab-content > section,
+body:not(.theme-dark):not(.theme-high-contrast) .tab-content > article,
+body:not(.theme-dark):not(.theme-high-contrast) .tab-content > aside {
+  background: var(--neo-surface) !important;
+  border: 0 !important;
+  border-radius: 20px !important;
+  box-shadow: var(--neo-raised) !important;
+}
+body:not(.theme-dark):not(.theme-high-contrast) .card-header,
+body:not(.theme-dark):not(.theme-high-contrast) .panel-header,
+body:not(.theme-dark):not(.theme-high-contrast) .report-header,
+body:not(.theme-dark):not(.theme-high-contrast) .section-header,
+body:not(.theme-dark):not(.theme-high-contrast) .module-showcase-head,
+body:not(.theme-dark):not(.theme-high-contrast) .tab-navigation,
+body:not(.theme-dark):not(.theme-high-contrast) .admin-tabs {
+  background: var(--neo-surface) !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  box-shadow: var(--neo-pressed) !important;
+}
+body:not(.theme-dark):not(.theme-high-contrast) .card-header,
+body:not(.theme-dark):not(.theme-high-contrast) .panel-header { padding: 14px 18px; }
 html.performance-lite body:not(.theme-dark):not(.theme-high-contrast) *,
 html.performance-lite body:not(.theme-dark):not(.theme-high-contrast) *::before,
 html.performance-lite body:not(.theme-dark):not(.theme-high-contrast) *::after {
   animation-duration: .01ms !important;
   animation-iteration-count: 1 !important;
   transition-duration: .01ms !important;
+}
+
+/* Must remain last: neutralize any legacy white component background, including
+   cards with page-specific class names that were not known when CSS was written. */
+body:not(.theme-dark):not(.theme-high-contrast) .main-content :is([class~="card"], [class$="-card"], [class*="-card "], [class$="-panel"], [class*="-panel "], [class~="panel"]),
+body:not(.theme-dark):not(.theme-high-contrast) .landing-main :is([class~="card"], [class$="-card"], [class*="-card "], [class$="-panel"], [class*="-panel "], [class~="panel"]) {
+  background: var(--neo-surface) !important;
+  border-color: transparent !important;
+  box-shadow: var(--neo-raised) !important;
+}
+body:not(.theme-dark):not(.theme-high-contrast) .main-content :is(.card-header, .panel-header, .table-header, .list-header, .section-heading),
+body:not(.theme-dark):not(.theme-high-contrast) .landing-main :is(.hero-panel, .module-showcase-head) {
+  background: var(--neo-surface) !important;
+  box-shadow: var(--neo-pressed) !important;
+}
+
+/* Dashboard, greenhouse, experiment, and report content bars are surfaces too. */
+body:not(.theme-dark):not(.theme-high-contrast) :is(.gh-header, .gh-footer, .stat-header, .performance-header,
+  .analytics-header, .analytics-footnote, .experiment-body, .experiment-body > *, .sensor-performance,
+  .parameters-grid, .threshold-header, .controls-header, .chart-header, .modal-head, .modal-foot,
+  .modal-body-inner, .confirm-box, .form-section) {
+  background-color: var(--neo-surface) !important;
+  border-color: transparent !important;
+}
+body:not(.theme-dark):not(.theme-high-contrast) :is(.gh-header, .gh-footer, .stat-header, .performance-header,
+  .analytics-header, .analytics-footnote, .threshold-header, .modal-head, .modal-foot) {
+  border-radius: 13px !important;
+  box-shadow: var(--neo-pressed) !important;
+}
+
+/* High-contrast neomorphic dashboard canvas: primary containers must never read as white. */
+html body:not(.theme-dark):not(.theme-high-contrast) .main-content :is(.card, .summary-card, .analytics-overview-card, .visual-guide-card, .greenhouse-status-card, .hardware-card, .hardware-section, .dashboard-guide, .experiment-banner) {
+  background: #d7e7db !important;
+  background-image: none !important;
+  border: 0 !important;
+  box-shadow: -10px -10px 20px rgba(255,255,255,.9), 10px 10px 20px rgba(76,105,85,.27) !important;
+}
+html body:not(.theme-dark):not(.theme-high-contrast) .main-content :is(.card-header, .gh-header, .gh-footer, .analytics-header, .stat-header) {
+  background: #dfece2 !important;
+  border-color: transparent !important;
+}
+
+/* Consistent primary surfaces across every ECOTwin module. */
+html body:not(.theme-dark):not(.theme-high-contrast) :is(.main-content, .landing-main, .login-container, .register-container) :is(
+  .card, .summary-card, .stat-card, .report-card, .admin-report-card, .analytics-overview-card,
+  .visual-guide-card, .greenhouse-status-card, .hardware-card, .hardware-section, .experiment-card,
+  .experiment-detail-card, .create-experiment-card, .exp-greenhouse-card, .gh-form-card,
+  .settings-card, .preferences-card, .profile-summary-card, .profile-module, .preference-module,
+  .admin-card, .admin-panel, .user-card, .user-approval-section, .plant-selector-panel,
+  .plant-detail-panel, .gh-assign-card, .simulator-card, .system-config-card-wide, .report-card,
+  .export-panel, .hero-panel, .status-panel, .status-card, .module-showcase, .module-card,
+  .login-card, .register-card, .modal-box, .confirm-box) {
+  background: #d7e7db !important;
+  background-image: none !important;
+  border: 0 !important;
+  box-shadow: -10px -10px 20px rgba(255,255,255,.9), 10px 10px 20px rgba(76,105,85,.27) !important;
+}
+html body:not(.theme-dark):not(.theme-high-contrast) :is(.main-content, .landing-main, .login-container, .register-container) :is(
+  .card-header, .panel-header, .modal-header, .modal-head, .modal-foot, .report-header,
+  .section-header, .stat-header, .performance-header, .gh-header, .gh-footer, .tab-navigation,
+  .admin-tabs, .module-showcase-head) {
+  background: #dfece2 !important;
+  border-color: transparent !important;
+  box-shadow: inset -3px -3px 7px rgba(255,255,255,.75), inset 3px 3px 8px rgba(76,105,85,.17) !important;
+}
+
+/* Full-page surfaces and breathing room for About, Greenhouses, and Admin. */
+html body:not(.theme-dark):not(.theme-high-contrast) .navbar,
+html body:not(.theme-dark):not(.theme-high-contrast) .page-header,
+html body:not(.theme-dark):not(.theme-high-contrast) .landing-footer,
+html body:not(.theme-dark):not(.theme-high-contrast) .profile-dropdown,
+html body:not(.theme-dark):not(.theme-high-contrast) .greenhouse-banner,
+html body:not(.theme-dark):not(.theme-high-contrast) .admin-page-header,
+html body:not(.theme-dark):not(.theme-high-contrast) .admin-tabs,
+html body:not(.theme-dark):not(.theme-high-contrast) .tab-navigation {
+  background: #d7e7db !important;
+  background-image: none !important;
+  border: 0 !important;
+  box-shadow: -10px -10px 20px rgba(255,255,255,.9), 10px 10px 20px rgba(76,105,85,.27) !important;
+}
+html body:not(.theme-dark):not(.theme-high-contrast) :is(.landing-main, .main-content) :is(.btn, .landing-btn, .nav-item, .admin-tab, .tab-button, .page-btn, .cat-btn, .user-action-btn) {
+  background: #dfece2 !important;
+  border: 0 !important;
+  box-shadow: -5px -5px 10px rgba(255,255,255,.85), 5px 5px 10px rgba(76,105,85,.22) !important;
+}
+html body:not(.theme-dark):not(.theme-high-contrast) :is(.landing-main, .main-content) :is(.btn-primary, .landing-btn.primary, .nav-item.active, .admin-tab.active, .tab-button.active, .page-btn.active) {
+  background: linear-gradient(145deg, #48af72, #27784b) !important;
+  color: #fff !important;
+}
+html body:not(.theme-dark):not(.theme-high-contrast) .main-content { padding-top: 38px; padding-bottom: 72px; }
+html body:not(.theme-dark):not(.theme-high-contrast) .main-content > * { margin-bottom: 28px; }
+html body:not(.theme-dark):not(.theme-high-contrast) .landing-main { gap: 30px; padding-block: 36px 56px; }
+html body:not(.theme-dark):not(.theme-high-contrast) .greenhouse-status-grid,
+html body:not(.theme-dark):not(.theme-high-contrast) .greenhouse-grid,
+html body:not(.theme-dark):not(.theme-high-contrast) .settings-grid,
+html body:not(.theme-dark):not(.theme-high-contrast) .tab-layout { gap: 26px; }
+html body:not(.theme-dark):not(.theme-high-contrast) :is(.card, .summary-card, .greenhouse-status-card, .admin-card, .admin-panel, .module-card) { padding: 24px; }
+
+@media (max-width: 768px) {
+  html body:not(.theme-dark):not(.theme-high-contrast) .main-content { padding: 24px 16px 44px; }
+  html body:not(.theme-dark):not(.theme-high-contrast) .main-content > * { margin-bottom: 20px; }
+  html body:not(.theme-dark):not(.theme-high-contrast) :is(.card, .summary-card, .greenhouse-status-card, .admin-card, .admin-panel, .module-card) { padding: 18px; }
+}
+body:not(.theme-dark):not(.theme-high-contrast) canvas[id^="chart-"] {
+  background: var(--neo-surface) !important;
+  border: 0 !important;
+  box-shadow: var(--neo-pressed) !important;
+}
+
+/* Mobile navigation: compact two-column popover instead of a page-length stack. */
+@media (max-width: 768px) {
+  html body:not(.theme-dark):not(.theme-high-contrast) .navbar {
+    position: sticky;
+    top: 8px;
+    z-index: 1000;
+    overflow: visible;
+  }
+  html body:not(.theme-dark):not(.theme-high-contrast) .navbar-container {
+    position: relative;
+    height: 58px;
+    min-height: 58px;
+    padding: 8px 14px;
+  }
+  html body:not(.theme-dark):not(.theme-high-contrast) .navbar-menu {
+    position: absolute !important;
+    top: calc(100% + 9px);
+    left: 0;
+    right: 0;
+    display: none;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    width: auto;
+    max-height: min(300px, calc(100vh - 88px));
+    overflow-y: auto;
+    padding: 10px !important;
+    border: 0 !important;
+    border-radius: 18px !important;
+    background: #d7e7db !important;
+    box-shadow: -8px -8px 16px rgba(255,255,255,.9), 9px 9px 18px rgba(76,105,85,.28) !important;
+  }
+  html body:not(.theme-dark):not(.theme-high-contrast) .navbar.nav-open .navbar-menu { display: grid; }
+  html body:not(.theme-dark):not(.theme-high-contrast) .navbar-menu .nav-item {
+    min-height: 44px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    border-radius: 12px !important;
+    font-size: 14px;
+    line-height: 1.15;
+  }
+  html body:not(.theme-dark):not(.theme-high-contrast) .navbar-toggle {
+    width: 42px;
+    height: 42px;
+    border-radius: 13px !important;
+  }
+}
+
+/* Keep the original mobile menu dimensions; this pass changes appearance only. */
+@media (max-width: 768px) {
+  html body:not(.theme-dark):not(.theme-high-contrast) .navbar-container {
+    height: auto;
+    min-height: 58px;
+  }
+  html body:not(.theme-dark):not(.theme-high-contrast) .navbar-menu {
+    position: static !important;
+    grid-template-columns: 1fr;
+    width: 100%;
+    max-height: none;
+    overflow: visible;
+    padding: 10px 0 4px !important;
+    gap: 8px;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+  html body:not(.theme-dark):not(.theme-high-contrast) .navbar-menu .nav-item {
+    min-height: 0;
+    padding: 12px 14px;
+    color: #254836 !important;
+    background: #dfece2 !important;
+    box-shadow: inset -3px -3px 7px rgba(255,255,255,.8), inset 3px 3px 8px rgba(76,105,85,.17) !important;
+  }
+  html body:not(.theme-dark):not(.theme-high-contrast) .navbar-menu .nav-item.active {
+    background: linear-gradient(145deg, #48af72, #27784b) !important;
+    color: #fff !important;
+    box-shadow: -4px -4px 9px rgba(255,255,255,.68), 5px 5px 11px rgba(39,120,75,.3) !important;
+  }
+  html body:not(.theme-dark):not(.theme-high-contrast) .navbar-toggle {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* Final navigation spacing override. */
+.navbar-container { gap: 18px; padding-inline: clamp(20px, 3vw, 44px); }
+.navbar-menu { gap: 8px; }
+.navbar-user { gap: 10px; }
+.nav-item { padding: 9px 14px; }
+@media (max-width: 768px) {
+  .navbar-container { gap: 12px; padding: 10px 16px; }
+  .navbar-menu { gap: 10px; padding-top: 12px !important; padding-bottom: 8px !important; }
+  .navbar-menu .nav-item { padding: 12px 16px; }
+  .navbar-user { margin-inline: 0; }
+}
+
+/* Improve label readability without enlarging the navigation shell. */
+.navbar-logo { line-height: 1.25; }
+.logo-text { line-height: 1.3; }
+.nav-item {
+  line-height: 1.45;
+  letter-spacing: .01em;
+}
+@media (max-width: 768px) {
+  .navbar-menu .nav-item {
+    line-height: 1.5;
+    padding-block: 13px;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar-menu { gap: 14px; padding-top: 16px !important; padding-bottom: 12px !important; }
+  .navbar-menu .nav-item { padding-block: 15px; line-height: 1.65; }
+}
+
+/* Navigation item spacing: a distinct gap around and between each destination. */
+@media (min-width: 769px) {
+  .navbar-menu {
+    gap: 12px !important;
+    padding: 9px 11px !important;
+  }
+  .navbar-menu .nav-item {
+    min-height: 42px;
+    padding: 10px 18px;
+    line-height: 1.35;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
 }

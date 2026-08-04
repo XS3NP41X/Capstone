@@ -61,11 +61,13 @@ let state=null,loggedIn=false;function $(id){return document.getElementById(id)}
 </script></body></html>
 )HTML";
 
+// Handles add log.
 void addLog(const String &message) {
   activityLog[activityIndex] = String(millis() / 1000) + "s - " + message;
   activityIndex = (activityIndex + 1) % 12;
 }
 
+// Handles setup pins.
 void setupPins() {
   int pins[] = {RELAY_PUMP_1, RELAY_FAN_1, RELAY_LIGHT_1, RELAY_PUMP_2, RELAY_FAN_2, RELAY_LIGHT_2};
   for (int i = 0; i < 6; i++) {
@@ -74,6 +76,7 @@ void setupPins() {
   }
 }
 
+// Handles apply relays.
 void applyRelays() {
   digitalWrite(RELAY_PUMP_1, gh[0].pump ? HIGH : LOW);
   digitalWrite(RELAY_FAN_1, gh[0].fan ? HIGH : LOW);
@@ -83,6 +86,7 @@ void applyRelays() {
   digitalWrite(RELAY_LIGHT_2, gh[1].growLight ? HIGH : LOW);
 }
 
+// Handles load settings.
 void loadSettings() {
   prefs.begin("ecotwin", false);
   apSsid = prefs.getString("ssid", "ECOTwin-LAN");
@@ -93,11 +97,13 @@ void loadSettings() {
   if (apPass.length() < 8) apPass = "ecotwin123";
 }
 
+// Handles seed readings.
 void seedReadings() {
   gh[0] = {28.2, 68.0, 620, 54, false, true, false};
   gh[1] = {27.4, 64.0, 590, 57, false, false, false};
 }
 
+// Handles update readings.
 void updateReadings() {
   if (millis() - lastReadingUpdate < 2500) return;
   lastReadingUpdate = millis();
@@ -109,13 +115,16 @@ void updateReadings() {
   }
 }
 
+// Handles uptime label.
 String uptimeLabel() {
   unsigned long s = (millis() - bootMs) / 1000;
   return String(s / 3600) + "h " + String((s % 3600) / 60) + "m " + String(s % 60) + "s";
 }
 
+// Handles json bool.
 String jsonBool(bool value) { return value ? "true" : "false"; }
 
+// Handles escape json.
 String escapeJson(const String &input) {
   String out;
   for (size_t i = 0; i < input.length(); i++) {
@@ -126,6 +135,7 @@ String escapeJson(const String &input) {
   return out;
 }
 
+// Handles send state.
 void sendState() {
   updateReadings();
   String json = "{";
@@ -153,6 +163,7 @@ void sendState() {
   server.send(200, "application/json", json);
 }
 
+// Handles handle login.
 void handleLogin() {
   String submittedUser = server.arg("user");
   submittedUser.trim();
@@ -165,6 +176,7 @@ void handleLogin() {
   server.send(200, "application/json", ok ? "{\"ok\":true}" : "{\"ok\":false}");
 }
 
+// Handles handle control.
 void handleControl() {
   int house = server.arg("gh").toInt();
   String target = server.arg("target");
@@ -185,6 +197,7 @@ void handleControl() {
   server.send(200, "application/json", "{\"ok\":true}");
 }
 
+// Handles handle settings.
 void handleSettings() {
   if (server.hasArg("ssid") && server.arg("ssid").length() > 0) {
     apSsid = server.arg("ssid");
@@ -210,8 +223,10 @@ void handleSettings() {
   server.send(200, "application/json", "{\"ok\":true}");
 }
 
+// Handles serve index.
 void serveIndex() { server.send_P(200, "text/html", INDEX_HTML); }
 
+// Handles setup routes.
 void setupRoutes() {
   server.on("/", HTTP_GET, serveIndex);
   server.on("/api/login", HTTP_POST, handleLogin);
@@ -221,6 +236,7 @@ void setupRoutes() {
   server.onNotFound(serveIndex);
 }
 
+// Handles setup.
 void setup() {
   Serial.begin(115200);
   bootMs = millis();
@@ -236,6 +252,7 @@ void setup() {
   addLog("LAN gateway started at 192.168.4.1");
 }
 
+// Handles loop.
 void loop() {
   dnsServer.processNextRequest();
   server.handleClient();

@@ -33,7 +33,6 @@ if (!empty($_SESSION['user_id'])) {
         $_SESSION['user_name']  = $user['full_name'];
         $_SESSION['user_email'] = $user['email'];
         $_SESSION['user_role']  = $user['role'];
-
     } catch (PDOException $e) {
         error_log('Auth guard DB error: ' . $e->getMessage());
     }

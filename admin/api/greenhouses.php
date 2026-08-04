@@ -105,6 +105,7 @@ try {
     jsonResponse(['success' => false, 'error' => $e->getMessage()], 500);
 }
 
+// Handles assert no active experiment for assignment.
 function assertNoActiveExperimentForAssignment(PDO $pdo): void
 {
     $active = $pdo->query("

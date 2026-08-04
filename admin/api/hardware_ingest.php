@@ -90,6 +90,7 @@ try {
     jsonResponse(['success' => false, 'error' => $e->getMessage()], 500);
 }
 
+// Handles fetch greenhouse.
 function fetchGreenhouse(PDO $pdo, string $code): ?array {
     $stmt = $pdo->prepare("SELECT greenhouse_id, code FROM greenhouses WHERE code = ? LIMIT 1");
     $stmt->execute([$code]);
@@ -97,6 +98,7 @@ function fetchGreenhouse(PDO $pdo, string $code): ?array {
     return $row ?: null;
 }
 
+// Handles describe table.
 function describeTable(PDO $pdo, string $table): array {
     $stmt = $pdo->query("DESCRIBE `$table`");
     $columns = [];
@@ -106,16 +108,19 @@ function describeTable(PDO $pdo, string $table): array {
     return $columns;
 }
 
+// Handles normalize status.
 function normalizeStatus(string $status): string {
     $status = strtolower(trim($status));
     return in_array($status, ['online', 'offline', 'degraded', 'maintenance'], true) ? $status : 'offline';
 }
 
+// Handles normalize hardware status.
 function normalizeHardwareStatus(string $status): string {
     $status = strtolower(trim($status));
     return in_array($status, ['online', 'offline', 'degraded'], true) ? $status : 'offline';
 }
 
+// Handles normalize hardware type.
 function normalizeHardwareType(string $type, string $label = ''): string {
     $type = strtolower(trim($type));
     $label = strtolower(trim($label));
@@ -143,6 +148,7 @@ function normalizeHardwareType(string $type, string $label = ''): string {
     ][$type] ?? 'other';
 }
 
+// Handles normalize parameter.
 function normalizeParameter(string $parameter): ?string {
     $parameter = strtolower(trim($parameter));
     return [
@@ -160,6 +166,7 @@ function normalizeParameter(string $parameter): ?string {
     ][$parameter] ?? null;
 }
 
+// Handles unit for.
 function unitFor(string $parameter): string {
     return [
         'temperature' => 'C',
@@ -172,6 +179,7 @@ function unitFor(string $parameter): string {
     ][$parameter] ?? '';
 }
 
+// Handles sensor type for.
 function sensorTypeFor(string $parameter): string {
     return [
         'temperature' => 'DHT22',
@@ -184,6 +192,7 @@ function sensorTypeFor(string $parameter): string {
     ][$parameter] ?? 'DHT22';
 }
 
+// Handles sensor label for.
 function sensorLabelFor(string $parameter): string {
     return [
         'temperature' => 'DHT22 Air Temperature',
@@ -196,6 +205,7 @@ function sensorLabelFor(string $parameter): string {
     ][$parameter] ?? ucfirst($parameter);
 }
 
+// Handles parameters for hardware label.
 function parametersForHardwareLabel(string $label): array {
     $label = strtolower(trim($label));
     if (str_contains($label, 'dht22')) return ['temperature', 'humidity'];
@@ -207,6 +217,7 @@ function parametersForHardwareLabel(string $label): array {
     return [];
 }
 
+// Handles update sensor status.
 function updateSensorStatus(PDO $pdo, array $columns, array $greenhouse, string $parameter, string $status, string $now): void {
     if (!isset($columns['status'])) {
         return;
@@ -230,6 +241,7 @@ function updateSensorStatus(PDO $pdo, array $columns, array $greenhouse, string 
     )->execute($params);
 }
 
+// Handles mark unreported sensors offline.
 function markUnreportedSensorsOffline(PDO $pdo, array $columns, array $greenhouse, array $reportedParams, string $now): void {
     if (!isset($columns['status'])) {
         return;
@@ -257,6 +269,7 @@ function markUnreportedSensorsOffline(PDO $pdo, array $columns, array $greenhous
     )->execute($params);
 }
 
+// Handles upsert hardware.
 function upsertHardware(PDO $pdo, array $columns, array $item, string $now): void {
     $label = trim($item['label']);
     if ($label === '' || !isset($columns['label'])) {
@@ -303,6 +316,7 @@ function upsertHardware(PDO $pdo, array $columns, array $item, string $now): voi
     insertDynamic($pdo, 'hardware_components', $row);
 }
 
+// Handles upsert sensor.
 function upsertSensor(PDO $pdo, array $columns, array $greenhouse, string $parameter, string $now): array {
     $label = sensorLabelFor($parameter);
     $stmt = $pdo->prepare("SELECT * FROM sensors WHERE greenhouse_id = ? AND parameter = ? LIMIT 1");
@@ -345,6 +359,7 @@ function upsertSensor(PDO $pdo, array $columns, array $greenhouse, string $param
     return ['sensor_id' => (int)$pdo->lastInsertId()];
 }
 
+// Handles insert reading.
 function insertReading(PDO $pdo, array $columns, array $sensor, array $greenhouse, string $parameter, float $value, string $now): void {
     $row = [];
     foreach ([
@@ -367,6 +382,7 @@ function insertReading(PDO $pdo, array $columns, array $sensor, array $greenhous
     insertDynamic($pdo, 'sensor_readings', $row);
 }
 
+// Handles insert dynamic.
 function insertDynamic(PDO $pdo, string $table, array $row): void {
     if (!$row) {
         return;

@@ -906,6 +906,7 @@ function doExport() {
     }, 2500);
 }
 
+// Handles set export loading.
 function setExportLoading(button, loading) {
     button.disabled = loading;
     button.classList.toggle('is-exporting', loading);

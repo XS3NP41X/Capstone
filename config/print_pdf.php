@@ -11,6 +11,7 @@ final class EcoTwinPrintPdf
     private const H = 595.0;
     private const L = 36.0;
 
+    // Handles construct.
     public function __construct(string $title, string $subtitle)
     {
         $this->title = $title;
@@ -18,33 +19,39 @@ final class EcoTwinPrintPdf
         $this->newPage();
     }
 
+    // Handles text.
     private static function text(string $value): string
     {
         $value = iconv('UTF-8', 'Windows-1252//TRANSLIT//IGNORE', $value) ?: '';
         return str_replace(['\\', '(', ')', "\r", "\n"], ['\\\\', '\\(', '\\)', '', ' '], $value);
     }
 
+    // Handles clip.
     private static function clip(string $value, int $limit): string
     {
         return mb_strlen($value) > $limit ? mb_substr($value, 0, max(0, $limit - 1)) . '…' : $value;
     }
 
+    // Handles rect.
     private function rect(float $x, float $y, float $w, float $h, string $rgb): void
     {
         $this->content .= sprintf("%s rg %.2F %.2F %.2F %.2F re f\n", $rgb, $x, $y, $w, $h);
     }
 
+    // Handles line.
     private function line(float $x1, float $y1, float $x2, float $y2, string $rgb = '0.78 0.86 0.80'): void
     {
         $this->content .= sprintf("%s RG 0.45 w %.2F %.2F m %.2F %.2F l S\n", $rgb, $x1, $y1, $x2, $y2);
     }
 
+    // Handles write.
     private function write(float $x, float $y, string $text, float $size = 9, bool $bold = false, string $rgb = '0.09 0.20 0.13'): void
     {
         $font = $bold ? 'F2' : 'F1';
         $this->content .= sprintf("BT /%s %.2F Tf %s rg 1 0 0 1 %.2F %.2F Tm (%s) Tj ET\n", $font, $size, $rgb, $x, $y, self::text($text));
     }
 
+    // Handles new page.
     private function newPage(): void
     {
         if ($this->content !== '') {
@@ -58,6 +65,7 @@ final class EcoTwinPrintPdf
         $this->y = 520;
     }
 
+    // Handles room.
     private function room(float $height): void
     {
         if ($this->y - $height < 48) {
@@ -65,6 +73,7 @@ final class EcoTwinPrintPdf
         }
     }
 
+    // Handles section.
     public function section(string $title): void
     {
         $this->room(26);
@@ -123,6 +132,7 @@ final class EcoTwinPrintPdf
         $this->y -= 12;
     }
 
+    // Handles output.
     public function output(string $filename): never
     {
         if ($this->content !== '') {

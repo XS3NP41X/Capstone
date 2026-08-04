@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // ============================================================================
 // ECOTWIN - GREENHOUSES MONITORING PAGE
 // PHP conversion with MySQL (ecotwin_db) data integration
@@ -923,6 +923,7 @@ async function refreshSensors(ghCode, silent = false) {
     }
 }
 
+// Handles refresh actuators.
 async function refreshActuators(ghCode) {
     try {
         const res = await fetch(`greenhouses/greenhouses_api.php?action=get_actuators&gh=${ghCode}`);
@@ -971,6 +972,7 @@ async function refreshActuators(ghCode) {
     }
 }
 
+// Handles toggle actuator.
 async function toggleActuator(ghCode, target) {
     try {
         const res = await fetch('greenhouses/greenhouses_api.php?action=toggle_actuator', {
@@ -1043,6 +1045,7 @@ async function refreshReadings(ghCode) {
 
 // Canvas trend chart for LAN mode. No online chart library is required.
 const _charts = {};
+// Handles load trend.
 async function loadTrend(ghCode, hours, clickEvent = null) {
     // Update active time button
     const lc = ghCode.toLowerCase();
@@ -1080,6 +1083,7 @@ async function loadTrend(ghCode, hours, clickEvent = null) {
     }
 }
 
+// Handles draw trend chart.
 function drawTrendChart(canvas, series) {
     const cssWidth = canvas.clientWidth || canvas.parentElement.clientWidth || 640;
     const cssHeight = 280;
@@ -1159,7 +1163,9 @@ function drawTrendChart(canvas, series) {
     ctx.lineTo(cssWidth - pad.right, cssHeight - pad.bottom);
     ctx.stroke();
 
+    // Handles x for.
     const xFor = (time) => pad.left + ((time - minTime) / timeRange) * plotW;
+    // Handles y for.
     const yFor = (value) => pad.top + ((maxVal - value) / valRange) * plotH;
 
     params.forEach((param) => {

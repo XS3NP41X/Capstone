@@ -35,6 +35,7 @@ int lastPostCode = 0;
 String lastPostResponse = "none";
 String lastUnoLinePreview = "none";
 
+// Handles json escape.
 String jsonEscape(const String &value) {
   String out;
   for (size_t i = 0; i < value.length(); i++) {
@@ -46,6 +47,7 @@ String jsonEscape(const String &value) {
   return out;
 }
 
+// Handles start access point.
 void startAccessPoint() {
   WiFi.mode(WIFI_AP);
   bool ok = WiFi.softAP(WIFI_SSID, WIFI_PASSWORD);
@@ -55,6 +57,7 @@ void startAccessPoint() {
   Serial.println(WiFi.softAPIP());
 }
 
+// Handles post to ecotwin.
 bool postToEcotwin(const String &payload) {
   HTTPClient http;
   http.setTimeout(6000);
@@ -74,6 +77,7 @@ bool postToEcotwin(const String &payload) {
   return lastPostCode >= 200 && lastPostCode < 300;
 }
 
+// Handles looks like sensor payload.
 bool looksLikeSensorPayload(const String &line) {
   return line.startsWith("{") &&
          line.endsWith("}") &&
@@ -81,6 +85,7 @@ bool looksLikeSensorPayload(const String &line) {
          line.indexOf("\"readings\"") >= 0;
 }
 
+// Handles handle uno line.
 void handleUnoLine(String line) {
   line.trim();
   if (line.length() == 0) return;
@@ -104,6 +109,7 @@ void handleUnoLine(String line) {
   }
 }
 
+// Handles read uno serial.
 void readUnoSerial() {
   while (Serial2.available()) {
     char c = (char)Serial2.read();
@@ -120,12 +126,14 @@ void readUnoSerial() {
   }
 }
 
+// Handles send uno command.
 void sendUnoCommand(const String &command) {
   Serial2.println(command);
   Serial.print("Sent Uno command: ");
   Serial.println(command);
 }
 
+// Handles handle command api.
 void handleCommandApi() {
   String command = server.arg("cmd");
   command.trim();
@@ -145,6 +153,7 @@ void handleCommandApi() {
   server.send(200, "application/json", "{\"ok\":true}");
 }
 
+// Handles test payload.
 String testPayload() {
   return "{\"greenhouse\":\"A\",\"hardware\":["
          "{\"label\":\"ESP32 Module\",\"type\":\"gateway\",\"status\":\"online\",\"model\":\"ESP32\",\"firmware_version\":\"esp32-gateway-2.0\"},"
@@ -161,12 +170,14 @@ String testPayload() {
          "],\"readings\":{\"temperature\":25.5,\"humidity\":60,\"light\":500,\"water_level\":300}}";
 }
 
+// Handles handle test upload.
 void handleTestUpload() {
   bool ok = postToEcotwin(testPayload());
   if (ok) uploadedCount++;
   server.send(ok ? 200 : 500, "application/json", ok ? "{\"ok\":true}" : "{\"ok\":false}");
 }
 
+// Handles handle status.
 void handleStatus() {
   String json = "{";
   json += "\"ap_ip\":\"" + WiFi.softAPIP().toString() + "\",";
@@ -180,6 +191,7 @@ void handleStatus() {
   server.send(200, "application/json", json);
 }
 
+// Handles handle root.
 void handleRoot() {
   server.send(200, "text/plain",
               "ECOTwin Hardware Gateway\n"
@@ -189,6 +201,7 @@ void handleRoot() {
               "Commands: RELAY:ON, RELAY:OFF, STEPPER:CW, STEPPER:CCW, STEPPER:STOP, PING\n");
 }
 
+// Handles setup routes.
 void setupRoutes() {
   server.on("/", HTTP_GET, handleRoot);
   server.on("/api/status", HTTP_GET, handleStatus);
@@ -198,6 +211,7 @@ void setupRoutes() {
   server.begin();
 }
 
+// Handles print periodic status.
 void printPeriodicStatus() {
   if (millis() - lastStatusMs < STATUS_INTERVAL_MS) return;
   lastStatusMs = millis();
@@ -212,6 +226,7 @@ void printPeriodicStatus() {
   Serial.println(lastPostCode);
 }
 
+// Handles setup.
 void setup() {
   Serial.begin(115200);
   Serial2.begin(9600, SERIAL_8N1, UNO_RX_PIN, UNO_TX_PIN);
@@ -224,6 +239,7 @@ void setup() {
   Serial.println("Open http://192.168.4.1/api/status for gateway diagnostics.");
 }
 
+// Handles loop.
 void loop() {
   server.handleClient();
   readUnoSerial();

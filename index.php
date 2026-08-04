@@ -851,6 +851,7 @@ try {
     <script>
         'use strict';
 
+        // Handles toggle profile dropdown.
         function toggleProfileDropdown(event) {
             event.stopPropagation();
             const dd = document.getElementById('profileDropdown');

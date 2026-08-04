@@ -227,6 +227,7 @@ function getActuators(string $gh_code): array {
     return $stmt->fetchAll();
 }
 
+// Handles esp32 command for actuator.
 function esp32CommandForActuator(string $actuatorType, string $status): ?string {
     $status = strtolower($status) === 'on' ? 'ON' : 'OFF';
     return match ($actuatorType) {
@@ -235,6 +236,7 @@ function esp32CommandForActuator(string $actuatorType, string $status): ?string 
     };
 }
 
+// Handles send esp32 command.
 function sendEsp32Command(?string $command): bool {
     if (!$command) return false;
     $context = stream_context_create(['http' => ['method' => 'GET', 'timeout' => 2]]);
@@ -260,6 +262,7 @@ function getSensorStatuses(string $gh_code): array {
     return $stmt->fetchAll();
 }
 
+// Handles mark stale sensors offline.
 function markStaleSensorsOffline(PDO $db): void {
     $db->exec("
         UPDATE sensors

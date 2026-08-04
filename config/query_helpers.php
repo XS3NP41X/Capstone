@@ -4,6 +4,7 @@
 // Plain SQL replacements for optional database views.
 // ============================================================================
 
+// Handles ecotwin fetch active experiment.
 function ecotwinFetchActiveExperiment(PDO $db): ?array
 {
     $stmt = $db->query("
@@ -28,6 +29,7 @@ function ecotwinFetchActiveExperiment(PDO $db): ?array
     return $row ?: null;
 }
 
+// Handles ecotwin fetch latest readings.
 function ecotwinFetchLatestReadings(PDO $db, int $greenhouseId, array $parameters = []): array
 {
     $sql = "
@@ -69,6 +71,7 @@ function ecotwinFetchLatestReadings(PDO $db, int $greenhouseId, array $parameter
     return $stmt->fetchAll();
 }
 
+// Handles ecotwin fetch latest readings map.
 function ecotwinFetchLatestReadingsMap(PDO $db, int $greenhouseId, array $parameters = []): array
 {
     $mapped = [];
@@ -78,6 +81,7 @@ function ecotwinFetchLatestReadingsMap(PDO $db, int $greenhouseId, array $parame
     return $mapped;
 }
 
+// Handles ecotwin fetch greenhouse overview.
 function ecotwinFetchGreenhouseOverview(PDO $db): array
 {
     $stmt = $db->query("
@@ -100,6 +104,7 @@ function ecotwinFetchGreenhouseOverview(PDO $db): array
     return $stmt->fetchAll();
 }
 
+// Handles ecotwin fetch open alerts.
 function ecotwinFetchOpenAlerts(PDO $db, string $greenhouseCode = '', int $limit = 20): array
 {
     $sql = "

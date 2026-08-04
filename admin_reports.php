@@ -466,6 +466,19 @@ function adminReportStatusClass(string $status): string {
     .admin-report-stack { display:grid; gap:24px; }
     .admin-report-table-wrap { overflow:auto; }
     .admin-report-table th, .admin-report-table td { white-space:nowrap; }
+    .activity-log-table { width:100%; table-layout:fixed; }
+    .activity-log-table th, .activity-log-table td {
+      white-space:normal;
+      overflow-wrap:anywhere;
+      word-break:break-word;
+      vertical-align:top;
+    }
+    .activity-log-table th:nth-child(1), .activity-log-table td:nth-child(1) { width:15%; }
+    .activity-log-table th:nth-child(2), .activity-log-table td:nth-child(2) { width:14%; }
+    .activity-log-table th:nth-child(3), .activity-log-table td:nth-child(3) { width:11%; }
+    .activity-log-table th:nth-child(4), .activity-log-table td:nth-child(4) { width:14%; }
+    .activity-log-table th:nth-child(5), .activity-log-table td:nth-child(5) { width:12%; }
+    .activity-log-table th:nth-child(6), .activity-log-table td:nth-child(6) { width:34%; }
     .admin-report-detail { max-width:360px; white-space:normal; color:#475569; }
     .admin-report-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
     .admin-report-actions .btn { padding:6px 12px; font-size:12px; }
@@ -715,7 +728,7 @@ function adminReportStatusClass(string $status): string {
         </div>
       </div>
       <div class="admin-report-table-wrap">
-        <table class="table admin-report-table">
+        <table class="table admin-report-table activity-log-table">
           <thead>
             <tr>
               <th>Timestamp</th>
@@ -902,6 +915,7 @@ function runAdminExport() {
   }, 2500);
 }
 
+// Handles set admin export loading.
 function setAdminExportLoading(button, loading) {
   button.disabled = loading;
   button.classList.toggle('is-exporting', loading);

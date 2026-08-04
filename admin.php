@@ -1272,6 +1272,7 @@ function initials(string $name): string
       ].forEach(id => document.getElementById(id).value = '');
     }
 
+    // Handles save plant.
     async function savePlant() {
       const name = document.getElementById('m-name').value.trim();
       if (!name) {
@@ -1383,6 +1384,7 @@ function initials(string $name): string
       };
     }
 
+    // Handles delete plant.
     async function deletePlant(id) {
       if (!confirm('Delete this plant profile? This cannot be undone.')) return;
       try {
@@ -1511,6 +1513,7 @@ function initials(string $name): string
       return `<div class="mini-thresh"><div class="mini-thresh-icon">${icon}</div><div class="mini-thresh-label">${label}</div><div class="mini-thresh-val">${val}</div></div>`;
     }
 
+    // Handles apply gh assignment.
     async function applyGhAssignment(gh) {
       if (greenhouseAssignmentLocked) {
         showToast('Greenhouse assignments are locked while an experiment is active.', 'warning');
@@ -1547,6 +1550,7 @@ function initials(string $name): string
       }
     }
 
+    // Handles clear gh assignment.
     async function clearGhAssignment(gh) {
       if (greenhouseAssignmentLocked) {
         showToast('Greenhouse assignments are locked while an experiment is active.', 'warning');
@@ -1741,6 +1745,7 @@ function initials(string $name): string
       fillSimulatorFromPlant();
     }
 
+    // Handles push simulator readings.
     async function pushSimulatorReadings() {
       const greenhouse = getSimulatorGreenhouse();
       const values = {};
@@ -1790,6 +1795,7 @@ function initials(string $name): string
       document.getElementById('userModal').style.display = 'none';
     }
 
+    // Handles save user.
     async function saveUser() {
       const name = document.getElementById('u-name').value.trim();
       const email = document.getElementById('u-email').value.trim();
@@ -1820,6 +1826,7 @@ function initials(string $name): string
     }
 
 
+    // Handles change user role dropdown.
     async function changeUserRoleDropdown(sel) {
       const id = sel.getAttribute('data-user-id');
       const newRole = sel.value;
@@ -1841,6 +1848,7 @@ function initials(string $name): string
       }
     }
 
+    // Handles delete user.
     async function deleteUser(id) {
       if (!confirm('Remove this user from the system?')) return;
       try {
@@ -1853,6 +1861,7 @@ function initials(string $name): string
       }
     }
 
+    // Handles update approval request state.
     function updateApprovalRequestState() {
       const body = document.getElementById('approvalRequestsBody');
       const badge = document.getElementById('pendingRequestsBadge');
@@ -1865,11 +1874,13 @@ function initials(string $name): string
       if (emptyState) emptyState.style.display = count > 0 ? 'none' : '';
     }
 
+    // Handles remove approval request row.
     function removeApprovalRequestRow(id) {
       document.getElementById('approval-row-' + id)?.remove();
       updateApprovalRequestState();
     }
 
+    // Handles reject account request.
     async function rejectAccountRequest(id) {
       if (!confirm('Reject this account request? This removes the pending user record.')) return;
       try {
@@ -1882,6 +1893,7 @@ function initials(string $name): string
       }
     }
 
+    // Handles approve user.
     async function approveUser(id) {
       if (!confirm('Approve this registration and activate the user account?')) return;
       try {
@@ -1918,6 +1930,7 @@ function initials(string $name): string
       return out;
     }
 
+    // Handles save sync settings.
     async function saveSyncSettings() {
       try {
         await api('admin/api/system.php', 'POST', {
@@ -1931,6 +1944,7 @@ function initials(string $name): string
       }
     }
 
+    // Handles save notification settings.
     async function saveNotificationSettings() {
       try {
         await api('admin/api/system.php', 'POST', {
@@ -1945,6 +1959,7 @@ function initials(string $name): string
       }
     }
 
+    // Handles save automation settings.
     async function saveAutomationSettings() {
       try {
         await api('admin/api/system.php', 'POST', {
@@ -1958,6 +1973,7 @@ function initials(string $name): string
       }
     }
 
+    // Handles run maintenance.
     async function runMaintenance(task) {
       const labels = {
         reset_calibration: 'Reset calibration flags?',

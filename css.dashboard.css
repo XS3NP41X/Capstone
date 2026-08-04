@@ -10,6 +10,21 @@
     min-width: 0;
 }
 
+/* Neomorphic module surfaces */
+body:not(.theme-dark):not(.theme-high-contrast) .summary-card,
+body:not(.theme-dark):not(.theme-high-contrast) .analytics-overview-card,
+body:not(.theme-dark):not(.theme-high-contrast) .visual-guide-card,
+body:not(.theme-dark):not(.theme-high-contrast) .greenhouse-status-card,
+body:not(.theme-dark):not(.theme-high-contrast) .hardware-card,
+body:not(.theme-dark):not(.theme-high-contrast) .hardware-section {
+  background: #e8f0ea !important;
+  border: 0 !important;
+  border-radius: 20px !important;
+  box-shadow: -9px -9px 18px rgba(255,255,255,.92), 9px 9px 18px rgba(93,118,101,.23) !important;
+}
+body:not(.theme-dark):not(.theme-high-contrast) .summary-grid,
+body:not(.theme-dark):not(.theme-high-contrast) .greenhouse-status-grid { padding: 5px; }
+
 .summary-card {
     background: white;
     border: 1px solid #E5E7EB;
@@ -1418,4 +1433,32 @@
     background: var(--ui-surface-soft, #f8fbf9) !important;
     border: 1px solid var(--ui-border, #d9e4dd);
     box-shadow: none !important;
+}
+
+/* Final module surface override: intentionally last so legacy white rules cannot repaint interiors. */
+body:not(.theme-dark):not(.theme-high-contrast) :is(.summary-card, .analytics-overview-card, .visual-guide-card, .greenhouse-status-card, .hardware-card, .hardware-section, .parameter-tile, .param-item, .mesh-panel, .section-explainer, .greenhouse-model, .greenhouse-readable-summary) {
+    background: #e8f0ea !important;
+    border-color: transparent !important;
+    box-shadow: -7px -7px 15px rgba(255,255,255,.9), 7px 7px 15px rgba(93,118,101,.22) !important;
+}
+
+/* The greenhouse overview shell shown on the dashboard. Kept explicit for older browsers. */
+body.theme-light .greenhouse-status-card {
+    background-color: #e8f0ea !important;
+    background-image: none !important;
+    border: 0 !important;
+    box-shadow: -10px -10px 20px rgba(255,255,255,.92), 10px 10px 20px rgba(93,118,101,.24) !important;
+}
+
+/* Exact dashboard shells — unqualified so custom preference body classes cannot bypass them. */
+.greenhouse-status-card,
+.summary-card,
+.analytics-overview-card,
+.visual-guide-card,
+.hardware-card,
+.dashboard-guide {
+    background: #e8f0ea !important;
+    background-image: none !important;
+    border: 0 !important;
+    box-shadow: -10px -10px 20px rgba(255,255,255,.92), 10px 10px 20px rgba(93,118,101,.24) !important;
 }

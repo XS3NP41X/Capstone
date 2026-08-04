@@ -1640,6 +1640,7 @@ foreach ($sensors as $s) {
       openSettingsForm('profileSection', false);
     }
 
+    // Handles save profile settings.
     async function saveProfileSettings() {
       const profile = getProfilePayload();
       const fd = new FormData();
@@ -1678,6 +1679,7 @@ foreach ($sensors as $s) {
       }
     }
 
+    // Handles update password.
     async function updatePassword() {
       const currentPassword = document.getElementById('account_current_password').value;
       const newPassword = document.getElementById('account_new_password').value;
@@ -1709,6 +1711,7 @@ foreach ($sensors as $s) {
       }
     }
 
+    // Handles save preferences.
     async function savePreferences() {
       const preferences = collectPreferences();
       const fd = new FormData();
@@ -1784,6 +1787,7 @@ foreach ($sensors as $s) {
     function cancelConfigEdit(key) {
       document.getElementById('edit-' + key).classList.remove('open');
     }
+    // Handles save config.
     async function saveConfig(key) {
       const value = document.getElementById('inp-' + key).value.trim();
       const fd = new FormData();
@@ -1851,6 +1855,7 @@ foreach ($sensors as $s) {
       if (!document.getElementById('maintenanceModal')) return;
       document.getElementById('maintenanceModal').classList.remove('open');
     }
+    // Handles submit maintenance log.
     async function submitMaintenanceLog() {
       if (!document.getElementById('maintenanceModal')) return;
       const fd = new FormData();

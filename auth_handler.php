@@ -8,6 +8,7 @@ require_once __DIR__ . '/config/security.php';
 
 header('Content-Type: application/json');
 
+// Handles ecotwin login destination.
 function ecotwin_login_destination(PDO $pdo, string $role): string
 {
     if ($role === 'admin') {

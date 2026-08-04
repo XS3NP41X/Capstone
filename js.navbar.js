@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   `;
   document.body.prepend(loader);
 
+  // Handles finish loading.
   const finishLoading = () => {
     document.body.classList.remove('ecotwin-loading');
     loader.classList.add('is-hidden');
@@ -87,6 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const items = group.querySelectorAll('[data-filter-item]');
     let active = 'all';
 
+    // Handles apply filter.
     const applyFilter = () => {
       const term = (search?.value || '').trim().toLowerCase();
       items.forEach((item) => {
@@ -112,6 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (!reduceMotion) {
     const parallaxEls = document.querySelectorAll('[data-parallax]');
+    // Handles update parallax.
     const updateParallax = () => {
       const y = window.scrollY || 0;
       parallaxEls.forEach((el) => {

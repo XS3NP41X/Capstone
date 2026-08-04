@@ -72,20 +72,24 @@ const byte STEPPER_SEQUENCE[8][4] = {
   {1, 0, 0, 1}
 };
 
+// Handles analog to ph.
 float analogToPh(int raw) {
   float voltage = raw * (5.0 / 1023.0);
   return 7.0 + ((2.5 - voltage) / 0.18);
 }
 
+// Handles analog to tds.
 float analogToTds(int raw) {
   float voltage = raw * (5.0 / 1023.0);
   return (133.42 * voltage * voltage * voltage - 255.86 * voltage * voltage + 857.39 * voltage) * 0.5;
 }
 
+// Handles valid float.
 bool validFloat(float value) {
   return !isnan(value) && value > -100.0 && value < 2000.0;
 }
 
+// Handles print hardware item.
 void printHardwareItem(const char *label, const char *type, const char *status, const char *model, bool comma) {
   if (comma) esp32Serial.print(',');
   esp32Serial.print("{\"label\":\"");
@@ -101,11 +105,13 @@ void printHardwareItem(const char *label, const char *type, const char *status, 
   esp32Serial.print("\"}");
 }
 
+// Handles add reading prefix.
 void addReadingPrefix(bool &firstReading) {
   if (!firstReading) esp32Serial.print(',');
   firstReading = false;
 }
 
+// Handles send payload.
 void sendPayload() {
   float airTemp = dht.readTemperature();
   float humidity = dht.readHumidity();
@@ -192,6 +198,7 @@ void sendPayload() {
   Serial.println(waterLevelRaw);
 }
 
+// Handles set stepper pins.
 void setStepperPins(byte index) {
   digitalWrite(STEPPER_IN1_PIN, STEPPER_SEQUENCE[index][0]);
   digitalWrite(STEPPER_IN2_PIN, STEPPER_SEQUENCE[index][1]);
@@ -199,6 +206,7 @@ void setStepperPins(byte index) {
   digitalWrite(STEPPER_IN4_PIN, STEPPER_SEQUENCE[index][3]);
 }
 
+// Handles release stepper.
 void releaseStepper() {
   digitalWrite(STEPPER_IN1_PIN, LOW);
   digitalWrite(STEPPER_IN2_PIN, LOW);
@@ -206,6 +214,7 @@ void releaseStepper() {
   digitalWrite(STEPPER_IN4_PIN, LOW);
 }
 
+// Handles move stepper.
 void moveStepper(int steps, int direction) {
   for (int i = 0; i < steps; i++) {
     byte index = direction > 0 ? i % 8 : 7 - (i % 8);
@@ -215,6 +224,7 @@ void moveStepper(int steps, int direction) {
   releaseStepper();
 }
 
+// Handles send ack.
 void sendAck(const char *message) {
   esp32Serial.print("{\"ack\":\"");
   esp32Serial.print(message);
@@ -223,6 +233,7 @@ void sendAck(const char *message) {
   Serial.println(message);
 }
 
+// Handles handle command.
 void handleCommand(String command) {
   command.trim();
   command.toUpperCase();
@@ -255,6 +266,7 @@ void handleCommand(String command) {
   }
 }
 
+// Handles read esp32 commands.
 void readEsp32Commands() {
   while (esp32Serial.available()) {
     char c = (char)esp32Serial.read();
@@ -268,6 +280,7 @@ void readEsp32Commands() {
   }
 }
 
+// Handles setup pins.
 void setupPins() {
   pinMode(RELAY_PIN, OUTPUT);
   digitalWrite(RELAY_PIN, LOW);
@@ -279,6 +292,7 @@ void setupPins() {
   releaseStepper();
 }
 
+// Handles setup.
 void setup() {
   Serial.begin(9600);
   esp32Serial.begin(9600);
@@ -297,6 +311,7 @@ void setup() {
   Serial.println("Full JSON is sent on A4 SoftwareSerial, not USB Serial.");
 }
 
+// Handles loop.
 void loop() {
   readEsp32Commands();
 

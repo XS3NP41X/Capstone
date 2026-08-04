@@ -8,6 +8,17 @@
     border-bottom: 2px solid #E5E7EB;
 }
 
+/* Neomorphic module surfaces */
+body:not(.theme-dark):not(.theme-high-contrast) .greenhouse-content .card,
+body:not(.theme-dark):not(.theme-high-contrast) .greenhouse-content section,
+body:not(.theme-dark):not(.theme-high-contrast) .control-panel,
+body:not(.theme-dark):not(.theme-high-contrast) .chart-container {
+  background: #e8f0ea !important;
+  border: 0 !important;
+  border-radius: 20px !important;
+  box-shadow: -9px -9px 18px rgba(255,255,255,.92), 9px 9px 18px rgba(93,118,101,.23) !important;
+}
+
 .tab-button {
     padding: 12px 32px;
     font-size: 16px;
@@ -687,4 +698,11 @@
 .actuator-icon {
     background: var(--ui-green-soft, #eef8f1);
     color: var(--ui-green, #2e8b57) !important;
+}
+
+/* Final module surface override */
+body:not(.theme-dark):not(.theme-high-contrast) :is(.greenhouse-content .card, .greenhouse-content section, .parameter-tile, .threshold-group, .chart-placeholder, .actuator-item, .sensor-item, .control-panel, .chart-container) {
+    background: #e8f0ea !important;
+    border-color: transparent !important;
+    box-shadow: -7px -7px 15px rgba(255,255,255,.9), 7px 7px 15px rgba(93,118,101,.22) !important;
 }

@@ -6,6 +6,7 @@
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/security.php';
 
+// Handles ecotwin login destination.
 function ecotwin_login_destination(PDO $pdo, string $role): string
 {
     if ($role === 'admin') {

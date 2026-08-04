@@ -10,6 +10,18 @@
     overflow: hidden;
 }
 
+/* Neomorphic module surfaces */
+body:not(.theme-dark):not(.theme-high-contrast) .experiment-detail-card,
+body:not(.theme-dark):not(.theme-high-contrast) .experiment-card,
+body:not(.theme-dark):not(.theme-high-contrast) .create-experiment-card,
+body:not(.theme-dark):not(.theme-high-contrast) .exp-greenhouse-card {
+  background: #e8f0ea !important;
+  border: 0 !important;
+  border-radius: 20px !important;
+  box-shadow: -9px -9px 18px rgba(255,255,255,.92), 9px 9px 18px rgba(93,118,101,.23) !important;
+}
+body:not(.theme-dark):not(.theme-high-contrast) .experiment-banner { box-shadow: -6px -6px 12px rgba(255,255,255,.5), 8px 8px 16px rgba(29,95,56,.25) !important; }
+
 .experiment-detail-card.active {
     border-color: #2E8B57;
     box-shadow: 0 0 0 3px rgba(13,148,136,0.1);
@@ -426,4 +438,11 @@
     background: var(--ui-warning-soft, #fffbeb) !important;
     border-color: #fde68a !important;
     box-shadow: none !important;
+}
+
+/* Final module surface override */
+body:not(.theme-dark):not(.theme-high-contrast) :is(.experiment-detail-card, .experiment-card, .create-experiment-card, .exp-greenhouse-card, .exp-meta, .gh-assignment, .form-section, .timeline-item, .lock-notice) {
+    background: #e8f0ea !important;
+    border-color: transparent !important;
+    box-shadow: -7px -7px 15px rgba(255,255,255,.9), 7px 7px 15px rgba(93,118,101,.22) !important;
 }
